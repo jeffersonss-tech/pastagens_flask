@@ -651,6 +651,18 @@
             if (!mapPiquetes) {
                 mapPiquetes = L.map('map-piquetes').setView([mapaLat, mapaLng], 15);
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
+                
+                // Adicionar marcador da sede da fazenda se tiver coordenadas
+                {% if fazenda.latitude_sede and fazenda.longitude_sede %}
+                L.marker([mapaLat, mapaLng], {
+                    icon: L.divIcon({
+                        className: 'fazenda-marker',
+                        html: '🏠',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 30]
+                    })
+                }).addTo(mapPiquetes).bindPopup('<strong>{{ fazenda.nome }}</strong><br>Sede da fazenda');
+                {% endif %}
             }
             mapPiquetes.invalidateSize();
         }
@@ -1315,9 +1327,25 @@
                                 📐 ${p.area || 0} hectares<br>
                                 📏 ${alturaMostrada || '?'}/${p.altura_entrada || '?'} cm${badgeFonte}${diasInfo}${avisoUrgente}
                             `);
+                            
+                            // Add label in center of polygon (igual ao dashboard)
+                            if (coords.length > 0) {
+                                let latSum = 0, lngSum = 0;
+                                coords.forEach(c => { latSum += c[0]; lngSum += c[1]; });
+                                const centerLat = latSum / coords.length;
+                                const centerLng = lngSum / coords.length;
+                                
+                                const label = L.divIcon({
+                                    className: 'piquete-label',
+                                    html: `<div style="background:rgba(255,255,255,0.9);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;color:#1a1a2e;text-shadow:1px 1px 0 #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);">${p.nome}</div>`,
+                                    iconSize: [80, 20],
+                                    iconAnchor: [40, 10]
+                                });
+                                L.marker([centerLat, centerLng], {icon: label}).addTo(mapPiquetes);
+                            }
                         }
                     } catch (e) {
-                        console.log('Erro ao parsear geometria do piquete', p.id);
+                        console.log('Erro ao desenhar poligono no mapa de piquetes', p.id);
                     }
                 }
             });
