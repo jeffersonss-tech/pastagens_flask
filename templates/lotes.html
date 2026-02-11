@@ -478,6 +478,20 @@
         window.onload = function() {
             carregarLotes();
             carregarPiquetesSelect();
+            
+            // Auto-refresh a cada 30 segundos para manter status atualizado
+            setInterval(() => {
+                carregarLotes();
+                carregarPiquetesSelect();
+            }, 30000);
+            
+            // Atualizar ao ganhar foco (quando usuário volta da aba de piquetes)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    carregarLotes();
+                    carregarPiquetesSelect();
+                }
+            });
         };
         
         function carregarLotes() {
@@ -582,7 +596,7 @@
                     let proximoHtml = '';
                     if (sugestoes.length > 0) {
                         // Contar aptos e em recuperação
-                        const aptos = sugestoes.filter(p => p.status === 'APTO').length;
+                        const aptos = sugestoes.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA').length;
                         const emRecup = sugestoes.filter(p => p.status === 'RECUPERANDO').length;
                         
                         proximoHtml = `
@@ -601,7 +615,7 @@
                     
                     // CORREÇÃO 4: Botões - orientação clara do que fazer
                     let actions = '';
-                    const aptos = sugestoes.filter(p => p.status === 'APTO');
+                    const aptos = sugestoes.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA');
                     const emRecuperando = sugestoes.filter(p => p.status === 'RECUPERANDO');
                     
                     if (temPiquete && aptos.length > 0) {
@@ -717,7 +731,7 @@
                     const container = document.getElementById('sugestoes-piquetes');
                     const semAptos = document.getElementById('sem-piquetes-aptos');
                     
-                    const aptos = data.filter(p => p.status === 'APTO');
+                    const aptos = data.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA');
                     
                     if (aptos.length === 0) {
                         container.innerHTML = '';
@@ -1055,10 +1069,11 @@
                     }
                     
                     container.innerHTML = data.map((p, i) => {
-                        const emoji = p.status === 'APTO' ? '🟢' : '🟡';
-                        const statusText = p.status === 'APTO' ? 'APTO' : 'RECUPERANDO';
+                        const isApto = p.status === 'APTO' || p.status === 'APTO_ALCANCADA';
+                        const emoji = isApto ? '🟢' : '🟡';
+                        const statusText = isApto ? 'APTO' : 'RECUPERANDO';
                         
-                        if (p.status === 'APTO') {
+                        if (isApto) {
                             // Piquete apto - pronto para receber
                             return `
                                 <div class="sugestao-item apto" onclick="selecionarPiquete(${p.id}, this)">
