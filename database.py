@@ -5,6 +5,7 @@ import sqlite3
 import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from services.manejo_service import calcular_altura_ocupacao, get_consumo_base
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "pastagens.db")
 
@@ -1336,15 +1337,39 @@ def calcular_altura_estimada(piquete):
     altura_entrada = piquete.get('altura_entrada', 25) or 25
     
     if estado == 'ocupado':
-        # Em ocupação: altura diminui com o tempo
+        # Em ocupação: usar modelo intermediário com taxa de lotação
+        # Dados do lote para cálculo de lotação
+        quantidade_animais = piquete.get('animais_no_piquete', 0) or 0
+        area_piquete = piquete.get('area', 0) or 0
+        consumo_base = get_consumo_base(capim)
+        
+        # Se tiver dados do lote, usar modelo avançado
+        if quantidade_animais > 0 and area_piquete > 0:
+            try:
+                altura_calc = calcular_altura_ocupacao(
+                    altura_entrada=altura_entrada,
+                    altura_saida=altura_saida,
+                    dias_ocupacao=dias_ocupacao,
+                    consumo_base_capim=consumo_base,
+                    quantidade_animais=quantidade_animais,
+                    area_piquete=area_piquete
+                )
+                return altura_calc, 'estimada'
+            except Exception:
+                # Fallback para modelo simples se houver erro
+                pass
+        
+        # Fallback: modelo linear simples
         consumo_diario = calcular_consumo_diario(capim)
         altura_calc = altura_entrada - (dias_ocupacao * consumo_diario)
-        return max(0, round(altura_calc, 1)), 'estimada'
+        return max(altura_saida, round(altura_calc, 1)), 'estimada'
     else:
         # Em recuperação: altura aumenta com o crescimento
+        # LIMITE: Altura máxima é 1.5x a altura de entrada (evita crescimento infinito)
         crescimento_diario = calcular_crescimento_diario(capim)
+        altura_maxima = altura_entrada * 1.5  # Teto de crescimento
         altura_calc = altura_saida + (dias_descanso * crescimento_diario)
-        return round(altura_calc, 1), 'estimada'
+        return min(round(altura_calc, 1), altura_maxima), 'estimada'
 
 def calcular_crescimento_diario(capim):
     """Retorna crescimento diário estimado do capim em cm/dia"""
