@@ -24,9 +24,9 @@ def login():
             session['role'] = user['role']
             return redirect(url_for('home'))
         else:
-            return render_template('auth/login.html', error='Usuário ou senha inválidos!')
+            return render_template('login.html', error='Usuário ou senha inválidos!')
     
-    return render_template('auth/login.html')
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
@@ -38,7 +38,7 @@ def registrar():
     """Página de registro"""
     if 'user_id' in session:
         return redirect(url_for('home'))
-    return render_template('auth/registrar.html')
+    return render_template('registrar.html')
 
 # ============ HOME ============
 @app.route('/')
@@ -49,7 +49,7 @@ def home():
     from database import listar_fazendas_usuario, relatorio_estatisticas
     fazendas = listar_fazendas_usuario(session['user_id'])
     stats = relatorio_estatisticas()
-    return render_template('pages/home.html', fazendas=fazendas, stats=stats, usuario=session)
+    return render_template('home.html', fazendas=fazendas, stats=stats, usuario=session)
 
 # ============ FAZENDA ============
 @app.route('/fazenda/<int:id>')
@@ -75,25 +75,7 @@ def fazenda(id):
         'area_total': sum(p.get('area', 0) or 0 for p in piquetes)
     }
     
-    return render_template('fazenda/dashboard.html', fazenda=fazenda, piquetes=piquetes, stats=stats, usuario=session, page='dashboard')
-
-@app.route('/fazenda/<int:id>/piquetes')
-def piquetes(id):
-    """Página de piquetes"""
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    from database import get_fazenda
-    fazenda = get_fazenda(id)
-    
-    if not fazenda:
-        return "Fazenda não encontrada", 404
-    
-    if fazenda['usuario_id'] != session['user_id']:
-        return "Acesso negado", 403
-    
-    session['fazenda_id'] = id
-    return render_template('fazenda/piquetes.html', fazenda=fazenda)
+    return render_template('fazenda.html', fazenda=fazenda, piquetes=piquetes, stats=stats, usuario=session)
 
 @app.route('/api/fazendas', methods=['POST'])
 def api_criar_fazenda():
@@ -127,7 +109,7 @@ def lotes(id):
         return "Acesso negado", 403
     
     session['fazenda_id'] = id
-    return render_template('fazenda/lotes.html', fazenda=fazenda, usuario=session, page='lotes')
+    return render_template('lotes.html', fazenda=fazenda, usuario=session)
 
 @app.route('/fazenda/<int:id>/rotacao')
 def rotacao(id):
@@ -145,7 +127,7 @@ def rotacao(id):
         return "Acesso negado", 403
     
     session['fazenda_id'] = id
-    return render_template('fazenda/rotacao.html', fazenda=fazenda, page='rotacao')
+    return render_template('rotacao.html', fazenda=fazenda)
 
 # ============ APIs ============
 @app.route('/api/lotes', methods=['GET'])

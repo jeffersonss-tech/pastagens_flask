@@ -1,34 +1,6 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
 venv/
-env/
-.venv/
-*.egg-info/
-dist/
-build/
-*.egg
-MANIFEST
-
-# Flask
-instance/
-.webassets-cache
-*.log
-
-# Database
+__pycache__/
 *.db
-*.sqlite3
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# OS
-Thumbs.db
+git add .
+git commit -m "Sua mensagem aqui"
+git push
