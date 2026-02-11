@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Pastagens</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #f0f2f5; }
+        
+        .container { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 320px;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .main { flex: 1; display: flex; flex-direction: column; }
+        
+        .header {
+            background: white;
+            padding: 15px 25px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
+        
+        #map { flex: 1; min-height: 500px; }
+        
+        h1 { font-size: 1.3rem; margin-bottom: 20px; color: #00d9ff; }
+        h2 { font-size: 1.1rem; margin: 20px 0 15px; color: #00d9ff; }
+        h3 { font-size: 0.95rem; margin: 15px 0 10px; color: #aaa; }
+        
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #16213e;
+            color: white;
+            font-size: 14px;
+        }
+        input:focus, select:focus { outline: none; border-color: #00d9ff; }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 3px;
+        }
+        .btn-primary { background: #00d9ff; color: #1a1a2e; font-weight: bold; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-card {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card strong { display: block; font-size: 1.5rem; color: #00d9ff; }
+        .stat-card span { font-size: 11px; color: #aaa; }
+        
+        .card {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab {
+            padding: 8px 15px;
+            background: #16213e;
+            color: #aaa;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+        }
+        .tab.active { background: #00d9ff; color: #1a1a2e; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .item-list { max-height: 300px; overflow-y: auto; }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #0f3460;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+        .item-info strong { display: block; font-size: 14px; }
+        .item-info span { font-size: 12px; color: #aaa; }
+        
+        .badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-green { background: #28a745; color: white; }
+        .badge-red { background: #dc3545; color: white; }
+        .badge-yellow { background: #ffc107; color: black; }
+        .badge-blue { background: #17a2b8; color: white; }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #1a1a2e;
+            padding: 25px;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>🐄 Pastagens</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <strong id="stat_fazendas">0</strong>
+                    <span>Fazendas</span>
+                </div>
+                <div class="stat-card">
+                    <strong id="stat_piquetes">0</strong>
+                    <span>Piquetes</span>
+                </div>
+                <div class="stat-card">
+                    <strong id="stat_area">0</strong>
+                    <span>Hectares</span>
+                </div>
+                <div class="stat-card">
+                    <strong id="stat_animais">0</strong>
+                    <span>Animais</span>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('fazendas')">Fazendas</button>
+                <button class="tab" onclick="showTab('piquetes')">Piquetes</button>
+                <button class="tab" onclick="showTab('animais')">Animais</button>
+                <button class="tab" onclick="showTab('movimentacoes')">Mov.</button>
+                <button class="tab" onclick="showTab('logs')">Logs</button>
+            </div>
+            
+            <!-- TAB FAZENDAS -->
+            <div id="tab_fazendas" class="tab-content active">
+                <div class="card">
+                    <h3>Nova Fazenda</h3>
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input type="text" id="nome_fazenda" placeholder="Ex: Fazenda Sta. Rita">
+                    </div>
+                    <div class="form-group">
+                        <label>Área Total (ha)</label>
+                        <input type="number" id="area_fazenda" value="0" step="0.1">
+                    </div>
+                    <button class="btn btn-primary" onclick="criarFazenda()">Criar</button>
+                </div>
+                
+                <h3>Minhas Fazendas</h3>
+                <div id="lista_fazendas" class="item-list"></div>
+            </div>
+            
+            <!-- TAB PIQUETES -->
+            <div id="tab_piquetes" class="tab-content">
+                <div class="card">
+                    <h3>Selecionar Fazenda</h3>
+                    <select id="fazenda_select" onchange="carregarFazenda(this.value)">
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+                
+                <div id="piquetes_fazenda" style="display:none;">
+                    <div class="card">
+                        <h3>Novo Piquete</h3>
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" id="nome_piquete" placeholder="Ex: Piquete 01">
+                        </div>
+                        <div class="form-group">
+                            <label>Capim</label>
+                            <select id="capim_select">
+                                <option value="Brachiaria">Brachiaria</option>
+                                <option value="Mombaça">Mombaça</option>
+                                <option value="Tifton 85">Tifton 85</option>
+                                <option value="Andropogon">Andropogon</option>
+                                <option value="Capim Aruana">Capim Aruana</option>
+                                <option value="Natalino">Natalino</option>
+                                <option value="MG-5">MG-5</option>
+                                <option value="Quicuio">Quicuio</option>
+                                <option value="Pangola">Pangola</option>
+                                <option value="Estrella">Estrella</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Área (ha)</label>
+                            <input type="number" id="area_piquete" value="0" step="0.1">
+                        </div>
+                        <button class="btn btn-success" onclick="salvarPiquete()">💾 Salvar</button>
+                        <button class="btn btn-warning" onclick="desfazer()">↩️</button>
+                        <button class="btn btn-danger" onclick="limpar()">🗑️</button>
+                    </div>
+                    
+                    <div id="lista_piquetes" class="item-list"></div>
+                </div>
+            </div>
+            
+            <!-- TAB ANIMAIS -->
+            <div id="tab_animais" class="tab-content">
+                <div class="card">
+                    <h3>Novo Animal/Lote</h3>
+                    <div class="form-group">
+                        <label>Nome/Identificação</label>
+                        <input type="text" id="nome_animal" placeholder="Ex: Lote 01 - Nelore">
+                    </div>
+                    <div class="form-group">
+                        <label>Quantidade</label>
+                        <input type="number" id="quantidade_animal" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <select id="categoria_animal">
+                            <option value="Bovino">Bovino</option>
+                            <option value="Equino">Equino</option>
+                            <option value="Ovino">Ovino</option>
+                            <option value="Caprino">Caprino</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Peso Médio (kg)</label>
+                        <input type="number" id="peso_animal" value="0" step="0.1">
+                    </div>
+                    <button class="btn btn-primary" onclick="criarAnimal()">Adicionar</button>
+                </div>
+                
+                <h3>Meus Animais</h3>
+                <div id="lista_animais" class="item-list"></div>
+            </div>
+            
+            <!-- TAB MOVIMENTAÇÕES -->
+            <div id="tab_movimentacoes" class="tab-content">
+                <div class="card">
+                    <h3>Nova Movimentação</h3>
+                    <div class="form-group">
+                        <label>Animal/Lote</label>
+                        <select id="mov_animal">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Origem (De)</label>
+                        <select id="mov_origem">
+                            <option value="">Nenhuma</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Destino (Para)</label>
+                        <select id="mov_destino">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantidade</label>
+                        <input type="number" id="mov_quantidade" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Motivo</label>
+                        <input type="text" id="mov_motivo" placeholder="Ex: Rotação de pasto">
+                    </div>
+                    <button class="btn btn-primary" onclick="criarMovimentacao()">Movimentar</button>
+                </div>
+                
+                <h3>Histórico</h3>
+                <div id="lista_movimentacoes" class="item-list"></div>
+            </div>
+            
+            <!-- TAB LOGS -->
+            <div id="tab_logs" class="tab-content">
+                <h3>Logs de Auditoria</h3>
+                <div id="lista_logs" class="item-list"></div>
+            </div>
+        </div>
+        
+        <div class="main">
+            <div class="header">
+                <h2 id="page_title">🏠 Dashboard</h2>
+                <span id="fazenda_atual" style="color: #666;"></span>
+            </div>
+            <div class="content">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Variáveis globais
+        let map, layerGroup;
+        let pontos = [];
+        let currentFazendaId = null;
+        let allPiquetes = [];
+        let allAnimais = [];
+        
+        // Inicializar
+        window.onload = function() {
+            initMap();
+            carregarEstatisticas();
+            carregarFazendas();
+            carregarAnimais();
+            carregarMovimentacoes();
+        };
+        
+        // ============ MAPA ============
+        function initMap() {
+            map = L.map('map').setView([-15.7942, -47.8822], 10);
+            
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Esri'
+            }).addTo(map);
+            
+            layerGroup = L.layerGroup().addTo(map);
+            
+            map.on('click', function(e) {
+                if (!currentFazendaId) return showToast('Selecione uma fazenda!');
+                pontos.push([e.latlng.lat, e.latlng.lat, e.latlng.lng]);
+                atualizarMapa();
+            });
+        }
+        
+        function atualizarMapa() {
+            layerGroup.clearLayers();
+            
+            pontos.forEach((p, i) => {
+                L.circleMarker([p[0], p[2]], {
+                    color: 'red', fillColor: 'red', fillOpacity: 1, radius: 6
+                }).addTo(layerGroup);
+            });
+            
+            if (pontos.length >= 2) {
+                L.polyline(pontos.map(p => [p[0], p[2]]), {color: 'red', weight: 2}).addTo(layerGroup);
+            }
+            
+            if (pontos.length >= 3) {
+                L.polygon(pontos.map(p => [p[0], p[2]]), {color: '#228B22', weight: 3, fill: true, fillOpacity: 0.3}).addTo(layerGroup);
+            }
+        }
+        
+        // ============ TABS ============
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab_' + tab).classList.add('active');
+        }
+        
+        // ============ TOAST ============
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+        
+        // ============ ESTATÍSTICAS ============
+        function carregarEstatisticas() {
+            fetch('/api/relatorios/estatisticas')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('stat_fazendas').textContent = data.fazendas;
+                    document.getElementById('stat_piquetes').textContent = data.piquetes;
+                    document.getElementById('stat_area').textContent = (data.area_total || 0).toFixed(2);
+                    document.getElementById('stat_animais').textContent = data.animais;
+                });
+        }
+        
+        // ============ FAZENDAS ============
+        function carregarFazendas() {
+            fetch('/api/fazendas')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('lista_fazendas').innerHTML = data.map(f => `
+                        <div class="item">
+                            <div class="item-info">
+                                <strong>${f.nome}</strong>
+                                <span>${f.area || 0} ha</span>
+                            </div>
+                            <div>
+                                <a href="/fazenda/${f.id}" class="btn btn-info btn-sm">Abrir</a>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('fazenda_select').innerHTML = '<option value="">Selecione...</option>' + 
+                        data.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+                });
+        }
+        
+        function criarFazenda() {
+            const nome = document.getElementById('nome_fazenda').value;
+            if (!nome) return showToast('Digite o nome!');
+            
+            fetch('/api/fazendas', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({nome, area: parseFloat(document.getElementById('area_fazenda').value) || 0})
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast('Fazenda criada!');
+                document.getElementById('nome_fazenda').value = '';
+                carregarEstatisticas();
+                carregarFazendas();
+            });
+        }
+        
+        // ============ PIQUETES ============
+        function carregarFazenda(id) {
+            if (!id) {
+                document.getElementById('piquetes_fazenda').style.display = 'none';
+                currentFazendaId = null;
+                return;
+            }
+            
+            currentFazendaId = id;
+            document.getElementById('piquetes_fazenda').style.display = 'block';
+            document.getElementById('page_title').textContent = '📍 Piquetes';
+            
+            fetch('/api/piquetes?fazenda_id=' + id)
+                .then(r => r.json())
+                .then(data => {
+                    allPiquetes = data;
+                    desenharPiquetesMapa(data);
+                    document.getElementById('lista_piquetes').innerHTML = data.map(p => `
+                        <div class="item">
+                            <div class="item-info">
+                                <strong>${p.nome}</strong>
+                                <span>${p.area || 0} ha - ${p.capim || 'N/I'}</span>
+                            </div>
+                            <span class="badge badge-${p.estado === 'disponivel' ? 'green' : 'red'}">${p.estado || 'N/I'}</span>
+                        </div>
+                    `).join('');
+                });
+        }
+        
+        function desenharPiquetesMapa(piquetes) {
+            allPiquetes = piquetes;
+            // Limpar e desenhar piquetes
+        }
+        
+        function salvarPiquete() {
+            if (!currentFazendaId) return showToast('Selecione uma fazenda!');
+            if (pontos.length < 3) return showToast('Desenhe pelo menos 3 pontos!');
+            
+            const nome = document.getElementById('nome_piquete').value || 'Piquete_' + Date.now();
+            const capim = document.getElementById('capim_select').value;
+            const area = parseFloat(document.getElementById('area_piquete').value) || 0;
+            
+            // Criar geometria
+            const coords = pontos.map(p => [p[2], p[0]]); // lon, lat
+            coords.push(coords[0]);
+            const geometria = JSON.stringify({type: 'Polygon', coordinates: [coords]});
+            
+            fetch('/api/piquetes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    fazenda_id: currentFazendaId,
+                    nome,
+                    capim,
+                    area,
+                    geometria
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast('Piquete salvo!');
+                limpar();
+                carregarFazenda(currentFazendaId);
+                carregarEstatisticas();
+            });
+        }
+        
+        function desfazer() {
+            pontos.pop();
+            atualizarMapa();
+        }
+        
+        function limpar() {
+            pontos = [];
+            atualizarMapa();
+        }
+        
+        // ============ ANIMAIS ============
+        function carregarAnimais() {
+            fetch('/api/animais')
+                .then(r => r.json())
+                .then(data => {
+                    allAnimais = data;
+                    document.getElementById('lista_animais').innerHTML = data.map(a => `
+                        <div class="item">
+                            <div class="item-info">
+                                <strong>${a.nome}</strong>
+                                <span>${a.quantidade || 0} ${a.categoria || ''}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('mov_animal').innerHTML = '<option value="">Selecione...</option>' + 
+                        data.map(a => `<option value="${a.id}">${a.nome} (${a.quantidade || 0})</option>`).join('');
+                });
+        }
+        
+        function criarAnimal() {
+            const nome = document.getElementById('nome_animal').value;
+            if (!nome) return showToast('Digite o nome!');
+            
+            fetch('/api/animais', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    nome,
+                    quantidade: parseInt(document.getElementById('quantidade_animal').value) || 1,
+                    categoria: document.getElementById('categoria_animal').value,
+                    peso_medio: parseFloat(document.getElementById('peso_animal').value) || 0
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast('Animal adicionado!');
+                document.getElementById('nome_animal').value = '';
+                carregarAnimais();
+                carregarEstatisticas();
+            });
+        }
+        
+        // ============ MOVIMENTAÇÕES ============
+        function carregarMovimentacoes() {
+            fetch('/api/movimentacoes')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('lista_movimentacoes').innerHTML = data.map(m => `
+                        <div class="item">
+                            <div class="item-info">
+                                <strong>${m.animal_nome || 'N/I'}</strong>
+                                <span>${m.origem_nome || '-'} → ${m.destino_nome || '-'}</span>
+                            </div>
+                            <span style="font-size:11px;color:#666;">${new Date(m.data_movimentacao).toLocaleDateString()}</span>
+                        </div>
+                    `).join('');
+                    
+                    // Preencher selects
+                    const selectOrigem = document.getElementById('mov_origem');
+                    const selectDestino = document.getElementById('mov_destino');
+                    fetch('/api/piquetes')
+                        .then(r => r.json())
+                        .then(piquetes => {
+                            const options = '<option value="">Nenhuma</option>' + 
+                                piquetes.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+                            selectOrigem.innerHTML = options;
+                            selectDestino.innerHTML = options;
+                        });
+                });
+        }
+        
+        function criarMovimentacao() {
+            const animal_id = document.getElementById('mov_animal').value;
+            if (!animal_id) return showToast('Selecione um animal!');
+            
+            fetch('/api/movimentacoes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    animal_id: parseInt(animal_id),
+                    piquete_origem_id: document.getElementById('mov_origem').value || null,
+                    piquete_destino_id: document.getElementById('mov_destino').value || null,
+                    quantidade: parseInt(document.getElementById('mov_quantidade').value) || 1,
+                    motivo: document.getElementById('mov_motivo').value
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast('Movimentação registrada!');
+                carregarMovimentacoes();
+            });
+        }
+        
+        // ============ LOGS ============
+        function carregarLogs() {
+            fetch('/api/logs')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('lista_logs').innerHTML = data.slice(0, 50).map(l => `
+                        <div class="item">
+                            <div class="item-info">
+                                <strong>${l.acao} ${l.tabela}</strong>
+                                <span>${new Date(l.created_at).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                });
+        }
+        
+        // Carregar logs ao clicar na aba
+        document.querySelectorAll('.tab').forEach(t => {
+            if (t.textContent === 'Logs') {
+                t.onclick = function() {
+                    showTab('logs');
+                    carregarLogs();
+                };
+            }
+        });
+    </script>
+</body>
+</html>

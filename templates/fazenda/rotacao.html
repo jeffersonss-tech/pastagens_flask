@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Rotação - Sistema de Pastagens</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #f0f2f5; }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 1.3rem; }
+        .header a { color: #00d9ff; text-decoration: none; }
+        
+        /* Content */
+        .content { padding: 25px; }
+        
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-box.apto { border-top: 4px solid #28a745; }
+        .stat-box.ocupacao { border-top: 4px solid #007bff; }
+        .stat-box.descanso { border-top: 4px solid #ffc107; }
+        .stat-box.proximo { border-top: 4px solid #fd7e14; }
+        .stat-box.saida { border-top: 4px solid #dc3545; }
+        .stat-box.bloqueado { border-top: 4px solid #6f42c1; }
+        .stat-box strong { display: block; font-size: 1.8rem; margin-bottom: 5px; }
+        .stat-box.apto strong { color: #28a745; }
+        .stat-box.ocupacao strong { color: #007bff; }
+        .stat-box.descanso strong { color: #ffc107; }
+        .stat-box.proximo strong { color: #fd7e14; }
+        .stat-box.saida strong { color: #dc3545; }
+        .stat-box.bloqueado strong { color: #6f42c1; }
+        .stat-box span { font-size: 0.8rem; color: #666; }
+        
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .section h2 { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        
+        /* Cards */
+        .piquete-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: white;
+            transition: all 0.2s;
+        }
+        .piquete-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .piquete-card.apto { border-left: 5px solid #28a745; }
+        .piquete-card.ocupacao { border-left: 5px solid #007bff; }
+        .piquete-card.descanso { border-left: 5px solid #ffc107; }
+        .piquete-card.proximo { border-left: 5px solid #fd7e14; }
+        .piquete-card.saida { border-left: 5px solid #dc3545; background: #fff5f5; }
+        .piquete-card.bloqueado { border-left: 5px solid #6f42c1; opacity: 0.8; }
+        
+        .piquete-info h4 { margin-bottom: 5px; color: #1a1a2e; }
+        .piquete-info p { color: #666; font-size: 0.85rem; }
+        .piquete-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        .acao { text-align: right; min-width: 200px; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .status-badge.apto { background: #d4edda; color: #155724; }
+        .status-badge.ocupacao { background: #cce5ff; color: #004085; }
+        .status-badge.descanso { background: #fff3cd; color: #856404; }
+        .status-badge.proximo { background: #ffe5d0; color: #c85a17; }
+        .status-badge.saida { background: #f8d7da; color: #721c24; }
+        .status-badge.bloqueado { background: #e2d5f1; color: #4a2c7a; }
+        
+        .acao-texto { font-size: 0.9rem; color: #666; }
+        .acao-texto.saida { color: #dc3545; font-weight: bold; }
+        .acao-texto.proximo { color: #fd7e14; }
+        
+        .progress {
+            margin-top: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            height: 6px;
+            overflow: hidden;
+            width: 150px;
+        }
+        .progress-bar { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .progress-bar.descanso { background: #ffc107; }
+        .progress-bar.ocupacao { background: #007bff; }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+        
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #00d9ff; color: #1a1a2e; }
+        .btn-primary:hover { background: #00c4e6; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #333; }
+        
+        .actions-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <h1>🧠 IA Rotação</h1>
+            <p style="opacity: 0.8; font-size: 0.9rem;">{{ fazenda.nome }}</p>
+        </div>
+        <div>
+            <a href="/fazenda/{{ fazenda.id }}">← Voltar para Dashboard</a>
+        </div>
+    </div>
+    
+    <div class="content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box apto">
+                <strong id="count-apto">0</strong>
+                <span>🟢 Apto</span>
+            </div>
+            <div class="stat-box ocupacao">
+                <strong id="count-ocupacao">0</strong>
+                <span>🔵 Ocupado</span>
+            </div>
+            <div class="stat-box descanso">
+                <strong id="count-descanso">0</strong>
+                <span>🟡 Descanso</span>
+            </div>
+            <div class="stat-box proximo">
+                <strong id="count-proximo">0</strong>
+                <span>🟠 Próximo</span>
+            </div>
+            <div class="stat-box saida">
+                <strong id="count-saida">0</strong>
+                <span>🔴 Saída</span>
+            </div>
+            <div class="stat-box bloqueado">
+                <strong id="count-bloqueado">0</strong>
+                <span>🟣 Bloqueado</span>
+            </div>
+        </div>
+        
+        <!-- Urgentes -->
+        <div id="section-saida" class="section" style="display:none;">
+            <h2>🔴 SAÍDA IMEDIATA</h2>
+            <p style="color: #dc3545; margin-bottom: 15px;">⚠️ Estes piquetes precisam de ação URGENTE!</p>
+            <div id="lista-saida"></div>
+        </div>
+        
+        <!-- Proximo -->
+        <div id="section-proximo" class="section" style="display:none;">
+            <h2>🟠 PRÓXIMO DA SAÍDA</h2>
+            <p style="color: #fd7e14; margin-bottom: 15px;">Planeje a saída em breve.</p>
+            <div id="lista-proximo"></div>
+        </div>
+        
+        <!-- Ocupacao -->
+        <div id="section-ocupacao" class="section" style="display:none;">
+            <h2>🔵 EM OCUPAÇÃO</h2>
+            <p style="color: #007bff; margin-bottom: 15px;">Animais em pastejo.</p>
+            <div id="lista-ocupacao"></div>
+        </div>
+        
+        <!-- Apto -->
+        <div id="section-apto" class="section" style="display:none;">
+            <h2>🟢 APTOS PARA ENTRADA</h2>
+            <p style="color: #28a745; margin-bottom: 15px;">✅ Prontos para receber animais!</p>
+            <div id="lista-apto"></div>
+        </div>
+        
+        <!-- Descanso -->
+        <div id="section-descanso" class="section" style="display:none;">
+            <h2>🟡 EM DESCANSO</h2>
+            <p style="color: #ffc107; margin-bottom: 15px;">Em recuperação.</p>
+            <div id="lista-descanso"></div>
+        </div>
+        
+        <!-- Bloqueado -->
+        <div id="section-bloqueado" class="section" style="display:none;">
+            <h2>🟣 BLOQUEADOS</h2>
+            <p style="color: #6f42c1; margin-bottom: 15px;">Indisponíveis temporariamente.</p>
+            <div id="lista-bloqueado"></div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background: #dc3545;"></div>🔴 Saída Imediata (urgente)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #fd7e14;"></div>🟠 Próximo da Saída</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #007bff;"></div>🔵 Em Ocupação</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #28a745;"></div>🟢 Apto para Entrada</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #ffc107;"></div>🟡 Em Descanso</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #6f42c1;"></div>🟣 Bloqueado</div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions-row">
+            <button class="btn btn-primary" onclick="atualizar()">🔄 Atualizar</button>
+            <button class="btn btn-warning" onclick="verificarPassouPonto()">⚠️ Verificar Passou Ponto</button>
+        </div>
+    </div>
+    
+    <script>
+        const fazendaId = {{ fazenda.id }};
+        
+        function atualizar() {
+            fetch('/api/rotacao')
+                .then(r => r.json())
+                .then(data => {
+                    // Contar por status
+                    const counts = {
+                        'APTO_ENTRADA': 0,
+                        'EM_OCUPACAO': 0,
+                        'EM_DESCANSO': 0,
+                        'PROXIMO_SAIDA': 0,
+                        'SAIDA_IMEDIATA': 0,
+                        'BLOQUEADO': 0
+                    };
+                    
+                    data.forEach(item => {
+                        const status = item.status_detalhes.status;
+                        if (counts.hasOwnProperty(status)) {
+                            counts[status]++;
+                        }
+                    });
+                    
+                    // Atualizar counters
+                    document.getElementById('count-apto').textContent = counts['APTO_ENTRADA'];
+                    document.getElementById('count-ocupacao').textContent = counts['EM_OCUPACAO'];
+                    document.getElementById('count-descanso').textContent = counts['EM_DESCANSO'];
+                    document.getElementById('count-proximo').textContent = counts['PROXIMO_SAIDA'];
+                    document.getElementById('count-saida').textContent = counts['SAIDA_IMEDIATA'];
+                    document.getElementById('count-bloqueado').textContent = counts['BLOQUEADO'];
+                    
+                    // Renderizar por status
+                    const porStatus = {
+                        'SAIDA_IMEDIATA': 'lista-saida',
+                        'PROXIMO_SAIDA': 'lista-proximo',
+                        'EM_OCUPACAO': 'lista-ocupacao',
+                        'APTO_ENTRADA': 'lista-apto',
+                        'EM_DESCANSO': 'lista-descanso',
+                        'BLOQUEADO': 'lista-bloqueado'
+                    };
+                    
+                    Object.keys(porStatus).forEach(status => {
+                        const containerId = porStatus[status];
+                        const sectionId = 'section-' + containerId.split('-')[1];
+                        const items = data.filter(d => d.status_detalhes.status === status);
+                        
+                        document.getElementById(sectionId).style.display = items.length > 0 ? 'block' : 'none';
+                        document.getElementById(containerId).innerHTML = items.map(item => renderCard(item)).join('');
+                    });
+                });
+        }
+        
+        function renderCard(item) {
+            const s = item.status_detalhes;
+            const statusClass = s.status.toLowerCase();
+            
+            return `
+                <div class="piquete-card ${statusClass}">
+                    <div class="piquete-info">
+                        <h4>${item.nome}</h4>
+                        <p>${item.capim} • ${item.area} ha</p>
+                        <div class="piquete-meta">
+                            <span>📍 ${item.status_detalhes.pergunta_1 || '-'}</span>
+                            <span>⏱️ ${s.pergunta_3 || '-'}</span>
+                        </div>
+                    </div>
+                    <div class="acao">
+                        <span class="status-badge ${statusClass}">${s.emoji} ${s.status.replace('_', ' ')}</span>
+                        <div class="acao-texto ${statusClass}">${s.acao}</div>
+                        ${s.progresso_descanso ? `
+                            <div class="progress">
+                                <div class="progress-bar descanso" style="width: ${s.progresso_descanso}%"></div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function verificarPassouPonto() {
+            fetch('/api/rotacao/verificar-passou-ponto')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        let msg = '⚠️ PASSOU DO PONTO:\n\n';
+                        data.forEach(a => {
+                            msg += `• ${a.nome}: ${a.mensagem}\n`;
+                        });
+                        alert(msg);
+                    } else {
+                        alert('✅ Nenhum piquete passou do ponto!');
+                    }
+                });
+        }
+        
+        window.onload = atualizar;
+    </script>
+</body>
+</html>

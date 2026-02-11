@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotes - Sistema de Pastagens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #f0f2f5; }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 1.4rem; }
+        .header a { color: #00d9ff; text-decoration: none; }
+        
+        /* Content */
+        .content { padding: 25px; }
+        
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-card strong { display: block; font-size: 2rem; margin-bottom: 5px; }
+        .stat-card.animais strong { color: #007bff; }
+        .stat-card.ocupacao strong { color: #fd7e14; }
+        .stat-card.saida strong { color: #dc3545; }
+        .stat-card.disponivel strong { color: #28a745; }
+        .stat-card span { color: #666; font-size: 0.85rem; }
+        
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filters label { font-size: 0.85rem; color: #666; }
+        .filters select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .filters button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-primary { background: #00d9ff; color: #1a1a2e; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-danger { background: #dc3545; color: white; }
+        
+        /* Tabela */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-header h2 { font-size: 1.1rem; color: #1a1a2e; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-size: 0.85rem; color: #666; font-weight: 500; }
+        tr:hover { background: #f8f9fa; }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-badge.ok { background: #d4edda; color: #155724; }
+        .status-badge.atencao { background: #fff3cd; color: #856404; }
+        .status-badge.retirar { background: #f8d7da; color: #721c24; }
+        .status-badge.bloqueado { background: #e2d5f1; color: #4a2c7a; }
+        .status-badge.sem-piquete { background: #e9ecef; color: #666; }
+        .status-badge.aguardando { background: #cce5ff; color: #004085; }
+        .status-badge.ocupacao { background: #d1ecf1; color: #0c5460; border: 1px solid #17a2b8; }
+        
+        /* Dias */
+        .dias-info { font-size: 0.9rem; }
+        .dias-info .atual { font-weight: bold; }
+        .dias-info .limite { color: #999; }
+        .dias-info .atual.over { color: #dc3545; }
+        .dias-info .atual.near { color: #fd7e14; }
+        
+        /* Actions */
+        .actions { display: flex; gap: 8px; }
+        .actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-mover { background: #007bff; color: white; }
+        .btn-sair { background: #fd7e14; color: white; }
+        .btn-ver { background: #6c757d; color: white; }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 500px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { color: #1a1a2e; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        .modal-body { padding: 20px; }
+        
+        /* Lot name clickable */
+        td[style*="cursor: pointer"]:hover {
+            background-color: #f0f7ff;
+        }
+        td[style*="cursor: pointer"] strong {
+            text-decoration: underline;
+        }
+        
+        /* Form */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: #666; font-size: 0.85rem; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        /* Sugestões de Piquete */
+        .sugestao-item {
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sugestao-item:hover { border-color: #00d9ff; background: #f8f9fa; }
+        .sugestao-item.apto { border-left: 4px solid #28a745; }
+        .sugestao-item.quase { border-left: 4px solid #ffc107; }
+        .sugestao-item.selecionado { border-color: #007bff; background: #e7f3ff; }
+        
+        .sugestao-header { display: flex; justify-content: space-between; align-items: center; }
+        .sugestao-nome { font-weight: 600; color: #1a1a2e; }
+        .sugestao-info { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        .sugestao-badge {
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .badge-apto { background: #d4edda; color: #155724; }
+        .badge-quase { background: #fff3cd; color: #856404; }
+        
+        /* Buttons */
+        .btn-edit {
+            padding: 6px 12px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-edit:hover { background: #5a6268; }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state h3 { margin-bottom: 10px; color: #1a1a2e; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <h1>🐄 Lotes</h1>
+            <p style="opacity: 0.8; font-size: 0.9rem;">{{ fazenda.nome }}</p>
+        </div>
+        <a href="/fazenda/{{ fazenda.id }}">← Voltar</a>
+    </div>
+    
+    <div class="content">
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card animais">
+                <strong id="stat-total">0</strong>
+                <span>🐄 Total de Lotes</span>
+            </div>
+            <div class="stat-card ocupacao">
+                <strong id="stat-ocupacao">0</strong>
+                <span>📍 Em Ocupação</span>
+            </div>
+            <div class="stat-card saida">
+                <strong id="stat-saida">0</strong>
+                <span>⚠️ Precisa Sair</span>
+            </div>
+            <div class="stat-card disponivel">
+                <strong id="stat-animais">0</strong>
+                <span>🐃 Total Animais</span>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <label>Status:</label>
+            <select id="filtro-status" onchange="carregarLotes()">
+                <option value="">Todos</option>
+                <option value="OK">🟢 OK</option>
+                <option value="ATENCAO">🟠 Atenção</option>
+                <option value="RETIRAR">🔴 Retirar</option>
+                <option value="AGUARDANDO_ALOCACAO">🔵 Aguardando Alocação</option>
+            </select>
+            
+            <label>Categoria:</label>
+            <select id="filtro-categoria" onchange="carregarLotes()">
+                <option value="">Todas</option>
+                <option value="Bezerro">Bezerro</option>
+                <option value="Recria">Recria</option>
+                <option value="Engorda">Engorda</option>
+                <option value="Adulto">Adulto</option>
+            </select>
+            
+            <button class="btn btn-warning" onclick="atualizarStatus()">🔄 Atualizar Status</button>
+            <button class="btn btn-primary" onclick="abrirModalNovoLote()">➕ Novo Lote</button>
+        </div>
+        
+        <!-- Tabela -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>📋 Lotes Ativos</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>🐂 Lote</th>
+                        <th>📍 Piquete Atual</th>
+                        <th>⏱️ Dias no Piquete</th>
+                        <th>📊 Status</th>
+                        <th>📋 Próximos</th>
+                        <th>⚙️ Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-lotes">
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <h3>Carregando...</h3>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal Novo Lote -->
+    <div class="modal" id="modal-novo-lote">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Novo Lote</h3>
+                <button class="modal-close" onclick="fecharModal('modal-novo-lote')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nome do Lote *</label>
+                    <input type="text" id="lote-nome" placeholder="Ex: Lote A, Recria 2024">
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="lote-categoria">
+                        <option value="Bezerro">Bezerro</option>
+                        <option value="Recria">Recria</option>
+                        <option value="Engorda">Engorda</option>
+                        <option value="Adulto">Adulto</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade de Animais</label>
+                    <input type="number" id="lote-quantidade" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Peso Médio (kg)</label>
+                    <input type="number" id="lote-peso" value="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Piquete de Entrada (opcional)</label>
+                    <select id="lote-piquete">
+                        <option value="">Nenhum (lote sem piquete)</option>
+                    </select>
+                </div>
+                <button class="btn btn-success" style="width: 100%;" onclick="salvarLote()">💾 Criar Lote</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Editar Lote -->
+    <div class="modal" id="modal-editar">
+        <div class="modal-content" style="width: 450px;">
+            <div class="modal-header">
+                <h3>✏️ Editar Lote</h3>
+                <button class="modal-close" onclick="fecharModal('modal-editar')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-lote-id">
+                
+                <div class="form-group">
+                    <label>Nome do Lote *</label>
+                    <input type="text" id="edit-lote-nome" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="edit-lote-categoria">
+                        <option value="">Selecione...</option>
+                        <option value="Bezerro">Bezerro</option>
+                        <option value="Recria">Recria</option>
+                        <option value="Engorda">Engorda</option>
+                        <option value="Adulto">Adulto</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Quantidade de Animais</label>
+                    <input type="number" id="edit-lote-quantidade" value="1" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Peso Médio (kg)</label>
+                    <input type="number" id="edit-lote-peso" value="0" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Piquete Atual (opcional)</label>
+                    <select id="edit-lote-piquete" onchange="verificarPiqueteRecuperacao()">
+                        <option value="">Sem piquete</option>
+                    </select>
+                </div>
+                
+                <div id="aviso-piquete-recuperacao" style="display: none; background: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 12px; margin-bottom: 15px; text-align: center;">
+                    <strong style="color: #dc3545;">🚨 AVISO!</strong><br>
+                    <small style="color: #721c24;">Este piquete está em RECUPERAÇÃO!</small><br>
+                    <small style="color: #721c24;">Animais não deveriam estar aqui. Considere outro piquete.</small>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="salvarEdicaoLote()">💾 Salvar</button>
+                    <button class="btn btn-warning" onclick="limparPiqueteEdicao()">🚫 Sem Piquete</button>
+                    <button class="btn btn-danger" onclick="excluirLote()">🗑️ Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Mover -->
+    <div class="modal" id="modal-mover">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➡️ Mover Lote</h3>
+                <button class="modal-close" onclick="fecharModal('modal-mover')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="mover-lote-id">
+                
+                <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <strong>Lote:</strong> <span id="mover-lote-nome"></span>
+                </div>
+                
+                <h4 style="margin-bottom: 15px;">Selecione o piquete de destino:</h4>
+                <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">
+                    💡 Apenas piquetes APONTOS são mostrados.
+                </p>
+                
+                <div id="sugestoes-piquetes" style="margin-bottom: 15px;"></div>
+                
+                <div id="sem-piquetes-aptos" style="display: none; text-align: center; padding: 20px; color: #dc3545;">
+                    ⚠️ Nenhum piquete disponível no momento!
+                </div>
+                
+                <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="confirmarMovimentacao()">
+                    ✅ Confirmar Movimentação
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Ver Todos os Piquetes -->
+    <div class="modal" id="modal-todos-piquetes">
+        <div class="modal-content" style="width: 500px;">
+            <div class="modal-header">
+                <h3>📋 Piquetes Disponíveis</h3>
+                <button class="modal-close" onclick="fecharModal('modal-todos-piquetes')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">
+                    💡 Piquetes ordenados por prioridade (aptos primeiro)
+                </p>
+                <div id="lista-todos-piquetes" style="max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Ver Detalhes do Lote -->
+    <div class="modal" id="modal-detalhes">
+        <div class="modal-content" style="width: 550px;">
+            <div class="modal-header">
+                <h3>📋 Detalhes do Lote</h3>
+                <button class="modal-close" onclick="fecharModal('modal-detalhes')">×</button>
+            </div>
+            <div class="modal-body" id="detalhes-lote-conteudo">
+                <!-- Conteúdo preenchido via JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const fazendaId = {{ fazenda.id }};
+        let lotes = [];
+        
+        // Carregar tudo ao iniciar
+        window.onload = function() {
+            carregarLotes();
+            carregarPiquetesSelect();
+        };
+        
+        function carregarLotes() {
+            const status = document.getElementById('filtro-status').value;
+            const categoria = document.getElementById('filtro-categoria').value;
+            
+            fetch(`/api/lotes?fazenda_id=${fazendaId}&status=${status}&categoria=${categoria}`)
+                .then(r => r.json())
+                .then(data => {
+                    lotes = data;
+                    renderizarTabela();
+                    atualizarStats();
+                });
+        }
+        
+        function atualizarStats() {
+            document.getElementById('stat-total').textContent = lotes.length;
+            
+            const emOcupacao = lotes.filter(l => l.piquete_atual_id).length;
+            document.getElementById('stat-ocupacao').textContent = emOcupacao;
+            
+            // CORREÇÃO: Só lotes EM OCUPAÇÃO que precisam sair
+            const precisaSair = lotes.filter(l => l.piquete_atual_id && l.status_calculado === 'RETIRAR').length;
+            document.getElementById('stat-saida').textContent = precisaSair;
+            
+            const totalAnimais = lotes.reduce((sum, l) => sum + (l.quantidade || 0), 0);
+            document.getElementById('stat-animais').textContent = totalAnimais;
+        }
+        
+        function renderizarTabela() {
+            const tbody = document.getElementById('lista-lotes');
+            
+            if (lotes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <h3>😕 Nenhum lote encontrado</h3>
+                            <p>Cadastre o primeiro lote ou ajuste os filtros.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Buscar sugestoes para cada lote com fazenda_id
+            Promise.all(lotes.map(l => 
+                fetch(`/api/lotes/${l.id}/sugerir-piquetes?fazenda_id=${fazendaId}`).then(r => r.json())
+            )).then(sugestoesArrays => {
+                const sugestoesMap = {};
+                lotes.forEach((l, i) => {
+                    sugestoesMap[l.id] = sugestoesArrays[i];
+                });
+                
+                tbody.innerHTML = lotes.map((lote, idx) => {
+                    const sugestoes = sugestoesMap[lote.id] || [];
+                    const temPiquete = !!lote.piquete_atual_id;
+                    const dias = lote.dias_no_piquete || 0;
+                    const limite = lote.dias_ocupacao || 3;
+                    
+                    // CORREÇÃO 1: Status - Aguardando Alocação se sem piquete
+                    let statusBadge = '';
+                    if (!temPiquete) {
+                        statusBadge = '<span class="status-badge aguardando">🔵 Aguardando Alocação</span>';
+                    } else {
+                        switch(lote.status_calculado) {
+                            case 'RETIRAR':
+                                statusBadge = '<span class="status-badge retirar">🔴 Retirar</span>';
+                                break;
+                            case 'ATENCAO':
+                                statusBadge = '<span class="status-badge atencao">🟠 Atenção</span>';
+                                break;
+                            default:
+                                // Lote em ocupacao e OK - Status diferenciado
+                                statusBadge = '<span class="status-badge ocupacao">🔵 Em Ocupação</span>';
+                        }
+                    }
+                    
+                    // CORREÇÃO 2: Dias - "—" se sem piquete
+                    let diasHtml = '';
+                    if (!temPiquete) {
+                        diasHtml = '<span style="color: #999;">—</span>';
+                    } else {
+                        const diasClass = dias > limite ? 'over' : (dias >= limite ? 'near' : '');
+                        const alertaTexto = dias >= limite 
+                            ? (dias > limite ? '⚠️ Passou do limite!' : '⚠️ Último dia!')
+                            : (dias >= limite - 1 ? '⚠️ Atenção!' : '');
+                        
+                        diasHtml = `
+                            <div class="dias-info">
+                                <span class="atual ${diasClass}">${dias}</span> / ${limite} dias
+                                ${alertaTexto ? `<br><small style="color: #dc3545; font-weight: bold;">${alertaTexto}</small>` : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    // Piquete atual
+                    let piqueteInfo = temPiquete 
+                        ? lote.piquete_nome 
+                        : '<span style="color: #999;">Sem piquete</span>';
+                    
+                    // CORREÇÃO 5: Próximo piquete - botão para ver todos
+                    let proximoHtml = '';
+                    if (sugestoes.length > 0) {
+                        // Contar aptos e em recuperação
+                        const aptos = sugestoes.filter(p => p.status === 'APTO').length;
+                        const emRecup = sugestoes.filter(p => p.status === 'RECUPERANDO').length;
+                        
+                        proximoHtml = `
+                            <button class="btn btn-sm" style="background: #6c757d; color: white;" 
+                                    onclick="abrirModalTodosPiquetes(${lote.id})">
+                                📋 Ver ${sugestoes.length} opções
+                            </button>
+                            <br><small style="color: #28a745;">🟢 ${aptos} aptos</small>
+                            ${emRecup > 0 ? `<br><small style="color: #856404;">🟡 ${emRecup} em recup.</small>` : ''}
+                        `;
+                    } else {
+                        proximoHtml = `
+                            <span style="font-size: 0.85rem; color: #999;">⚠️ Nenhum disponível</span>
+                        `;
+                    }
+                    
+                    // CORREÇÃO 4: Botões - orientação clara do que fazer
+                    let actions = '';
+                    const aptos = sugestoes.filter(p => p.status === 'APTO');
+                    const emRecuperando = sugestoes.filter(p => p.status === 'RECUPERANDO');
+                    
+                    if (temPiquete && aptos.length > 0) {
+                        actions = `
+                            <button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Mover</button>
+                            <button class="btn-sair" onclick="registrarSaida(${lote.id})">📤 Sair</button>
+                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
+                        `;
+                    } else if (temPiquete) {
+                        actions = `
+                            <button class="btn-sair" onclick="registrarSaida(${lote.id})">📤 Sair</button>
+                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
+                        `;
+                    } else if (aptos.length > 0) {
+                        actions = `
+                            <button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Alocar</button>
+                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
+                        `;
+                    } else if (emRecuperando.length > 0) {
+                        actions = `
+                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
+                            <span style="font-size: 0.75rem; color: #856404;">📏 RECUPERANDO</span>
+                        `;
+                    } else {
+                        actions = `
+                            <div style="text-align: center;">
+                                <span style="font-size: 0.8rem; color: #666;">Nenhum piquete</span>
+                                <br><button class="btn-edit" onclick="abrirModalEditar(${lote.id})" style="margin-top: 5px;">✏️ Editar</button>
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <tr>
+                            <td style="cursor: pointer;" onclick="abrirModalDetalhes(${lote.id})">
+                                <strong style="color: #007bff;">${lote.nome}</strong><br>
+                                <small style="color: #666;">${lote.categoria || '-'} • ${lote.quantidade || 0} animai(s)</small>
+                            </td>
+                            <td>${piqueteInfo}</td>
+                            <td>${diasHtml}</td>
+                            <td>${statusBadge}</td>
+                            <td>${proximoHtml}</td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                // Atualizar stat de precisa sair (só lotes em ocupacao com status RETIRAR)
+                const precisaSair = lotes.filter(l => l.piquete_atual_id && l.status_calculado === 'RETIRAR').length;
+                document.getElementById('stat-saida').textContent = precisaSair;
+            });
+        }
+        
+        function carregarPiquetesSelect() {
+            // Usar API de piquetes disponíveis (sem animais)
+            fetch('/api/piquetes/disponiveis?fazenda_id=' + fazendaId)
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('lote-piquete');
+                    // Mostrar piquetes disponíveis
+                    select.innerHTML = '<option value="">Nenhum (lote sem piquete)</option>' +
+                        data.map(p => {
+                            // Usar altura_real_medida ou altura_estimada
+                            const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+                            const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
+                            const fonte = temReal ? 'MEDIDA' : 'ESTIMADA';
+                            
+                            const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
+                            const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
+                            return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} [${fonte}]</option>`;
+                        }).join('');
+                });
+        }
+        
+        function abrirModalNovoLote() {
+            document.getElementById('modal-novo-lote').classList.add('active');
+            carregarPiquetesSelect();
+        }
+        
+        function salvarLote() {
+            const nome = document.getElementById('lote-nome').value;
+            if (!nome) return alert('Digite o nome do lote!');
+            
+            fetch('/api/lotes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    nome: nome,
+                    categoria: document.getElementById('lote-categoria').value,
+                    quantidade: parseInt(document.getElementById('lote-quantidade').value) || 1,
+                    peso_medio: parseFloat(document.getElementById('lote-peso').value) || 0,
+                    piquete_id: document.getElementById('lote-piquete').value || null
+                })
+            }).then(r => r.json())
+              .then(data => {
+                  if (data.status === 'ok') {
+                      fecharModal('modal-novo-lote');
+                      carregarLotes();
+                      alert('Lote criado com sucesso!');
+                  }
+              });
+        }
+        
+        function abrirModalMover(loteId, nome) {
+            document.getElementById('mover-lote-id').value = loteId;
+            document.getElementById('mover-lote-nome').textContent = nome;
+            document.getElementById('modal-mover').classList.add('active');
+            
+            // Carregar sugestões com fazenda_id
+            fetch(`/api/lotes/${loteId}/sugerir-piquetes?fazenda_id=${fazendaId}`)
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('sugestoes-piquetes');
+                    const semAptos = document.getElementById('sem-piquetes-aptos');
+                    
+                    const aptos = data.filter(p => p.status === 'APTO');
+                    
+                    if (aptos.length === 0) {
+                        container.innerHTML = '';
+                        semAptos.style.display = 'block';
+                    } else {
+                        semAptos.style.display = 'none';
+                        container.innerHTML = aptos.map((p, i) => `
+                            <div class="sugestao-item apto" onclick="selecionarPiquete(${p.id}, this)">
+                                <div class="sugestao-header">
+                                    <span class="sugestao-nome">${p.nome}</span>
+                                    <span class="sugestao-badge badge-apto">🟢 APTO</span>
+                                </div>
+                                <div class="sugestao-info">
+                                    ${p.capim} • ${p.area} ha • ${p.dias_descanso} dias de descanso
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                });
+        }
+        
+        let piqueteSelecionado = null;
+        function selecionarPiquete(id, el) {
+            document.querySelectorAll('.sugestao-item').forEach(i => i.classList.remove('selecionado'));
+            el.classList.add('selecionado');
+            piqueteSelecionado = id;
+        }
+        
+        function confirmarMovimentacao() {
+            if (!piqueteSelecionado) return alert('Selecione um piquete!');
+            
+            fetch(`/api/lotes/${document.getElementById('mover-lote-id').value}/mover?fazenda_id=${fazendaId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    piquete_destino_id: piqueteSelecionado
+                })
+            }).then(r => r.json())
+              .then(data => {
+                  if (data.status === 'ok') {
+                      fecharModal('modal-mover');
+                      carregarLotes();
+                      alert('Lote movido com sucesso!');
+                      piqueteSelecionado = null;
+                  }
+              });
+        }
+        
+        function registrarSaida(loteId) {
+            if (!confirm('Registrar saída do lote? Ele ficará sem piquete.')) return;
+            
+            fetch(`/api/lotes/${loteId}/sair?fazenda_id=${fazendaId}`, {method: 'POST'})
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        carregarLotes();
+                    }
+                });
+        }
+        
+        function verDetalhes(loteId) {
+            // TODO: Implementar modal de detalhes
+            alert('Detalhes do lote: ' + loteId);
+        }
+        
+        function abrirModalEditar(loteId) {
+            const lote = lotes.find(l => l.id === loteId);
+            if (!lote) return;
+            
+            document.getElementById('edit-lote-id').value = lote.id;
+            document.getElementById('edit-lote-nome').value = lote.nome;
+            document.getElementById('edit-lote-categoria').value = lote.categoria || '';
+            document.getElementById('edit-lote-quantidade').value = lote.quantidade || 1;
+            document.getElementById('edit-lote-peso').value = lote.peso_medio || 0;
+            
+            // Esconder aviso inicialmente
+            document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
+            
+            // Carregar piquetes disponíveis
+            fetch('/api/piquetes/disponiveis?fazenda_id=' + fazendaId)
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('edit-lote-piquete');
+                    // Opção "Sem piquete" primeiro
+                    let html = '<option value="">🚫 Sem piquete</option>';
+                    
+                    // Mostrar piquetes disponíveis
+                    data.forEach(p => {
+                        const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+                        const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
+                        const fonte = temReal ? '[MEDIDA]' : '[ESTIMADA]';
+                        
+                        const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
+                        const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
+                        const isRecuperando = !p.bloqueado && alturaUsada < p.altura_entrada;
+                        const selected = lote.piquete_atual_id === p.id ? 'selected' : '';
+                        const dangerClass = isRecuperando ? 'background:#f8d7da;' : '';
+                        html += `<option value="${p.id}" ${selected} style="${dangerClass}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} ${fonte}</option>`;
+                    });
+                    
+                    // Se o lote já tem um piquete (mesmo que ocupado), adicionar como opção
+                    if (lote.piquete_atual_id && !data.find(p => p.id == lote.piquete_atual_id)) {
+                        // Buscar info do piquete atual
+                        fetch('/api/piquetes/' + lote.piquete_atual_id)
+                            .then(r => r.json())
+                            .then(p => {
+                                const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+                                const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
+                                const fonte = temReal ? '[MEDIDA]' : '[ESTIMADA]';
+                                
+                                const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
+                                const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
+                                const isRecuperando = !p.bloqueado && alturaUsada < p.altura_entrada;
+                                const dangerClass = isRecuperando ? 'background:#f8d7da;' : '';
+                                html += `<option value="${p.id}" selected style="${dangerClass}">⚠️ ${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} ${fonte} (ATUAL)</option>`;
+                                select.innerHTML = html;
+                                
+                                // Mostrar aviso se está em recuperação
+                                if (isRecuperando) {
+                                    document.getElementById('aviso-piquete-recuperacao').style.display = 'block';
+                                }
+                            });
+                    } else {
+                        select.innerHTML = html;
+                    }
+                    
+                    // Verificar se o piquete atual está em recuperação
+                    if (lote.piquete_atual_id && data.find(p => p.id == lote.piquete_atual_id)) {
+                        const piqueteAtual = data.find(p => p.id == lote.piquete_atual_id);
+                        const temReal = piqueteAtual.altura_real_medida !== null && piqueteAtual.altura_real_medida !== undefined;
+                        const alturaUsada = temReal ? piqueteAtual.altura_real_medida : piqueteAtual.altura_estimada;
+                        if (alturaUsada && alturaUsada < piqueteAtual.altura_entrada) {
+                            document.getElementById('aviso-piquete-recuperacao').style.display = 'block';
+                        }
+                    }
+                });
+            
+            document.getElementById('modal-editar').classList.add('active');
+        }
+        
+        function verificarPiqueteRecuperacao() {
+            const select = document.getElementById('edit-lote-piquete');
+            const piqueteId = select.value;
+            
+            if (!piqueteId) {
+                document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
+                return;
+            }
+            
+            // Buscar info do piquete
+            fetch('/api/piquetes/' + piqueteId)
+                .then(r => r.json())
+                .then(p => {
+                    const emRecuperacao = p.altura_atual && p.altura_atual < p.altura_entrada && !p.bloqueado;
+                    document.getElementById('aviso-piquete-recuperacao').style.display = emRecuperacao ? 'block' : 'none';
+                });
+        }
+        
+        function limparPiqueteEdicao() {
+            document.getElementById('edit-lote-piquete').value = '';
+            document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
+        }
+        
+        function abrirModalDetalhes(loteId) {
+            const lote = lotes.find(l => l.id === loteId);
+            if (!lote) return;
+            
+            // Calcular peso total
+            const pesoTotal = (lote.quantidade || 0) * (lote.peso_medio || 0);
+            const ua = pesoTotal / 450; // 1 UA = 450kg
+            
+            // Status do lote
+            let statusTexto = '';
+            let statusCor = '';
+            if (!lote.piquete_atual_id) {
+                statusTexto = '🔵 Aguardando Alocação';
+                statusCor = '#004085';
+            } else {
+                switch(lote.status_calculado) {
+                    case 'RETIRAR':
+                        statusTexto = '🔴 Precisa Sair';
+                        statusCor = '#721c24';
+                        break;
+                    case 'ATENCAO':
+                        statusTexto = '🟠 Atenção';
+                        statusCor = '#856404';
+                        break;
+                    default:
+                        statusTexto = '🟢 OK';
+                        statusCor = '#155724';
+                }
+            }
+            
+            // Dias no piquete
+            let diasInfo = '';
+            if (lote.piquete_atual_id && lote.dias_no_piquete) {
+                const limite = lote.dias_ocupacao || 3;
+                diasInfo = `
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                        <strong style="color: #495057;">📅 Tempo no Piquete</strong>
+                        <div style="font-size: 1.5rem; color: ${lote.dias_no_piquete > limite ? '#dc3545' : '#28a745'};">
+                            ${lote.dias_no_piquete} / ${limite} dias
+                        </div>
+                        ${lote.dias_no_piquete > limite 
+                            ? '<small style="color: #dc3545;">⚠️ Passou do limite de ocupação!</small>' 
+                            : ''}
+                    </div>
+                `;
+            }
+            
+            const html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #007bff; margin-bottom: 5px;">${lote.nome}</h2>
+                    <span style="background: ${statusCor}; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;">
+                        ${statusTexto}
+                    </span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.8rem; color: #007bff; font-weight: bold;">${lote.quantidade || 0}</div>
+                        <small style="color: #495057;">🐄 Animais</small>
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.8rem; color: #856404; font-weight: bold;">${ua.toFixed(2)}</div>
+                        <small style="color: #495057;">📏 UA (450kg)</small>
+                    </div>
+                    <div style="background: #d4edda; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.8rem; color: #155724; font-weight: bold;">${(lote.peso_medio || 0).toFixed(1)}</div>
+                        <small style="color: #495057;">⚖️ Peso Médio (kg)</small>
+                    </div>
+                    <div style="background: #f8d7da; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.8rem; color: #721c24; font-weight: bold;">${pesoTotal.toFixed(1)}</div>
+                        <small style="color: #495057;">🏋️ Peso Total (kg)</small>
+                    </div>
+                </div>
+                
+                ${diasInfo}
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <strong style="color: #495057;">📁 Categoria:</strong> ${lote.categoria || 'Não informada'}<br>
+                    <strong style="color: #495057;">📍 Piquete Atual:</strong> ${lote.piquete_nome || 'Sem piquete'}<br>
+                    ${lote.capim ? `<strong style="color: #495057;">🌿 Capim:</strong> ${lote.capim}<br>` : ''}
+                    ${lote.piquete_area ? `<strong style="color: #495057;">📐 Área do Piquete:</strong> ${lote.piquete_area} ha` : ''}
+                </div>
+                
+                ${lote.created_at ? `
+                    <div style="text-align: center; font-size: 0.85rem; color: #6c757d;">
+                        📅 Criado em: ${new Date(lote.created_at).toLocaleDateString('pt-BR')}
+                    </div>
+                ` : ''}
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="fecharModal('modal-detalhes'); abrirModalEditar(${lote.id});">✏️ Editar Lote</button>
+                    ${lote.piquete_atual_id ? `<button class="btn btn-warning" onclick="fecharModal('modal-detalhes'); registrarSaida(${lote.id});">📤 Registrar Saída</button>` : `<button class="btn btn-success" onclick="fecharModal('modal-detalhes'); abrirModalMover(${lote.id}, '${lote.nome}');">➡️ Mover para Piquete</button>`}
+                </div>
+            `;
+            
+            document.getElementById('detalhes-lote-conteudo').innerHTML = html;
+            document.getElementById('modal-detalhes').classList.add('active');
+        }
+        
+        function salvarEdicaoLote() {
+            const id = document.getElementById('edit-lote-id').value;
+            const nome = document.getElementById('edit-lote-nome').value;
+            const piqueteId = document.getElementById('edit-lote-piquete').value || null;
+            
+            if (!nome) return alert('Digite o nome do lote!');
+            
+            fetch(`/api/lotes/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    nome: nome,
+                    categoria: document.getElementById('edit-lote-categoria').value,
+                    quantidade: parseInt(document.getElementById('edit-lote-quantidade').value) || 1,
+                    peso_medio: parseFloat(document.getElementById('edit-lote-peso').value) || 0,
+                    piquete_atual_id: piqueteId
+                })
+            }).then(r => r.json())
+              .then(data => {
+                  if (data.status === 'ok') {
+                      fecharModal('modal-editar');
+                      carregarLotes();
+                      alert('Lote atualizado!');
+                  }
+              });
+        }
+        
+        function excluirLote() {
+            const id = document.getElementById('edit-lote-id').value;
+            const nome = document.getElementById('edit-lote-nome').value;
+            
+            if (!confirm(`Tem certeza que deseja excluir o lote "${nome}"?`)) return;
+            
+            fetch(`/api/lotes/${id}`, {method: 'DELETE'})
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        fecharModal('modal-editar');
+                        carregarLotes();
+                        alert('Lote excluído!');
+                    }
+                });
+        }
+        
+        function atualizarStatus() {
+            fetch(`/api/lotes/atualizar-status?fazenda_id=${fazendaId}`, {method: 'POST'})
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        carregarLotes();
+                        alert('Status atualizados!');
+                    }
+                });
+        }
+        
+        function abrirModalTodosPiquetes(loteId) {
+            const lote = lotes.find(l => l.id === loteId);
+            if (!lote) return;
+            
+            document.getElementById('mover-lote-id').value = lote.id;
+            document.getElementById('mover-lote-nome').textContent = lote.nome;
+            document.getElementById('modal-todos-piquetes').classList.add('active');
+            
+            // Carregar todos os piquetes disponíveis
+            fetch(`/api/lotes/${loteId}/sugerir-piquetes?fazenda_id=${fazendaId}`)
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('lista-todos-piquetes');
+                    
+                    if (data.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: #999;">Nenhum piquete disponível</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = data.map((p, i) => {
+                        const emoji = p.status === 'APTO' ? '🟢' : '🟡';
+                        const statusText = p.status === 'APTO' ? 'APTO' : 'RECUPERANDO';
+                        
+                        if (p.status === 'APTO') {
+                            // Piquete apto - pronto para receber
+                            return `
+                                <div class="sugestao-item apto" onclick="selecionarPiquete(${p.id}, this)">
+                                    <div class="sugestao-header">
+                                        <span class="sugestao-nome">${p.nome}</span>
+                                        <span class="sugestao-badge badge-apto">🟢 APTO</span>
+                                    </div>
+                                    <div class="sugestao-info">
+                                        🌿 ${p.capim || 'N/I'} • 📐 ${p.area || 0} ha
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Piquete em recuperação
+                            const alturaAtual = p.altura_atual || 0;
+                            const alturaMin = p.altura_entrada || 25;
+                            return `
+                                <div class="sugestao-item quase" onclick="selecionarPiquete(${p.id}, this)">
+                                    <div class="sugestao-header">
+                                        <span class="sugestao-nome">${p.nome}</span>
+                                        <span class="sugestao-badge badge-quase">🟡 RECUPERANDO</span>
+                                    </div>
+                                    <div class="sugestao-info">
+                                        🌿 ${p.capim || 'N/I'} • 📐 ${p.area || 0} ha
+                                        <br>📏 ${alturaAtual}/${alturaMin} cm
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }).join('');
+                });
+        }
+        
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+    </script>
+</body>
+</html>
