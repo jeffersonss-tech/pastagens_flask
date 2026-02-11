@@ -521,6 +521,39 @@ def api_verificar_alertas():
     alertas = database.verificar_alertas_piquetes(session.get('fazenda_id'))
     return jsonify({'status': 'ok', 'alertas_criados': alertas})
 
+# ============ RESUMO GERAL E LOTE ============
+@app.route('/api/rotacao/resumo_geral')
+def api_resumo_geral():
+    """Retorna resumo geral consolidado da fazenda"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    fazenda_id = request.args.get('fazenda_id') or session.get('fazenda_id')
+    if not fazenda_id:
+        return jsonify({'error': 'Nenhuma fazenda selecionada'}), 400
+    
+    try:
+        from services.fazenda_service import gerar_resumo_geral
+        resumo = gerar_resumo_geral(int(fazenda_id))
+        return jsonify(resumo)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/rotacao/resumo_lote/<int:lote_id>')
+def api_resumo_lote(lote_id):
+    """Retorna resumo de um lote específico"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    try:
+        from services.fazenda_service import gerar_resumo_lote
+        resumo = gerar_resumo_lote(lote_id)
+        if not resumo:
+            return jsonify({'error': 'Lote não encontrado'}), 404
+        return jsonify(resumo)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
 # ============ ROTAÇÃO ============
 @app.route('/api/rotacao')
 def api_rotacao():

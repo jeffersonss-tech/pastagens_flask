@@ -153,6 +153,38 @@
         .btn-success { background: #28a745; color: white; }
         .btn-warning { background: #ffc107; color: #333; }
         
+        /* Resumo Geral */
+        .resumo-gerais {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .resumo-box {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .resumo-box.lotes { border-top: 4px solid #6f42c1; }
+        .resumo-box.animais { border-top: 4px solid #007bff; }
+        .resumo-box.ocupada { border-top: 4px solid #dc3545; }
+        .resumo-box.descanso { border-top: 4px solid #ffc107; }
+        .resumo-box.altura { border-top: 4px solid #28a745; }
+        .resumo-box.prontos { border-top: 4px solid #20c997; }
+        .resumo-box.criticos { border-top: 4px solid #fd7e14; }
+        .resumo-box strong { display: block; font-size: 1.5rem; margin-bottom: 5px; }
+        .resumo-box.lotes strong { color: #6f42c1; }
+        .resumo-box.animais strong { color: #007bff; }
+        .resumo-box.ocupada strong { color: #dc3545; }
+        .resumo-box.descanso strong { color: #ffc107; }
+        .resumo-box.altura strong { color: #28a745; }
+        .resumo-box.prontos strong { color: #20c997; }
+        .resumo-box.criticos strong { color: #fd7e14; }
+        .resumo-box span { font-size: 0.75rem; color: #666; }
+        .resumo-box.criticos span { color: #dc3545; }
+        
         .actions-row {
             display: flex;
             gap: 10px;
@@ -173,6 +205,38 @@
     </div>
     
     <div class="content">
+        <!-- Resumo Geral da Fazenda -->
+        <div id="resumo-gerais" class="resumo-gerais">
+            <div class="resumo-box lotes">
+                <strong id="total-lotes">0</strong>
+                <span>📋 Lotes</span>
+            </div>
+            <div class="resumo-box animais">
+                <strong id="total-animais">0</strong>
+                <span>🐄 Animais</span>
+            </div>
+            <div class="resumo-box ocupada">
+                <strong id="area-ocupada">0</strong>
+                <span>🔴 Ha Ocup.</span>
+            </div>
+            <div class="resumo-box descanso">
+                <strong id="area-descanso">0</strong>
+                <span>🟡 Ha Desc.</span>
+            </div>
+            <div class="resumo-box altura">
+                <strong id="media-altura">0</strong>
+                <span>📏 Alt. Média</span>
+            </div>
+            <div class="resumo-box prontos">
+                <strong id="prontos">0</strong>
+                <span>🟢 Prontos</span>
+            </div>
+            <div class="resumo-box criticos">
+                <strong id="criticos">0</strong>
+                <span>🔴 Críticos</span>
+            </div>
+        </div>
+        
         <!-- Stats -->
         <div class="stats-row">
             <div class="stat-box apto">
@@ -263,7 +327,33 @@
     <script>
         const fazendaId = {{ fazenda.id }};
         
+        function carregarResumoGeral() {
+            fetch('/api/rotacao/resumo_geral?fazenda_id=' + fazendaId)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('total-lotes').textContent = data.total_lotes || 0;
+                    document.getElementById('total-animais').textContent = data.total_animais || 0;
+                    document.getElementById('area-ocupada').textContent = (data.area_ocupada || 0).toFixed(1);
+                    document.getElementById('area-descanso').textContent = (data.area_descanso || 0).toFixed(1);
+                    document.getElementById('media-altura').textContent = data.media_altura_estimada || 0;
+                    document.getElementById('prontos').textContent = data.piquetes_prontos || 0;
+                    document.getElementById('criticos').textContent = data.piquetes_criticos || 0;
+                    
+                    // Destacar críticos
+                    const criticosBox = document.querySelector('.resumo-box.criticos');
+                    if (data.piquetes_criticos > 0) {
+                        criticosBox.style.background = '#fff5f5';
+                    } else {
+                        criticosBox.style.background = 'white';
+                    }
+                });
+        }
+        
         function atualizar() {
+            // Carregar resumo geral primeiro
+            carregarResumoGeral();
+            
+            // Depois carregar recomendações de rotação
             fetch('/api/rotacao')
                 .then(r => r.json())
                 .then(data => {

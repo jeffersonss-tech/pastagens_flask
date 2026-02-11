@@ -16,3 +16,7 @@ from services.clima_service import (
     obter_clima_simulado,
     obter_clima_real
 )
+from services.fazenda_service import (
+    gerar_resumo_geral,
+    gerar_resumo_lote
+)
