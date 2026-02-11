@@ -41,6 +41,8 @@ def init_db():
             area REAL DEFAULT 0,
             localizacao TEXT,
             descricao TEXT,
+            latitude_sede REAL,
+            longitude_sede REAL,
             ativo INTEGER DEFAULT 1,
             created_at TEXT,
             updated_at TEXT,
@@ -216,17 +218,37 @@ def get_usuario(id):
     return dict(user) if user else None
 
 # ============ FAZENDAS ============
-def criar_fazenda(usuario_id, nome, area=None, localizacao=None, descricao=None):
+def criar_fazenda(usuario_id, nome, area=None, localizacao=None, descricao=None, latitude_sede=None, longitude_sede=None):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO fazendas (usuario_id, nome, area, localizacao, descricao, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (usuario_id, nome, area, localizacao, descricao, datetime.now().isoformat(), datetime.now().isoformat()))
+        INSERT INTO fazendas (usuario_id, nome, area, localizacao, descricao, latitude_sede, longitude_sede, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (usuario_id, nome, area, localizacao, descricao, latitude_sede, longitude_sede, datetime.now().isoformat(), datetime.now().isoformat()))
     conn.commit()
     fazenda_id = cursor.lastrowid
     conn.close()
     return fazenda_id
+
+def atualizar_fazenda(id, nome=None, area=None, localizacao=None, descricao=None, latitude_sede=None, longitude_sede=None):
+    """Atualiza uma fazenda existente"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE fazendas SET nome=?, area=?, localizacao=?, descricao=?, latitude_sede=?, longitude_sede=?, updated_at=?
+        WHERE id=?
+    ''', (nome, area, localizacao, descricao, latitude_sede, longitude_sede, datetime.now().isoformat(), id))
+    conn.commit()
+    conn.close()
+
+def excluir_fazenda(id):
+    """Exclui (desativa) uma fazenda"""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE fazendas SET ativo = 0, updated_at = ? WHERE id = ?', 
+                   (datetime.now().isoformat(), id))
+    conn.commit()
+    conn.close()
 
 def listar_fazendas_usuario(usuario_id):
     conn = get_db()

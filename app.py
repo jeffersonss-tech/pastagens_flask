@@ -4,11 +4,15 @@ App Flask - Sistema de Pastagens
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import database
 import logging
+from api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
 
 app = Flask(__name__)
 app.secret_key = 'pastagens_secret_key_2024'
 
 database.init_db()
+
+# Registrar módulos de APIs
+criar_api_fazendas(app)
 
 # ============ AUTH ============
 @app.route('/login', methods=['GET', 'POST'])
@@ -89,7 +93,9 @@ def api_criar_fazenda():
         data.get('nome'),
         data.get('area'),
         data.get('localizacao'),
-        data.get('descricao')
+        data.get('descricao'),
+        data.get('latitude_sede'),
+        data.get('longitude_sede')
     )
     return jsonify({'id': fazenda_id, 'status': 'ok'})
 

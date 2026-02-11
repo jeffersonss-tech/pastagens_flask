@@ -31,6 +31,9 @@
         }
         .btn-danger { background: #dc3545; color: white; }
         .btn-primary { background: #00d9ff; color: #1a1a2e; font-weight: bold; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
         
         .container { max-width: 1200px; margin: 0 auto; padding: 30px; }
         
@@ -82,6 +85,13 @@
             border-radius: 8px;
             font-weight: bold;
         }
+        .fazenda-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
         
         .nova-fazenda {
             background: linear-gradient(135deg, #16213e, #1a1a2e);
@@ -98,13 +108,16 @@
         .nova-fazenda span { font-size: 3rem; display: block; margin-bottom: 10px; }
         
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #333; }
+        .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 500; }
         .form-group input { 
             width: 100%; 
             padding: 12px;
             border: 2px solid #ddd;
             border-radius: 8px;
         }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        
         .modal {
             display: none;
             position: fixed;
@@ -119,10 +132,32 @@
             background: white;
             padding: 30px;
             border-radius: 15px;
-            width: 400px;
+            width: 500px;
             max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal h3 { margin-bottom: 20px; color: #1a1a2e; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-buttons .btn { flex: 1; padding: 12px; }
+        
+        .coordenadas-info {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .coordenadas-info strong { color: #1a1a2e; }
+        
+        .warning-text {
+            color: #dc3545;
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+        .warning-text strong { display: block; margin-bottom: 10px; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -163,11 +198,18 @@
                 <div class="fazenda-card">
                     <h3>{{ f.nome }}</h3>
                     <p>{{ f.area or 0 }} hectares{% if f.localizacao %}<br>{{ f.localizacao }}{% endif %}</p>
+                    {% if f.latitude_sede and f.longitude_sede %}
+                    <p style="font-size: 12px; color: #999;">📍 {{ f.latitude_sede }}, {{ f.longitude_sede }}</p>
+                    {% endif %}
                     <a href="{{ url_for('fazenda', id=f.id) }}" class="fazenda-link">Abrir →</a>
+                    <div class="fazenda-actions">
+                        <button class="btn btn-warning btn-sm" onclick="abrirModalEditar({{ f.id }})">✏️ Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="abrirModalExcluir({{ f.id }}, '{{ f.nome }}')">🗑️ Excluir</button>
+                    </div>
                 </div>
                 {% endfor %}
                 
-                <div class="fazenda-card nova-fazenda" onclick="abrirModal()">
+                <div class="fazenda-card nova-fazenda" onclick="abrirModalCriar()">
                     <span>+</span>
                     <strong>Nova Fazenda</strong>
                 </div>
@@ -175,7 +217,7 @@
             {% else %}
             <div style="text-align: center; padding: 40px;">
                 <p style="color: #666; margin-bottom: 20px;">Você ainda não tem nenhuma fazenda.</p>
-                <button class="btn btn-primary" onclick="abrirModal()" style="padding: 15px 30px; font-size: 16px;">
+                <button class="btn btn-primary" onclick="abrirModalCriar()" style="padding: 15px 30px; font-size: 16px;">
                     ➕ Criar Primeira Fazenda
                 </button>
             </div>
@@ -184,46 +226,147 @@
     </div>
     
     <!-- Modal Nova Fazenda -->
-    <div class="modal" id="modalFazenda">
+    <div class="modal" id="modalCriar">
         <div class="modal-content">
             <h3>🏠 Nova Fazenda</h3>
             <div class="form-group">
                 <label>Nome da Fazenda</label>
                 <input type="text" id="nomeFazenda" placeholder="Ex: Fazenda Sta. Rita">
             </div>
-            <div class="form-group">
-                <label>Área Total (hectares)</label>
-                <input type="number" id="areaFazenda" value="0" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Localização (opcional)</label>
-                <input type="text" id="localizacaoFazenda" placeholder="Ex: Aruanã - GO">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Área Total (hectares)</label>
+                    <input type="number" id="areaFazenda" value="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Localização</label>
+                    <input type="text" id="localizacaoFazenda" placeholder="Ex: Aruanã - GO">
+                </div>
             </div>
             <div class="form-group">
                 <label>Descrição (opcional)</label>
                 <input type="text" id="descricaoFazenda" placeholder="Observações">
             </div>
-            <button class="btn btn-primary" onclick="criarFazenda()" style="width: 100%; padding: 12px;">
-                Criar Fazenda
-            </button>
-            <button class="btn" onclick="fecharModal()" style="width: 100%; margin-top: 10px; background: #f0f0f0;">
-                Cancelar
-            </button>
+            <div class="coordenadas-info">
+                <strong>📍 Coordenadas da Sede (opcional)</strong><br>
+                Permite ver a localização no mapa. Você pode informar depois ou deixar vazio.
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" id="latitudeFazenda" step="0.000001" placeholder="-15.1234">
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" id="longitudeFazenda" step="0.000001" placeholder="-50.1234">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="criarFazenda()">Criar Fazenda</button>
+                <button class="btn btn-secondary" onclick="fecharModal('modalCriar')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Editar Fazenda -->
+    <div class="modal" id="modalEditar">
+        <div class="modal-content">
+            <h3>✏️ Editar Fazenda</h3>
+            <input type="hidden" id="editarFazendaId">
+            <div class="form-group">
+                <label>Nome da Fazenda</label>
+                <input type="text" id="editarNomeFazenda" placeholder="Ex: Fazenda Sta. Rita">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Área Total (hectares)</label>
+                    <input type="number" id="editarAreaFazenda" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Localização</label>
+                    <input type="text" id="editarLocalizacaoFazenda" placeholder="Ex: Aruanã - GO">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descrição (opcional)</label>
+                <input type="text" id="editarDescricaoFazenda" placeholder="Observações">
+            </div>
+            <div class="coordenadas-info">
+                <strong>📍 Coordenadas da Sede (opcional)</strong>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" id="editarLatitudeFazenda" step="0.000001" placeholder="-15.1234">
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" id="editarLongitudeFazenda" step="0.000001" placeholder="-50.1234">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-warning" onclick="salvarEdicao()">Salvar Alterações</button>
+                <button class="btn btn-secondary" onclick="fecharModal('modalEditar')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Excluir Fazenda -->
+    <div class="modal" id="modalExcluir">
+        <div class="modal-content">
+            <h3>🗑️ Excluir Fazenda</h3>
+            <input type="hidden" id="excluirFazendaId">
+            <p class="warning-text">
+                <strong>⚠️ Tem certeza?</strong>
+                Esta ação não pode ser desfeita.<br>
+                Todos os piquetes, lotes e animais desta fazenda serão excluídos.<br>
+                <span id="excluirFazendaNome" style="font-weight: bold; color: #1a1a2e;"></span>
+            </p>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" onclick="excluirFazenda()">Sim, Excluir</button>
+                <button class="btn btn-secondary" onclick="fecharModal('modalExcluir')">Cancelar</button>
+            </div>
         </div>
     </div>
     
     <script>
-        function abrirModal() {
-            document.getElementById('modalFazenda').classList.add('active');
+        function abrirModalCriar() {
+            document.getElementById('modalCriar').classList.add('active');
         }
         
-        function fecharModal() {
-            document.getElementById('modalFazenda').classList.remove('active');
+        function abrirModalEditar(id) {
+            // Buscar dados da fazenda
+            fetch('/api/fazendas/' + id)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('editarFazendaId').value = data.id;
+                document.getElementById('editarNomeFazenda').value = data.nome || '';
+                document.getElementById('editarAreaFazenda').value = data.area || 0;
+                document.getElementById('editarLocalizacaoFazenda').value = data.localizacao || '';
+                document.getElementById('editarDescricaoFazenda').value = data.descricao || '';
+                document.getElementById('editarLatitudeFazenda').value = data.latitude_sede || '';
+                document.getElementById('editarLongitudeFazenda').value = data.longitude_sede || '';
+                
+                document.getElementById('modalEditar').classList.add('active');
+            });
+        }
+        
+        function abrirModalExcluir(id, nome) {
+            document.getElementById('excluirFazendaId').value = id;
+            document.getElementById('excluirFazendaNome').textContent = nome;
+            document.getElementById('modalExcluir').classList.add('active');
+        }
+        
+        function fecharModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
         
         function criarFazenda() {
             const nome = document.getElementById('nomeFazenda').value;
             if (!nome) return alert('Digite o nome!');
+            
+            const lat = document.getElementById('latitudeFazenda').value;
+            const lng = document.getElementById('longitudeFazenda').value;
             
             fetch('/api/fazendas', {
                 method: 'POST',
@@ -232,7 +375,9 @@
                     nome,
                     area: parseFloat(document.getElementById('areaFazenda').value) || 0,
                     localizacao: document.getElementById('localizacaoFazenda').value,
-                    descricao: document.getElementById('descricaoFazenda').value
+                    descricao: document.getElementById('descricaoFazenda').value,
+                    latitude_sede: lat ? parseFloat(lat) : null,
+                    longitude_sede: lng ? parseFloat(lng) : null
                 })
             })
             .then(r => r.json())
@@ -245,9 +390,59 @@
             });
         }
         
+        function salvarEdicao() {
+            const id = document.getElementById('editarFazendaId').value;
+            const nome = document.getElementById('editarNomeFazenda').value;
+            if (!nome) return alert('Digite o nome!');
+            
+            const lat = document.getElementById('editarLatitudeFazenda').value;
+            const lng = document.getElementById('editarLongitudeFazenda').value;
+            
+            fetch('/api/fazendas/' + id, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    nome,
+                    area: parseFloat(document.getElementById('editarAreaFazenda').value) || 0,
+                    localizacao: document.getElementById('editarLocalizacaoFazenda').value,
+                    descricao: document.getElementById('editarDescricaoFazenda').value,
+                    latitude_sede: lat ? parseFloat(lat) : null,
+                    longitude_sede: lng ? parseFloat(lng) : null
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao salvar!');
+                }
+            });
+        }
+        
+        function excluirFazenda() {
+            const id = document.getElementById('excluirFazendaId').value;
+            
+            fetch('/api/fazendas/' + id, {
+                method: 'DELETE'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao excluir!');
+                }
+            });
+        }
+        
         // Fechar modal ao clicar fora
-        document.getElementById('modalFazenda').addEventListener('click', function(e) {
-            if (e.target === this) fecharModal();
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
         });
     </script>
 </body>
