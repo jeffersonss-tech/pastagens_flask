@@ -8,3 +8,11 @@ from services.manejo_service import (
     get_consumo_base,
     ManejoError
 )
+from services.clima_service import (
+    calcular_fator_climatico,
+    CondicaoClimatica,
+    get_descricao_clima,
+    validar_condicao_climatica,
+    obter_clima_simulado,
+    obter_clima_real
+)

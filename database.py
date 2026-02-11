@@ -72,6 +72,8 @@ def init_db():
             motivo_bloqueio TEXT,
             observacao TEXT,
             capacidade_animal REAL DEFAULT 0,
+            -- Campo climático para cálculo de crescimento
+            condicao_climatica TEXT DEFAULT 'normal',
             ativo INTEGER DEFAULT 1,
             created_at TEXT,
             updated_at TEXT,
@@ -1376,21 +1378,24 @@ def calcular_altura_estimada(piquete):
     else:
         # Em recuperação: altura aumenta com o crescimento
         # LIMITE: Altura máxima é 1.5x a altura de entrada (evita crescimento infinito)
-        crescimento_diario = calcular_crescimento_diario(capim)
-        altura_maxima = altura_entrada * 1.5  # Teto de crescimento
-        altura_calc = altura_saida + (dias_descanso * crescimento_diario)
-        return min(round(altura_calc, 1), altura_maxima), 'estimada'
+        # Usar modelo com fator climático
+        from services.clima_service import calcular_fator_climatico
+        
+        # Obter condição climática do piquete (padrão = 'normal')
+        condicao_climatica = piquete.get('condicao_climatica', 'normal') or 'normal'
+        
+        # Calcular crescimento com fator climático
+        from services.manejo_service import calcular_altura_descanso
+        resultado = calcular_altura_descanso(
+            altura_saida=altura_saida,
+            dias_descanso=dias_descanso,
+            capim=capim,
+            condicao_climatica=condicao_climatica,
+            altura_entrada=altura_entrada,
+            detalhar=False
+        )
+        return resultado, 'estimada'
 
-def calcular_crescimento_diario(capim):
-    """Retorna crescimento diário estimado do capim em cm/dia"""
-    # Estimativa baseada em文献
-    crescimento = {
-        'Brachiaria': 1.2,
-        'Mombaça': 1.5,
-        'Tifton 85': 1.0,
-        'Andropogon': 1.2,
-        'Capim Aruana': 1.1,
-        'Natalino': 1.3,
-        'MG-5': 1.4,
-    }
-    return crescimento.get(capim, 1.2)
+
+# Função removida - agora está em services/manejo_service.py
+# Ver: calcular_crescimento_diario()

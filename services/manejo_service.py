@@ -2,6 +2,7 @@
 Serviços de Manejo de Pastagens
 Funções isoladas para regras de negócio relacionadas a manejo de piquetes e lotes.
 """
+from services.clima_service import calcular_fator_climatico
 
 
 # ========== CONSTANTES ==========
@@ -259,3 +260,105 @@ def simular_ocupacao_diaria(
         }
     
     return evolucao
+
+
+# ========== CRESCIMENTO EM DESCANSO (COM FATOR CLIMÁTICO) ==========
+
+def calcular_crescimento_diario(capim: str) -> float:
+    """
+    Retorna crescimento diário estimado do capim em cm/dia.
+    
+    Args:
+        nome do capim
+    
+    Returns:
+        Crescimento base (cm/dia)
+    """
+    crescimento = {
+        'Brachiaria': 1.2,
+        'Mombaça': 1.5,
+        'Tifton 85': 1.0,
+        'Andropogon': 1.2,
+        'Capim Aruana': 1.1,
+        'Natalino': 1.3,
+        'MG-5': 1.4,
+    }
+    return crescimento.get(capim, 1.2)
+
+
+def calcular_altura_descanso(
+    altura_saida: float,
+    dias_descanso: int,
+    capim: str,
+    condicao_climatica: str = "normal",
+    altura_entrada: float = None,
+    detalhar: bool = False
+) -> float | dict:
+    """
+    Calcula a altura estimada do pasto durante descanso considerando fator climático.
+    
+    Args:
+        altura_saida: Altura mínima de saída (cm)
+        dias_descanso: Dias em descanso
+        capim: Tipo de capim
+        condicao_climatica: Condição climática ('seca', 'normal', 'chuvoso')
+        altura_entrada: Altura de entrada para cálculo do limite máximo (opcional)
+        detalhar: Se True, retorna dict com detalhes
+    
+    Returns:
+        Se detalhar=False: altura_estimada (float)
+        Se detalhar=True: dict com detalhes do cálculo
+    
+    Raises:
+        ManejoError: Se parâmetros inválidos
+    """
+    # ========== VALIDAÇÕES ==========
+    if dias_descanso < 0:
+        raise ManejoError(f"Dias de descanso não pode ser negativo: {dias_descanso}")
+    
+    # ========== CÁLCULO ==========
+    # Se sem dias de descanso, altura não muda
+    if dias_descanso == 0:
+        if detalhar:
+            return {
+                "altura": altura_saida,
+                "crescimento_base": 0,
+                "fator_climatico": 1.0,
+                "crescimento_real": 0,
+                "status": "sem_descanso"
+            }
+        return altura_saida
+    
+    # Crescimento base do capim
+    crescimento_base = calcular_crescimento_diario(capim)
+    
+    # Fator climático
+    fator_climatico = calcular_fator_climatico(condicao_climatica)
+    
+    # Crescimento real com ajuste climático
+    crescimento_real = crescimento_base * fator_climatico
+    
+    # Altura estimada
+    altura_estimada = altura_saida + (dias_descanso * crescimento_real)
+    
+    # ========== LIMITE MÁXIMO ==========
+    # Limite: altura máxima é 1.5x a altura de entrada (evita crescimento infinito)
+    # Se não fornecer altura_entrada, usa 2x a saída como limite razoável
+    limite_maximo = altura_entrada * 1.5 if altura_entrada else altura_saida * 2.5
+    altura_estimada = min(altura_estimada, limite_maximo)
+    
+    # ========== RETORNO ==========
+    if detalhar:
+        return {
+            "altura": round(altura_estimada, 1),
+            "crescimento_base": round(crescimento_base, 2),
+            "fator_climatico": round(fator_climatico, 2),
+            "crescimento_real": round(crescimento_real, 2),
+            "dias_descanso": dias_descanso,
+            "altura_saida": altura_saida,
+            "limite_maximo": round(limite_maximo, 1),
+            "foi_limitada": altura_estimada >= limite_maximo,
+            "status": "ok"
+        }
+    
+    return round(altura_estimada, 1)
