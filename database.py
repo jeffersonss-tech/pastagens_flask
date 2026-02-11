@@ -1343,25 +1343,35 @@ def calcular_altura_estimada(piquete):
         area_piquete = piquete.get('area', 0) or 0
         consumo_base = get_consumo_base(capim)
         
+        # BASE DINÂMICA: usar altura_real_medida se existir, senão usar altura_base
+        altura_real = piquete.get('altura_real_medida')
+        if altura_real is not None:
+            altura_base = altura_real
+        else:
+            # Usar altura_estimada anterior se disponível, senão altura_entrada
+            altura_estimada_anterior = piquete.get('altura_estimada')
+            altura_base = altura_estimada_anterior if altura_estimada_anterior else altura_entrada
+        
         # Se tiver dados do lote, usar modelo avançado
         if quantidade_animais > 0 and area_piquete > 0:
             try:
-                altura_calc = calcular_altura_ocupacao(
-                    altura_entrada=altura_entrada,
+                resultado = calcular_altura_ocupacao(
+                    altura_base=altura_base,
                     altura_saida=altura_saida,
                     dias_ocupacao=dias_ocupacao,
                     consumo_base_capim=consumo_base,
                     quantidade_animais=quantidade_animais,
-                    area_piquete=area_piquete
+                    area_piquete=area_piquete,
+                    detalhar=False
                 )
-                return altura_calc, 'estimada'
+                return resultado, 'estimada'
             except Exception:
                 # Fallback para modelo simples se houver erro
                 pass
         
         # Fallback: modelo linear simples
         consumo_diario = calcular_consumo_diario(capim)
-        altura_calc = altura_entrada - (dias_ocupacao * consumo_diario)
+        altura_calc = altura_base - (dias_ocupacao * consumo_diario)
         return max(altura_saida, round(altura_calc, 1)), 'estimada'
     else:
         # Em recuperação: altura aumenta com o crescimento
