@@ -588,6 +588,15 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const fazendaId = {{ fazenda.id }};
+        // Coordenadas da sede da fazenda (do banco de dados)
+        const fazendaLat = {{ fazenda.latitude_sede if fazenda.latitude_sede else '-15.7942' }};
+        const fazendaLng = {{ fazenda.longitude_sede if fazenda.longitude_sede else '-47.8822' }};
+        // Fallback se null
+        const defaultLat = -15.7942;
+        const defaultLng = -47.8822;
+        const mapaLat = fazendaLat || defaultLat;
+        const mapaLng = fazendaLng || defaultLng;
+        
         let map, mapDesenho, layerGroup;
         let pontos = [];
         let piquetes = [];
@@ -595,6 +604,8 @@
         
         // Menu
         let mapPiquetes = null;
+        let mapPiquetesLat = {{ fazenda.latitude_sede if fazenda.latitude_sede else '-15.7942' }};
+        let mapPiquetesLng = {{ fazenda.longitude_sede if fazenda.longitude_sede else '-47.8822' }};
         let mapDesenhoInit = false;
         function showSection(id) {
             document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
@@ -605,7 +616,7 @@
             if (id === 'piquetes') {
                 setTimeout(() => {
                     if (!mapPiquetes) {
-                        mapPiquetes = L.map('map-piquetes').setView([-15.7942, -47.8822], 15);
+                        mapPiquetes = L.map('map-piquetes').setView([mapaLat, mapaLng], 15);
                         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                     }
                     mapPiquetes.invalidateSize();
@@ -616,19 +627,29 @@
         
         // Maps
         function initMap() {
-            // Mapa do dashboard
-            map = L.map('map').setView([-15.7942, -47.8822], 14);
+            // Mapa do dashboard - centralizado na sede da fazenda
+            map = L.map('map').setView([mapaLat, mapaLng], 14);
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(map);
             
+            // Adicionar marcador da sede da fazenda se tiver coordenadas
+            {% if fazenda.latitude_sede and fazenda.longitude_sede %}
+            L.marker([mapaLat, mapaLng], {
+                icon: L.divIcon({
+                    className: 'fazenda-marker',
+                    html: '🏠',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30]
+                })
+            }).addTo(map).bindPopup('<strong>{{ fazenda.nome }}</strong><br>Sede da fazenda').openPopup();
+            {% endif %}
+            
             // Mapa da aba Piquetes (só inicializa, dados carregados depois)
-            // AVISO: Não chamar drawAllPiquetes() aqui! 
-            // O mapa precisa ser invalidado quando a aba ficar visível
         }
         
         function initMapPiquetes() {
-            // Inicializar mapa da aba Piquetes se ainda não existir
+            // Inicializar mapa da aba Piquetes centralizado na sede da fazenda
             if (!mapPiquetes) {
-                mapPiquetes = L.map('map-piquetes').setView([-15.7942, -47.8822], 15);
+                mapPiquetes = L.map('map-piquetes').setView([mapaLat, mapaLng], 15);
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
             }
             mapPiquetes.invalidateSize();
@@ -730,7 +751,8 @@
                 setTimeout(() => mapDesenho.invalidateSize(), 200);
                 return;
             }
-            mapDesenho = L.map('map-desenho').setView([-15.7942, -47.8822], 15);
+            // Usar coordenadas da fazenda como ponto inicial do desenho
+            mapDesenho = L.map('map-desenho').setView([mapaLat, mapaLng], 15);
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapDesenho);
             layerGroup = L.layerGroup().addTo(mapDesenho);
             
@@ -1314,7 +1336,7 @@
             // Inicializar mapa da aba Piquetes
             setTimeout(() => {
                 if (!mapPiquetes) {
-                    mapPiquetes = L.map('map-piquetes').setView([-15.7942, -47.8822], 15);
+                    mapPiquetes = L.map('map-piquetes').setView([mapaLat, mapaLng], 15);
                     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                 }
                 mapPiquetes.invalidateSize();
