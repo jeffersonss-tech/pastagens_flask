@@ -4,7 +4,7 @@ App Flask - Sistema de Pastagens
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import database
 import logging
-from api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
+from routes.api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
 
 app = Flask(__name__)
 app.secret_key = 'pastagens_secret_key_2024'
