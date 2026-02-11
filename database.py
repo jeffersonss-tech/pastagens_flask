@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from services.manejo_service import calcular_altura_ocupacao, get_consumo_base
+from routes_funcao import calcular_prioridade_rotacao, calcular_status_piquete, plano_rotacao, verificar_passou_ponto
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "pastagens.db")
 
