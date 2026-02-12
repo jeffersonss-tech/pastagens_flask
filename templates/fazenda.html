@@ -974,12 +974,18 @@
             
             fetch('/api/animais?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
                 animais = data;
-                document.getElementById('lista-lotes').innerHTML = data.map(a => `
-                    <tr><td>${a.nome}</td><td>${a.quantidade || 0}</td><td>${a.categoria || '-'}</td><td>${a.peso_medio || 0} kg</td></tr>
-                `).join('');
+                const listaLotes = document.getElementById('lista-lotes');
+                if (listaLotes) {
+                    listaLotes.innerHTML = data.map(a => `
+                        <tr><td>${a.nome}</td><td>${a.quantidade || 0}</td><td>${a.categoria || '-'}</td><td>${a.peso_medio || 0} kg</td></tr>
+                    `).join('');
+                }
                 
-                const opts = data.map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
-                document.getElementById('mov-animal').innerHTML = '<option value="">Selecione...</option>' + opts;
+                const movAnimal = document.getElementById('mov-animal');
+                if (movAnimal) {
+                    const opts = data.map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
+                    movAnimal.innerHTML = '<option value="">Selecione...</option>' + opts;
+                }
             });
             
             fetch('/api/movimentacoes').then(r => r.json()).then(data => {
