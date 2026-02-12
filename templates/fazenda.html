@@ -806,7 +806,9 @@
                 L.polygon(pontos, {color: '#228B22', weight: 3, fill: true, fillOpacity: 0.3}).addTo(layerGroup);
                 const area = calcularAreaPolygon(pontos);
                 document.getElementById('pq-area').value = area.toFixed(2);
-                travarArea(); // Travar área quando desenhado no mapa
+                // Travar área quando desenhado no mapa
+                document.getElementById('pq-area').setAttribute('readonly', true);
+                document.getElementById('pq-area').style.background = '#f5f5f5';
             } else {
                 document.getElementById('pq-area').value = '0';
             }
