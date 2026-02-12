@@ -16,31 +16,70 @@ def calcular_prioridade_rotacao(fazenda_id):
     """Calcula prioridade de rotacao para todos os piquetes da fazenda."""
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Query com info do lote (nome, categoria, quantidade)
     cursor.execute('''
-        SELECT p.id, p.nome, p.capim, p.area, p.estado,
+        SELECT p.id, p.nome as piquete_nome, p.capim, p.area, p.estado,
                p.altura_entrada, p.altura_saida, p.dias_ocupacao,
                p.dias_descanso, p.bloqueado, p.motivo_bloqueio,
                p.altura_real_medida, p.altura_estimada,
                p.condicao_climatica, p.dias_descanso_min,
-               COALESCE(SUM(l.quantidade), 0) as total_animais
+               l.nome as lote_nome, l.categoria, l.quantidade as animais_no_lote
         FROM piquetes p
         LEFT JOIN lotes l ON p.id = l.piquete_atual_id AND l.ativo = 1
         WHERE p.fazenda_id = ? AND p.ativo = 1
-        GROUP BY p.id
     ''', (fazenda_id,))
+    
     rows = cursor.fetchall()
     conn.close()
-    resultado = []
+    
+    # Agrupar piquetes com seus lotes
+    piquetes_dict = {}
     for row in rows:
         p = dict(row)
+        piquete_id = p['id']
+        
+        if piquete_id not in piquetes_dict:
+            # Primeiro registro do piquete
+            piquetes_dict[piquete_id] = {
+                'id': piquete_id,
+                'nome': p['piquete_nome'],
+                'capim': p['capim'],
+                'area': p['area'],
+                'estado': p['estado'],
+                'altura_estimada': p.get('altura_estimada'),
+                'status_detalhes': None,
+                'lotes': []
+            }
+        
+        # Adicionar info do lote se existir
+        if p['lote_nome']:
+            piquetes_dict[piquete_id]['lotes'].append({
+                'nome': p['lote_nome'],
+                'categoria': p['categoria'],
+                'quantidade': p['animais_no_lote'] or 0
+            })
+    
+    resultado = []
+    for p in piquetes_dict.values():
+        # Calcular total de animais no piquete
+        total_animais = sum(l['quantidade'] for l in p['lotes']) if p['lotes'] else 0
+        
+        # Calcular status
         status_info = calcular_status_piquete(p)
+        
         resultado.append({
-            'id': p['id'], 'nome': p['nome'], 'capim': p['capim'],
-            'area': p['area'], 'estado': p['estado'],
-            'animais_no_piquete': p['total_animais'],
+            'id': p['id'],
+            'nome': p['nome'],
+            'capim': p['capim'],
+            'area': p['area'],
+            'estado': p['estado'],
+            'animais_no_piquete': total_animais,
             'altura_estimada': p.get('altura_estimada'),
+            'lotes_no_piquete': p['lotes'],  # Lista com info dos lotes
             'status_detalhes': status_info
         })
+    
     return resultado
 
 
@@ -49,13 +88,22 @@ def calcular_status_piquete(piquete):
     altura_real = piquete.get('altura_real_medida')
     altura_estimada = piquete.get('altura_estimada')
     altura_base = altura_real if altura_real is not None else altura_estimada
-    altura_entrada = piquete.get('altura_entrada', 25) or 25
-    altura_saida = piquete.get('altura_saida', 15) or 15
-    dias_ocupacao = piquete.get('dias_ocupacao', 3) or 3
-    dias_descanso = piquete.get('dias_descanso', 0) or 0
-    dias_descanso_min = piquete.get('dias_descanso_min', 30) or 30
+    altura_entrada = float(piquete.get('altura_entrada', 25) or 25)
+    altura_saida = float(piquete.get('altura_saida', 15) or 15)
+    dias_ocupacao = int(piquete.get('dias_ocupacao', 3) or 3)
+    dias_descanso = int(piquete.get('dias_descanso', 0) or 0)
+    dias_descanso_min = int(piquete.get('dias_descanso_min', 30) or 30)
     estado = piquete.get('estado')
     bloqueado = piquete.get('bloqueado', 0)
+    
+    # Formatador de altura seguro
+    def fmt_altura(val):
+        if val is None:
+            return '-'
+        try:
+            return str(int(val))
+        except (ValueError, TypeError):
+            return str(round(val, 1))
     
     if bloqueado:
         return {'status': 'BLOQUEADO', 'emoji': '🟣', 'acao': ' Aguardar',
@@ -69,12 +117,12 @@ def calcular_status_piquete(piquete):
                     'progresso_descanso': None, 'cor': 'red'}
         elif altura_base and altura_base <= altura_saida + 3:
             return {'status': 'PROXIMO_SAIDA', 'emoji': '🟠', 'acao': 'Preparar saída',
-                    'pergunta_1': str(int(altura_base)) + '/' + str(altura_entrada) + ' cm', 
+                    'pergunta_1': fmt_altura(altura_base) + '/' + fmt_altura(altura_entrada) + ' cm', 
                     'pergunta_3': str(dias_ocupacao) + ' dias',
                     'progresso_descanso': None, 'cor': 'orange'}
         else:
             return {'status': 'EM_OCUPACAO', 'emoji': '🔵', 'acao': 'Em pastejo',
-                    'pergunta_1': str(int(altura_base)) + '/' + str(altura_entrada) + ' cm',
+                    'pergunta_1': fmt_altura(altura_base) + '/' + fmt_altura(altura_entrada) + ' cm',
                     'pergunta_3': str(dias_ocupacao) + ' dias',
                     'progresso_descanso': None, 'cor': 'blue'}
     
@@ -85,17 +133,17 @@ def calcular_status_piquete(piquete):
     
     if altura_base >= altura_entrada:
         return {'status': 'APTO_ENTRADA', 'emoji': '🟢', 'acao': 'Entrada Liberada!',
-                'pergunta_1': str(int(altura_base)) + ' cm', 
+                'pergunta_1': fmt_altura(altura_base) + ' cm', 
                 'pergunta_3': str(dias_descanso) + '/' + str(dias_descanso_min) + ' dias',
                 'progresso_descanso': min(100, (dias_descanso / dias_descanso_min) * 100), 'cor': 'green'}
     elif altura_base >= altura_saida:
         return {'status': 'EM_DESCANSO', 'emoji': '🟡', 'acao': 'Em recuperação',
-                'pergunta_1': str(int(altura_base)) + '/' + str(altura_entrada) + ' cm',
+                'pergunta_1': fmt_altura(altura_base) + '/' + fmt_altura(altura_entrada) + ' cm',
                 'pergunta_3': str(dias_descanso) + '/' + str(dias_descanso_min) + ' dias',
                 'progresso_descanso': min(100, (dias_descanso / dias_descanso_min) * 100), 'cor': 'yellow'}
     else:
         return {'status': 'ABAIXO_MINIMO', 'emoji': '🔴', 'acao': 'Recuperação urgente',
-                'pergunta_1': str(int(altura_base)) + ' cm (min: ' + str(altura_saida) + ')',
+                'pergunta_1': fmt_altura(altura_base) + ' cm (mín: ' + fmt_altura(altura_saida) + ')',
                 'pergunta_3': str(dias_descanso) + ' dias',
                 'progresso_descanso': None, 'cor': 'red'}
 
