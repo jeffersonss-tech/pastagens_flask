@@ -17,66 +17,55 @@ def calcular_prioridade_rotacao(fazenda_id):
     conn = get_db()
     cursor = conn.cursor()
     
-    # Query com info do lote (nome, categoria, quantidade)
+    # Query com info do lote (nome, categoria, quantidade) - usando GROUP BY para evitar duplicados
     cursor.execute('''
         SELECT p.id, p.nome as piquete_nome, p.capim, p.area, p.estado,
                p.altura_entrada, p.altura_saida, p.dias_ocupacao,
                p.dias_descanso, p.bloqueado, p.motivo_bloqueio,
                p.altura_real_medida, p.altura_estimada,
                p.condicao_climatica, p.dias_descanso_min,
-               l.nome as lote_nome, l.categoria, l.quantidade as animais_no_lote
+               COALESCE(SUM(l.quantidade), 0) as total_animais,
+               GROUP_CONCAT(DISTINCT l.nome || '|' || COALESCE(l.categoria, '') || '|' || COALESCE(l.quantidade, 0)) as lotes_info
         FROM piquetes p
         LEFT JOIN lotes l ON p.id = l.piquete_atual_id AND l.ativo = 1
         WHERE p.fazenda_id = ? AND p.ativo = 1
+        GROUP BY p.id
     ''', (fazenda_id,))
     
     rows = cursor.fetchall()
     conn.close()
     
-    # Agrupar piquetes com seus lotes
-    piquetes_dict = {}
+    resultado = []
     for row in rows:
         p = dict(row)
-        piquete_id = p['id']
         
-        if piquete_id not in piquetes_dict:
-            # Primeiro registro do piquete
-            piquetes_dict[piquete_id] = {
-                'id': piquete_id,
-                'nome': p['piquete_nome'],
-                'capim': p['capim'],
-                'area': p['area'],
-                'estado': p['estado'],
-                'altura_estimada': p.get('altura_estimada'),
-                'status_detalhes': None,
-                'lotes': []
-            }
-        
-        # Adicionar info do lote se existir
-        if p['lote_nome']:
-            piquetes_dict[piquete_id]['lotes'].append({
-                'nome': p['lote_nome'],
-                'categoria': p['categoria'],
-                'quantidade': p['animais_no_lote'] or 0
-            })
-    
-    resultado = []
-    for p in piquetes_dict.values():
-        # Calcular total de animais no piquete
-        total_animais = sum(l['quantidade'] for l in p['lotes']) if p['lotes'] else 0
+        # Parsear info dos lotes
+        lotes_list = []
+        if p.get('lotes_info'):
+            for lote_str in p['lotes_info'].split(','):
+                parts = lote_str.split('|')
+                if len(parts) >= 3:
+                    try:
+                        lotes_list.append({
+                            'nome': parts[0] if parts[0] else None,
+                            'categoria': parts[1] if parts[1] else None,
+                            'quantidade': int(parts[2]) if parts[2] else 0
+                        })
+                    except (ValueError, IndexError):
+                        pass
         
         # Calcular status
         status_info = calcular_status_piquete(p)
         
         resultado.append({
             'id': p['id'],
-            'nome': p['nome'],
+            'nome': p['piquete_nome'],
             'capim': p['capim'],
             'area': p['area'],
             'estado': p['estado'],
-            'animais_no_piquete': total_animais,
+            'animais_no_piquete': p['total_animais'],
             'altura_estimada': p.get('altura_estimada'),
-            'lotes_no_piquete': p['lotes'],  # Lista com info dos lotes
+            'lotes_no_piquete': lotes_list,
             'status_detalhes': status_info
         })
     

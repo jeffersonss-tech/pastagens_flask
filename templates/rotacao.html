@@ -357,6 +357,8 @@
             fetch('/api/rotacao')
                 .then(r => r.json())
                 .then(data => {
+                    console.log('API response:', data);
+                    
                     // Contar por status
                     const counts = {
                         'APTO_ENTRADA': 0,
@@ -369,10 +371,13 @@
                     
                     data.forEach(item => {
                         const status = item.status_detalhes.status;
+                        console.log('Piquete:', item.nome, 'Status:', status);
                         if (counts.hasOwnProperty(status)) {
                             counts[status]++;
                         }
                     });
+                    
+                    console.log('Counts:', counts);
                     
                     // Atualizar counters
                     document.getElementById('count-apto').textContent = counts['APTO_ENTRADA'];
