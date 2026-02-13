@@ -70,6 +70,8 @@ def init_db():
             estado TEXT DEFAULT 'disponivel',
             -- Campos de status avançado
             altura_atual REAL,
+            altura_real_medida REAL,
+            data_medicao TEXT,
             altura_entrada REAL DEFAULT 25,
             altura_saida REAL DEFAULT 15,
             dias_ocupacao INTEGER DEFAULT 3,
@@ -826,16 +828,31 @@ def criar_piquete(fazenda_id, nome, area=None, capim=None, geometria=None,
                   altura_atual=None, irrigado=None, observacao=None):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO piquetes (fazenda_id, nome, area, capim, geometria, 
-                              altura_entrada, altura_saida, dias_ocupacao,
-                              altura_real_medida, irrigado, observacao,
-                              created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (fazenda_id, nome, area, capim, geometria,
-          altura_entrada, altura_saida, dias_ocupacao,
-          altura_atual, irrigado, observacao,
-          datetime.now().isoformat(), datetime.now().isoformat()))
+    
+    # Se tem altura_atual, salvar com data da medicao
+    if altura_atual is not None:
+        cursor.execute('''
+            INSERT INTO piquetes (fazenda_id, nome, area, capim, geometria, 
+                                  altura_entrada, altura_saida, dias_ocupacao,
+                                  altura_real_medida, data_medicao, irrigado, observacao,
+                                  created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (fazenda_id, nome, area, capim, geometria,
+              altura_entrada, altura_saida, dias_ocupacao,
+              altura_atual, data_teste_now().isoformat(), irrigado, observacao,
+              datetime.now().isoformat(), datetime.now().isoformat()))
+    else:
+        cursor.execute('''
+            INSERT INTO piquetes (fazenda_id, nome, area, capim, geometria, 
+                                  altura_entrada, altura_saida, dias_ocupacao,
+                                  altura_real_medida, irrigado, observacao,
+                                  created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (fazenda_id, nome, area, capim, geometria,
+              altura_entrada, altura_saida, dias_ocupacao,
+              altura_atual, irrigado, observacao,
+              datetime.now().isoformat(), datetime.now().isoformat()))
+    
     conn.commit()
     piquete_id = cursor.lastrowid
     conn.close()
@@ -917,23 +934,34 @@ def get_piquete(id):
     if row:
         row_dict = dict(row)
         
+        # Calcular dias de descanso desde a data_medicao (se houver) ou ultima_mov
+        data_medicao = row_dict.get('data_medicao')
+        if data_medicao:
+            try:
+                medicao_dt = datetime.fromisoformat(data_medicao.replace('Z', '+00:00').replace('+00:00', ''))
+                row_dict['dias_descanso'] = (data_teste_now() - medicao_dt).days
+            except:
+                row_dict['dias_descanso'] = 0
+        else:
+            # Usar ultima_mov como fallback
+            ultima_mov = mov_row['ultima_mov'] if mov_row else None
+            try:
+                if ultima_mov:
+                    mov_dt = datetime.fromisoformat(ultima_mov.replace('Z', '+00:00').replace('+00:00', ''))
+                    row_dict['dias_descanso'] = (data_teste_now() - mov_dt).days
+                else:
+                    row_dict['dias_descanso'] = 0
+            except:
+                row_dict['dias_descanso'] = 0
+        
         # Calcular altura_estimada e fonte
         altura_estimada, fonte = calcular_altura_estimada(row_dict)
         row_dict['altura_estimada'] = altura_estimada
         row_dict['fonte_altura'] = fonte
         if fonte == 'real':
             row_dict['altura_atual'] = altura_estimada
-        
-        # Calcular dias de descanso
-        ultima_mov = mov_row['ultima_mov'] if mov_row else None
-        try:
-            if ultima_mov:
-                mov_dt = datetime.fromisoformat(ultima_mov.replace('Z', '+00:00').replace('+00:00', ''))
-                row_dict['dias_descanso'] = (data_teste_now() - mov_dt).days
-            else:
-                row_dict['dias_descanso'] = 0
-        except:
-            row_dict['dias_descanso'] = 0
+        else:
+            row_dict['altura_atual'] = altura_estimada
         
         return row_dict
     return None
@@ -961,7 +989,7 @@ def atualizar_piquete(id, nome=None, area=None, capim=None,
         cursor.execute('''
             UPDATE piquetes SET nome=?, area=?, capim=?, 
                               altura_entrada=?, altura_saida=?, dias_ocupacao=?,
-                              altura_real_medida=NULL, irrigado=?, observacao=?,
+                              altura_real_medida=NULL, data_medicao=NULL, irrigado=?, observacao=?,
                               updated_at=?
             WHERE id=?
         ''', (nome or nome_atual, area, capim,
@@ -969,16 +997,16 @@ def atualizar_piquete(id, nome=None, area=None, capim=None,
               irrigado, observacao,
               datetime.now().isoformat(), id))
     elif altura_atual is not None:
-        # Salvar nova medição
+        # Salvar nova medição com data
         cursor.execute('''
             UPDATE piquetes SET nome=?, area=?, capim=?, 
                               altura_entrada=?, altura_saida=?, dias_ocupacao=?,
-                              altura_real_medida=?, irrigado=?, observacao=?,
+                              altura_real_medida=?, data_medicao=?, irrigado=?, observacao=?,
                               updated_at=?
             WHERE id=?
         ''', (nome or nome_atual, area, capim,
               altura_entrada, altura_saida, dias_ocupacao,
-              altura_atual, irrigado, observacao,
+              altura_atual, data_teste_now().isoformat(), irrigado, observacao,
               datetime.now().isoformat(), id))
     else:
         # Atualizar sem mudar altura
@@ -1371,6 +1399,7 @@ def calcular_altura_estimada(piquete):
     from datetime import datetime
     
     altura_real = piquete.get('altura_real_medida')
+    data_medicao = piquete.get('data_medicao')
     estado = piquete.get('estado')
     dias_descanso = piquete.get('dias_descanso', 0) or 0
     dias_ocupacao = piquete.get('dias_ocupacao', 0) or 0
@@ -1380,8 +1409,17 @@ def calcular_altura_estimada(piquete):
     altura_saida = piquete.get('altura_saida', 15) or 15
     altura_entrada = piquete.get('altura_entrada', 25) or 25
     
-    # Se tem medição real E passaram dias, calcular crescimento/degradação
-    if altura_real is not None and dias_descanso > 0:
+    # Calcular dias desde a medição
+    dias_desde_medicao = 0
+    if data_medicao:
+        try:
+            medicao_dt = datetime.fromisoformat(data_medicao.replace('Z', '+00:00').replace('+00:00', ''))
+            dias_desde_medicao = (data_teste_now() - medicao_dt).days
+        except:
+            dias_desde_medicao = 0
+    
+    # Se tem medição real E passaram dias desde a medição, calcular crescimento/degradação
+    if altura_real is not None and dias_desde_medicao > 0:
         if estado == 'ocupado':
             # Em ocupação: calcular degradação a partir da medição real
             # A medição foi feita na entrada, agora precisamos subtrair o consumo
@@ -1397,7 +1435,7 @@ def calcular_altura_estimada(piquete):
                     resultado = calcular_altura_ocupacao(
                         altura_base=altura_real,
                         altura_saida=altura_saida,
-                        dias_ocupacao=dias_ocupacao,
+                        dias_ocupacao=dias_desde_medicao,
                         consumo_base_capim=consumo_base,
                         quantidade_animais=quantidade_animais,
                         area_piquete=area_piquete,
@@ -1409,7 +1447,7 @@ def calcular_altura_estimada(piquete):
             
             # Fallback: modelo linear simples
             consumo_diario = consumo_base
-            altura_calc = altura_real - (dias_ocupacao * consumo_diario)
+            altura_calc = altura_real - (dias_desde_medicao * consumo_diario)
             return max(altura_saida, round(altura_calc, 1)), 'estimada'
         else:
             # Em recuperação: calcular crescimento a partir da medição real
@@ -1419,11 +1457,10 @@ def calcular_altura_estimada(piquete):
             
             condicao_climatica = piquete.get('condicao_climatica', 'normal') or 'normal'
             
-            # Usar a altura_saida como base porque a medição foi feita na saída
-            # Os dias de descanso são desde a saída, então o crescimento é a partir da saída
+            # Usar a altura_real como ponto de partida
             resultado = calcular_altura_descanso(
-                altura_saida=altura_real,  # Usar a medição como ponto de partida
-                dias_descanso=dias_descanso,
+                altura_saida=altura_real,
+                dias_descanso=dias_desde_medicao,
                 capim=capim,
                 condicao_climatica=condicao_climatica,
                 altura_entrada=altura_entrada,
