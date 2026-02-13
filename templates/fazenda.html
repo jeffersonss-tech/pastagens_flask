@@ -971,19 +971,30 @@
                             // Ja atingiu altura
                             diasRestantes = `<small style="color: #155724;">✅ Pronto para receber!</small>`;
                         } else {
-                            // Em recuperacao - mostrar dias restantes
+                            // Em recuperacao - mostrar dias necessários calculados
                             const diasDescanso = p.dias_descanso || 0;
-                            const diasMin = p.dias_descanso_min || 30;
+                            // Dias necessários calculados dinamicamente pelo capim
+                            const diasMin = p.dias_descanso_min || calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
+                            const limiteMaximo = 30; // Alerta de ineficiência
                             const faltam = Math.max(0, diasMin - diasDescanso);
                             const progresso = Math.min(100, (diasDescanso / diasMin) * 100);
+                            
+                            // Info de crescimento
+                            const crescimento = getCrescimentoCapim(p.capim);
+                            const faltaCm = Math.max(0, p.altura_entrada - alturaMostrada);
+                            
+                            // Alerta de ineficiência: passou do limite máximo
+                            const alertaIneficiencia = diasDescanso > limiteMaximo;
                             
                             if (faltam > 0) {
                                 diasRestantes = `
                                     <div style="margin-top: 8px;">
-                                        <small style="color: #856404;">📅 ${diasDescanso}/${diasMin} dias (falta ${faltam}) ${badgeFonte}</small>
+                                        <small style="color: #856404;">📅 ~${diasMin} dias necessários ${badgeFonte}</small><br>
+                                        <small style="color: #6c757d;">📈 ${crescimento} cm/dia | Falta: ${faltaCm}cm</small>
                                         <div style="background: #e9ecef; border-radius: 10px; height: 8px; margin-top: 5px; overflow: hidden;">
                                             <div style="background: linear-gradient(90deg, #ffc107, #28a745); width: ${progresso}%; height: 100%;"></div>
                                         </div>
+                                        ${alertaIneficiencia ? `<small style="color: #dc3545;">⚠️ Ineficiência! Passou de ${limiteMaximo} dias</small>` : ''}
                                     </div>
                                 `;
                             } else {
@@ -1744,51 +1755,78 @@
                 alturaEntrada: 30,
                 alturaSaida: 15,
                 diasOcupacao: 3,
-                descricao: '• Altura entrada: 25–30 cm<br>• Altura saída: 15 cm<br>• Descanso médio: 28 dias'
+                crescimentoDiario: 1.2,
+                descricao: '• Altura entrada: 25–30 cm<br>• Altura saída: 15 cm<br>• Crescimento: ~1.2 cm/dia'
             },
             'Mombaça': {
                 alturaEntrada: 35,
                 alturaSaida: 20,
                 diasOcupacao: 3,
-                descricao: '• Altura entrada: 35–40 cm<br>• Altura saída: 20 cm<br>• Descanso médio: 35 dias'
+                crescimentoDiario: 1.5,
+                descricao: '• Altura entrada: 35–40 cm<br>• Altura saída: 20 cm<br>• Crescimento: ~1.5 cm/dia'
             },
             'Tifton 85': {
                 alturaEntrada: 20,
                 alturaSaida: 10,
                 diasOcupacao: 3,
-                descricao: '• Altura entrada: 20–25 cm<br>• Altura saída: 10 cm<br>• Descanso médio: 21 dias'
+                crescimentoDiario: 1.0,
+                descricao: '• Altura entrada: 20–25 cm<br>• Altura saída: 10 cm<br>• Crescimento: ~1.0 cm/dia'
             },
             'Andropogon': {
                 alturaEntrada: 25,
                 alturaSaida: 12,
                 diasOcupacao: 3,
-                descricao: '• Altura entrada: 25–30 cm<br>• Altura saída: 12 cm<br>• Descanso médio: 28 dias'
+                crescimentoDiario: 1.2,
+                descricao: '• Altura entrada: 25–30 cm<br>• Altura saída: 12 cm<br>• Crescimento: ~1.2 cm/dia'
             },
             'Capim Aruana': {
                 alturaEntrada: 25,
                 alturaSaida: 15,
                 diasOcupacao: 3,
-                descricao: '• Altura entrada: 25 cm<br>• Altura saída: 15 cm<br>• Descanso médio: 28 dias'
+                crescimentoDiario: 1.1,
+                descricao: '• Altura entrada: 25 cm<br>• Altura saída: 15 cm<br>• Crescimento: ~1.1 cm/dia'
             },
             'Natalino': {
                 alturaEntrada: 30,
                 alturaSaida: 15,
                 diasOcupacao: 3,
-                descricao: '• Altura entrada: 30 cm<br>• Altura saída: 15 cm<br>• Descanso médio: 30 dias'
+                crescimentoDiario: 1.3,
+                descricao: '• Altura entrada: 30 cm<br>• Altura saída: 15 cm<br>• Crescimento: ~1.3 cm/dia'
             },
             'MG-5': {
                 alturaEntrada: 35,
                 alturaSaida: 18,
                 diasOcupacao: 3,
-                descricao: '• Altura entrada: 35 cm<br>• Altura saída: 18 cm<br>• Descanso médio: 35 dias'
+                crescimentoDiario: 1.4,
+                descricao: '• Altura entrada: 35 cm<br>• Altura saída: 18 cm<br>• Crescimento: ~1.4 cm/dia'
             },
             'Outro': {
                 alturaEntrada: 25,
                 alturaSaida: 15,
                 diasOcupacao: 3,
+                crescimentoDiario: 1.2,
                 descricao: '• Defina os valores manualmente<br>• Consulta um agrônomo para orientação'
             }
         };
+        
+        // Retorna crescimento diário do capim
+        function getCrescimentoCapim(capim) {
+            if (capim && dadosCapins[capim]) {
+                return dadosCapins[capim].crescimentoDiario;
+            }
+            return 1.2; // Padrão
+        }
+        
+        // Calcula dias necessários para recuperação
+        function calcularDiasNecessarios(capim, alturaEntrada, alturaSaida) {
+            if (!capim || !dadosCapins[capim]) {
+                return 30; // Fallback
+            }
+            const crescimento = dadosCapins[capim].crescimentoDiario;
+            const alturaNecessaria = alturaEntrada - alturaSaida;
+            if (crescimento <= 0) return 30;
+            return Math.max(1, Math.round(alturaNecessaria / crescimento));
+        }
         
         // Atualizar info do capim quando selecionado
         function atualizarInfoCapim() {

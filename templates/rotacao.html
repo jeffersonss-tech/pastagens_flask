@@ -479,6 +479,17 @@
                             <span>📍 ${item.status_detalhes.pergunta_1 || '-'}</span>
                             <span>⏱️ ${s.pergunta_3 || '-'}</span>
                         </div>
+                        <div class="piquete-meta" style="margin-top: 5px;">
+                            ${item.altura_real_medida ? `
+                                <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">
+                                    📏 ${item.altura_real_medida}cm (MEDIDA)
+                                </span>
+                            ` : ''}
+                            <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">
+                                📐 Est: ${item.altura_estimada || 0}cm
+                            </span>
+                            ${item.data_medicao ? `<span style="font-size: 0.7rem; color: #666; margin-left: 5px;">(Medido: ${new Date(item.data_medicao).toLocaleDateString('pt-BR')})</span>` : ''}
+                        </div>
                         ${loteInfoHTML}
                     </div>
                     <div class="acao">

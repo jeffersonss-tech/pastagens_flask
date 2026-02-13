@@ -1363,18 +1363,24 @@ def verificar_alertas_piquetes(fazenda_id):
     conn.close()
     return alertas_criados
 
-def calcular_dias_descanso(capim):
-    """Retorna dias de descanso ideal baseado no capim"""
-    dias = {
-        'Brachiaria': 28,
-        'Mombaça': 35,
-        'Tifton 85': 21,
-        'Andropogon': 28,
-        'Capim Aruana': 28,
-        'Natalino': 30,
-        'MG-5': 35,
-    }
-    return dias.get(capim, 30)
+def calcular_dias_descanso(capim, altura_entrada=25, altura_saida=15):
+    """
+    Retorna dias de descanso necessários baseado no capim e alturas.
+    Usa cálculo dinâmico: (altura_entrada - altura_saida) / crescimento_diario
+    """
+    from services.rotacao_service import DADOS_CAPINS
+    
+    if not capim or capim not in DADOS_CAPINS:
+        return 30  # Fallback genérico
+    
+    crescimento = DADOS_CAPINS[capim]['crescimento_diario']
+    altura_necessaria = altura_entrada - altura_saida
+    
+    if crescimento <= 0:
+        return 30
+    
+    dias_necessarios = altura_necessaria / crescimento
+    return max(1, int(dias_necessarios))  # Mínimo 1 dia
 
 def calcular_consumo_diario(capim):
     """Retorna consumo diário estimado do capim em cm/dia"""
