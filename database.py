@@ -1561,9 +1561,8 @@ def calcular_altura_estimada(piquete):
     if altura_real is not None:
         return altura_real, 'real'
     
-    # Prioridade 2: altura_atual legado (para compatibilidade)
-    if piquete.get('altura_atual') is not None:
-        return piquete['altura_atual'], 'real'
+    # REMOVIDO: Prioridade 2 - altura_atual legado (estava retornando valor antigo como "real")
+    # O campo altura_atual não deve ser usado como medição real
     
     # Prioridade 3: calcular estimativa sem medição real
     if estado == 'ocupado':
