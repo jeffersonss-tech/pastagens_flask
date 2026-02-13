@@ -590,9 +590,9 @@
                         `;
                     }
                     
-                    // Piquete atual
+                    // Piquete atual - com altura estimada
                     let piqueteInfo = temPiquete 
-                        ? lote.piquete_nome 
+                        ? `${lote.piquete_nome}<br><small style="color: #28a745;">📏 ${lote.altura_estimada || '?'}cm (est.)</small>`
                         : '<span style="color: #999;">Sem piquete</span>';
                     
                     // CORREÇÃO 5: Próximo piquete - botão para ver todos
