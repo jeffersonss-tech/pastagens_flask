@@ -706,18 +706,21 @@
                         if (geo.type === 'Polygon' && geo.coordinates && geo.coordinates.length > 0) {
                             const coords = geo.coordinates[0].map(c => [c[1], c[0]]); // lng,lat -> lat,lng
                             
-                            // Determinar cor baseada no estado
+                            // Determinar cor baseada no estado E ALTURA ESTIMADA
                             let corPoligono = '#28a745'; // verde = disponível
                             const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
                             const temAlgumaAltura = temReal || (p.altura_estimada !== null && p.altura_estimada !== undefined);
                             const fonteAlt = p.fonte_altura || 'estimada';
-                            const alturaMostrada = temReal ? p.altura_real_medida : p.altura_estimada;
                             
                             if (!temAlgumaAltura) {
                                 corPoligono = '#fd7e14'; // laranja = aguardando altura
                             } else if (p.estado === 'ocupado') {
                                 corPoligono = '#dc3545'; // vermelho = ocupado
-                            } else if (alturaMostrada < p.altura_entrada) {
+                            } else if (p.altura_estimada >= p.altura_entrada) {
+                                corPoligono = '#28a745'; // verde = disponível (baseado na estimativa)
+                            } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
+                                corPoligono = '#28a745'; // verde = disponível (baseado na medição)
+                            } else {
                                 corPoligono = '#ffc107'; // amarelo = recuperando
                             }
                             
@@ -1019,16 +1022,21 @@
                         }
                     }
                     
-                    // Determinar classe do card baseado em altura real
+                    // Determinar classe do card baseado em ALTURA ESTIMADA (prioridade)
                     let cardClass = 'piquete-card';
-                    if (!temReal) {
-                        // Sem medição real - manter neutro
+                    if (!temAlgumaAltura) {
+                        // Sem altura definida - neutro
                         cardClass += ' sem-altura';
                     } else if (p.estado === 'ocupado') {
                         cardClass += ' ocupado';
-                    } else if (alturaMostrada >= p.altura_entrada) {
+                    } else if (p.altura_estimada >= p.altura_entrada) {
+                        // Estimativa atingiu = disponível (verde)
+                        cardClass += ' disponivel';
+                    } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
+                        // Medição real atingiu = disponível (verde)
                         cardClass += ' disponivel';
                     } else {
+                        // Recuperando (laranja/amarelo)
                         cardClass += ' recuperando';
                     }
                     
@@ -1378,18 +1386,21 @@
                         if (geo.type === 'Polygon' && geo.coordinates && geo.coordinates.length > 0) {
                             const coords = geo.coordinates[0].map(c => [c[1], c[0]]); // lng,lat -> lat,lng
                             
-                            // Determinar cor baseada no estado
+                            // Determinar cor baseada no estado E ALTURA ESTIMADA
                             let corPoligono = '#28a745'; // verde = disponível
                             const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
                             const temAlgumaAltura = temReal || (p.altura_estimada !== null && p.altura_estimada !== undefined);
                             const fonteAlt = p.fonte_altura || 'estimada';
-                            const alturaMostrada = temReal ? p.altura_real_medida : p.altura_estimada;
                             
                             if (!temAlgumaAltura) {
                                 corPoligono = '#fd7e14'; // laranja = aguardando altura
                             } else if (p.estado === 'ocupado') {
                                 corPoligono = '#dc3545'; // vermelho = ocupado
-                            } else if (alturaMostrada < p.altura_entrada) {
+                            } else if (p.altura_estimada >= p.altura_entrada) {
+                                corPoligono = '#28a745'; // verde = disponível (baseado na estimativa)
+                            } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
+                                corPoligono = '#28a745'; // verde = disponível (baseado na medição)
+                            } else {
                                 corPoligono = '#ffc107'; // amarelo = recuperando
                             }
                             
