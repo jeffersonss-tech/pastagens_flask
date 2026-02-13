@@ -446,16 +446,13 @@ def listar_lotes(fazenda_id=None, status_filtro=None, categoria_filtro=None):
         lote = dict(row)
         lote['dias_no_piquete'] = calcular_dias_no_piquete(lote)
         
-        # Calcular altura atual baseada em real vs estimada
-        temReal = lote.get('altura_real_medida') is not None
-        
-        # Calcular altura_estimada dinamicamente se não vier do banco
+        # Calcular altura estimada dinamicamente se não vier do banco
         if lote.get('piquete_atual_id'):
             piquete_info = {
                 'id': lote['piquete_atual_id'],
                 'estado': lote.get('estado'),
                 'altura_real_medida': lote.get('altura_real_medida'),
-                'altura_estimada': lote.get('altura_estimada'),
+                'altura_estimada': None,  # Forçar recálculo
                 'data_medicao': lote.get('data_medicao'),
                 'altura_entrada': lote.get('altura_entrada'),
                 'altura_saida': lote.get('altura_saida'),
@@ -466,8 +463,7 @@ def listar_lotes(fazenda_id=None, status_filtro=None, categoria_filtro=None):
             altura_est, fonte = calcular_altura_estimada(piquete_info)
             lote['altura_estimada'] = altura_est
         
-        lote['altura_atual'] = lote.get('altura_real_medida') if temReal else lote.get('altura_estimada')
-        lote['tem_altura_real'] = temReal
+        lote['altura_atual'] = lote.get('altura_real_medida') if lote.get('tem_altura_real') else lote.get('altura_estimada')
         
         lote['status_info'] = calcular_status_lote(lote)
         lotes.append(lote)
