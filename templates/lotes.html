@@ -513,8 +513,8 @@
             const emOcupacao = lotes.filter(l => l.piquete_atual_id).length;
             document.getElementById('stat-ocupacao').textContent = emOcupacao;
             
-            // CORREÇÃO: Só lotes EM OCUPAÇÃO que precisam sair
-            const precisaSair = lotes.filter(l => l.piquete_atual_id && l.status_calculado === 'RETIRAR').length;
+            // CORREÇÃO: Usar status_info (calculado) em vez de status_calculado (cache)
+            const precisaSair = lotes.filter(l => l.piquete_atual_id && (l.status_info?.status === 'RETIRAR')).length;
             document.getElementById('stat-saida').textContent = precisaSair;
             
             const totalAnimais = lotes.reduce((sum, l) => sum + (l.quantidade || 0), 0);
@@ -553,10 +553,13 @@
                     
                     // CORREÇÃO 1: Status - Aguardando Alocação se sem piquete
                     let statusBadge = '';
+                    // Usar status_info (calculado dinamicamente) em vez de status_calculado (cache)
+                    const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
+                    
                     if (!temPiquete) {
                         statusBadge = '<span class="status-badge aguardando">🔵 Aguardando Alocação</span>';
                     } else {
-                        switch(lote.status_calculado) {
+                        switch(statusCalc) {
                             case 'RETIRAR':
                                 statusBadge = '<span class="status-badge retirar">🔴 Retirar</span>';
                                 break;
@@ -663,8 +666,8 @@
                     `;
                 }).join('');
                 
-                // Atualizar stat de precisa sair (só lotes em ocupacao com status RETIRAR)
-                const precisaSair = lotes.filter(l => l.piquete_atual_id && l.status_calculado === 'RETIRAR').length;
+                // Atualizar stat - usar status_info (calculado)
+                const precisaSair = lotes.filter(l => l.piquete_atual_id && (l.status_info?.status === 'RETIRAR')).length;
                 document.getElementById('stat-saida').textContent = precisaSair;
             });
         }
@@ -907,14 +910,16 @@
             const pesoTotal = (lote.quantidade || 0) * (lote.peso_medio || 0);
             const ua = pesoTotal / 450; // 1 UA = 450kg
             
-            // Status do lote
+            // Status do lote - usar status_info (calculado) em vez de status_calculado (cache)
             let statusTexto = '';
             let statusCor = '';
+            const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
+            
             if (!lote.piquete_atual_id) {
                 statusTexto = '🔵 Aguardando Alocação';
                 statusCor = '#004085';
             } else {
-                switch(lote.status_calculado) {
+                switch(statusCalc) {
                     case 'RETIRAR':
                         statusTexto = '🔴 Precisa Sair';
                         statusCor = '#721c24';
