@@ -941,18 +941,27 @@
                             `;
                         }
                         
-                        // Mostrar dias de descanso faltantes se em recuperação
+                        // Mostrar dias de descanso faltantes se em recuperacao
                         if (!temAlgumaAltura) {
                             // Sem altura definida
                             diasRestantes = '';
                         } else if (p.estado === 'ocupado') {
-                            // Em ocupação - mostrar dias no piquete
-                            diasRestantes = `<small style="color: #004085;">📅 ${p.dias_descanso || 0} dias em ocupação</small>`;
+                            // Em ocupacao - mostrar dias no piquete
+                            const diasOcupacao = p.dias_no_piquete || 0;
+                            const diasMax = p.dias_ocupacao || 3;
+                            const faltamDias = Math.max(0, diasMax - diasOcupacao);
+                            if (faltamDias === 0) {
+                                diasRestantes = `<small style="color: #dc3545;">🚨 Passou do limite! (${diasOcupacao}/${diasMax} dias)</small>`;
+                            } else if (faltamDias <= 1) {
+                                diasRestantes = `<small style="color: #fd7e14;">⚠️ Ultimo dia! (${diasOcupacao}/${diasMax})</small>`;
+                            } else {
+                                diasRestantes = `<small style="color: #004085;">📅 ${diasOcupacao}/${diasMax} dias ocupacao</small>`;
+                            }
                         } else if (alturaMostrada >= p.altura_entrada) {
-                            // Já atingiu altura
+                            // Ja atingiu altura
                             diasRestantes = `<small style="color: #155724;">✅ Pronto para receber!</small>`;
                         } else {
-                            // Em recuperação - mostrar dias restantes
+                            // Em recuperacao - mostrar dias restantes
                             const diasDescanso = p.dias_descanso || 0;
                             const diasMin = p.dias_descanso_min || 30;
                             const faltam = Math.max(0, diasMin - diasDescanso);
@@ -1456,7 +1465,10 @@
                                 <strong>${p.nome}</strong><br>
                                 🌿 ${p.capim || 'N/I'}<br>
                                 📐 ${p.area || 0} hectares<br>
-                                📏 ${p.altura_atual || '?'}/${p.altura_entrada || '?'} cm
+                                📏 ${p.altura_atual || '?'}/${p.altura_entrada || '?'} cm<br>
+                                ${p.estado === 'ocupado' 
+                                    ? `📅 ${p.dias_no_piquete || 0}/${p.dias_ocupacao || 3} dias ocupacao`
+                                    : `📅 ${p.dias_descanso || 0}/${p.dias_descanso_min || 30} dias descanso`}
                             `).openPopup();
                         }
                     } catch (e) {

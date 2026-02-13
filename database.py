@@ -904,15 +904,37 @@ def get_piquete(id):
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM piquetes WHERE id = ?', (id,))
     row = cursor.fetchone()
+    
+    # Buscar ultima movimentacao do piquete
+    cursor.execute('''
+        SELECT MAX(data_movimentacao) as ultima_mov
+        FROM movimentacoes
+        WHERE piquete_destino_id = ? OR piquete_origem_id = ?
+    ''', (id, id))
+    mov_row = cursor.fetchone()
     conn.close()
+    
     if row:
         row_dict = dict(row)
+        
         # Calcular altura_estimada e fonte
         altura_estimada, fonte = calcular_altura_estimada(row_dict)
         row_dict['altura_estimada'] = altura_estimada
         row_dict['fonte_altura'] = fonte
         if fonte == 'real':
             row_dict['altura_atual'] = altura_estimada
+        
+        # Calcular dias de descanso
+        ultima_mov = mov_row['ultima_mov'] if mov_row else None
+        try:
+            if ultima_mov:
+                mov_dt = datetime.fromisoformat(ultima_mov.replace('Z', '+00:00').replace('+00:00', ''))
+                row_dict['dias_descanso'] = (data_teste_now() - mov_dt).days
+            else:
+                row_dict['dias_descanso'] = 0
+        except:
+            row_dict['dias_descanso'] = 0
+        
         return row_dict
     return None
 
