@@ -25,7 +25,9 @@ def get_db():
 
 
 def calcular_dias_descanso_necessarios(capim, altura_entrada, altura_saida):
-    """Calcula dias de descanso necessários baseado no capim e alturas."""
+    """
+    Calcula dias de descanso necessários para ir de altura_saida até altura_entrada.
+    """
     if not capim or capim not in DADOS_CAPINS:
         return 30  # Fallback genérico
     
@@ -37,6 +39,30 @@ def calcular_dias_descanso_necessarios(capim, altura_entrada, altura_saida):
     
     dias_necessarios = altura_necessaria / crescimento
     return max(1, int(dias_necessarios))  # Mínimo 1 dia
+
+
+def calcular_dias_faltantes(capim, altura_entrada, altura_atual):
+    """
+    Calcula dias necessários para atingir altura de entrada, considerando altura ATUAL.
+    Se altura_atual >= altura_entrada: retorna 0 (já atingiu)
+    """
+    if not capim or capim not in DADOS_CAPINS:
+        return 0
+    
+    crescimento = DADOS_CAPINS[capim]['crescimento_diario']
+    
+    if altura_atual is None:
+        return 30  # Fallback
+    
+    if altura_atual >= altura_entrada:
+        return 0  # Já atingiu a altura ideal
+    
+    falta = altura_entrada - altura_atual
+    if crescimento <= 0:
+        return 30
+    
+    dias_faltantes = falta / crescimento
+    return max(0, dias_faltantes)  # Retorna float para mostrar "~1 dia"
 
 
 def calcular_prioridade_rotacao(fazenda_id):
@@ -114,14 +140,19 @@ def calcular_status_piquete(piquete):
     estado = piquete.get('estado')
     bloqueado = piquete.get('bloqueado', 0)
     
-    # Calcular dias necessários baseado no capim
-    dias_descanso_min = calcular_dias_descanso_necessarios(capim, altura_entrada, altura_saida)
-    limite_maximo = 30  # Fallback máximo para alerta de ineficiência
-    
     # Info de crescimento
     crescimento = DADOS_CAPINS.get(capim, {}).get('crescimento_diario', 1.2) if capim else 1.2
-    falta_cm = altura_entrada - altura_base if altura_base else altura_entrada
-    dias_faltantes_calc = int(falta_cm / crescimento) if crescimento > 0 and altura_base else dias_descanso_min
+    limite_maximo = 30  # Fallback máximo para alerta de ineficiência
+    
+    # Calcular dias necessários baseado na ALTURA ATUAL (não na altura de saída)
+    if altura_base is not None:
+        dias_faltantes_calc = calcular_dias_faltantes(capim, altura_entrada, altura_base)
+    else:
+        dias_faltantes_calc = calcular_dias_descanso_necessarios(capim, altura_entrada, altura_saida)
+    
+    # Se já atingiu altura ideal, dias necessários = 0
+    if altura_base is not None and altura_base >= altura_entrada:
+        dias_faltantes_calc = 0
     
     # Alerta de ineficiência: passou do limite máximo sem atingir altura
     alerta_ineficiencia = dias_descanso > limite_maximo and altura_base and altura_base < altura_entrada
@@ -164,29 +195,31 @@ def calcular_status_piquete(piquete):
         return {'status': 'SEM_ALTURA', 'emoji': '⚠️', 'acao': 'Medir altura',
                 'pergunta_1': 'Sem dados', 'pergunta_3': str(dias_descanso) + ' dias',
                 'progresso_descanso': None, 'cor': 'orange',
-                'dias_min_calculado': dias_descanso_min, 'crescimento': crescimento, 'falta_cm': altura_entrada, 
+                'dias_min_calculado': dias_faltantes_calc, 'crescimento': crescimento, 'falta_cm': altura_entrada, 
                 'alerta_ineficiencia': dias_descanso > limite_maximo}
     
     if altura_base >= altura_entrada:
         return {'status': 'APTO_ENTRADA', 'emoji': '🟢', 'acao': 'Entrada Liberada!',
                 'pergunta_1': fmt_altura(altura_base) + ' cm', 
-                'pergunta_3': f'{dias_descanso}/{dias_descanso_min} dias (necessário)',
-                'progresso_descanso': min(100, (dias_descanso / dias_descanso_min) * 100), 'cor': 'green',
-                'dias_min_calculado': dias_descanso_min, 'crescimento': crescimento, 'falta_cm': 0,
+                'pergunta_3': f'{dias_descanso}/{dias_faltantes_calc} dias',
+                'progresso_descanso': None, 'cor': 'green',
+                'dias_min_calculado': dias_faltantes_calc, 'crescimento': crescimento, 'falta_cm': 0,
                 'alerta_ineficiencia': False}
     elif altura_base >= altura_saida:
+        falta_cm = altura_entrada - altura_base
         return {'status': 'EM_DESCANSO', 'emoji': '🟡', 'acao': 'Em recuperação',
                 'pergunta_1': fmt_altura(altura_base) + '/' + fmt_altura(altura_entrada) + ' cm',
-                'pergunta_3': f'{dias_descanso}/{dias_descanso_min} dias (necessário)',
-                'progresso_descanso': min(100, (dias_descanso / dias_descanso_min) * 100), 'cor': 'yellow',
-                'dias_min_calculado': dias_descanso_min, 'crescimento': crescimento, 'falta_cm': falta_cm,
+                'pergunta_3': f'{dias_descanso}/{dias_faltantes_calc} dias (necessários)',
+                'progresso_descanso': min(100, (dias_descanso / max(1, dias_faltantes_calc)) * 100), 'cor': 'yellow',
+                'dias_min_calculado': dias_faltantes_calc, 'crescimento': crescimento, 'falta_cm': falta_cm,
                 'alerta_ineficiencia': alerta_ineficiencia}
     else:
+        falta_cm = altura_entrada - altura_base
         return {'status': 'ABAIXO_MINIMO', 'emoji': '🔴', 'acao': 'Recuperação urgente',
                 'pergunta_1': fmt_altura(altura_base) + ' cm (mín: ' + fmt_altura(altura_saida) + ')',
                 'pergunta_3': str(dias_descanso) + ' dias',
                 'progresso_descanso': None, 'cor': 'red',
-                'dias_min_calculado': dias_descanso_min, 'crescimento': crescimento, 'falta_cm': falta_cm,
+                'dias_min_calculado': dias_faltantes_calc, 'crescimento': crescimento, 'falta_cm': falta_cm,
                 'alerta_ineficiencia': alerta_ineficiencia}
 
 

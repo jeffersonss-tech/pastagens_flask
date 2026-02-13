@@ -973,23 +973,25 @@
                         } else {
                             // Em recuperacao - mostrar dias necessários calculados
                             const diasDescanso = p.dias_descanso || 0;
-                            // Dias necessários calculados dinamicamente pelo capim
-                            const diasMin = p.dias_descanso_min || calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
-                            const limiteMaximo = 30; // Alerta de ineficiência
-                            const faltam = Math.max(0, diasMin - diasDescanso);
-                            const progresso = Math.min(100, (diasDescanso / diasMin) * 100);
                             
                             // Info de crescimento
                             const crescimento = getCrescimentoCapim(p.capim);
                             const faltaCm = Math.max(0, p.altura_entrada - alturaMostrada);
                             
+                            // Calcular dias necessários baseado na ALTURA QUE FALTA
+                            // Se faltaCm = 1cm e crescimento = 1.2cm/dia → ~1 dia
+                            const diasNecessarios = Math.round(faltaCm / crescimento);
+                            
+                            const limiteMaximo = 30; // Alerta de ineficiência
+                            const progresso = Math.min(100, (diasDescanso / Math.max(1, diasNecessarios)) * 100);
+                            
                             // Alerta de ineficiência: passou do limite máximo
                             const alertaIneficiencia = diasDescanso > limiteMaximo;
                             
-                            if (faltam > 0) {
+                            if (faltaCm > 0) {
                                 diasRestantes = `
                                     <div style="margin-top: 8px;">
-                                        <small style="color: #856404;">📅 ~${diasMin} dias necessários ${badgeFonte}</small><br>
+                                        <small style="color: #856404;">📅 ~${diasNecessarios} dia${diasNecessarios !== 1 ? 's' : ''} necessário${diasNecessarios !== 1 ? 's' : ''} ${badgeFonte}</small><br>
                                         <small style="color: #6c757d;">📈 ${crescimento} cm/dia | Falta: ${faltaCm}cm</small>
                                         <div style="background: #e9ecef; border-radius: 10px; height: 8px; margin-top: 5px; overflow: hidden;">
                                             <div style="background: linear-gradient(90deg, #ffc107, #28a745); width: ${progresso}%; height: 100%;"></div>
@@ -1572,18 +1574,18 @@
                 diasInfo = `<p style="color:#28a745;"><strong>✅ APTO para receber animais!</strong></p>`;
             } else {
                 const diasDescanso = p.dias_descanso || 0;
-                const diasMin = p.dias_descanso_min || calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
                 const crescimento = getCrescimentoCapim(p.capim);
-                const faltam = Math.max(0, diasMin - diasDescanso);
                 const alturaMostrada = temReal ? p.altura_real_medida : p.altura_estimada;
                 const faltaCm = Math.max(0, p.altura_entrada - alturaMostrada);
-                const limiteMaximo = 30;
                 
-                diasInfo = `<p><strong>Dias de Descanso:</strong> ${diasDescanso}/${diasMin} (necessários)</p>`;
+                // Calcular dias necessários baseado na ALTURA QUE FALTA
+                const diasNecessarios = Math.round(faltaCm / crescimento);
+                
+                diasInfo = `<p><strong>Dias de Descanso:</strong> ${diasDescanso}/${diasNecessarios} (necessários)</p>`;
                 diasInfo += `<p style="color:#6c757d;"><small>Crescimento: ${crescimento} cm/dia | Falta: ${faltaCm}cm</small></p>`;
                 
-                if (diasDescanso > limiteMaximo) {
-                    diasInfo += `<p style="color:#dc3545;"><strong>⚠️ Ineficiência!</strong><br><small>Passou de ${limiteMaximo} dias sem atingir altura</small></p>`;
+                if (diasDescanso > 30) {
+                    diasInfo += `<p style="color:#dc3545;"><strong>⚠️ Ineficiência!</strong><br><small>Passou de 30 dias sem atingir altura</small></p>`;
                 }
             }
             
