@@ -931,7 +931,7 @@
                     } else if (p.estado === 'ocupado') {
                         badgeClass = 'badge-blue';
                         badgeText = '🔵 Em Ocupação';
-                        statusInfo = '';
+                        statusInfo = `<small style="color: #007bff;">📏 ${p.altura_estimada || '?'}cm (est.)</small>`;
                     } else if (p.altura_estimada >= p.altura_entrada) {
                         // Usar ESTIMATIVA para determinar status
                         // Se estimativa atingiu altura de entrada = disponível
