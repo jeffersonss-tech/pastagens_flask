@@ -347,6 +347,18 @@ def api_deletar_piquete(id):
     database.deletar_piquete(id)
     return jsonify({'status': 'ok'})
 
+@app.route('/api/piquetes/<int:id>', methods=['GET'])
+def api_get_piquete(id):
+    """Busca um piquete pelo ID"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    piquete = database.get_piquete(id)
+    if not piquete:
+        return jsonify({'error': 'Piquete não encontrado'}), 404
+    
+    return jsonify(piquete)
+
 @app.route('/api/piquetes/apto')
 def api_piquetes_apto():
     """Lista piquetes aptos para entrada"""
