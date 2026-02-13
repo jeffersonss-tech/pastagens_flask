@@ -850,14 +850,15 @@ def listar_piquetes(fazenda_id=None):
         cursor.execute('SELECT * FROM piquetes WHERE ativo = 1 ORDER BY nome')
     rows = cursor.fetchall()
     
-    # Buscar contagem de animais por piquete
+    # Buscar contagem de animais e dados do lote por piquete
     cursor.execute('''
-        SELECT piquete_atual_id, COUNT(*) as total_lotes, SUM(quantidade) as total_animais
-        FROM lotes 
-        WHERE ativo = 1 AND piquete_atual_id IS NOT NULL
-        GROUP BY piquete_atual_id
+        SELECT l.piquete_atual_id, COUNT(*) as total_lotes, SUM(l.quantidade) as total_animais,
+               l.id as lote_id, l.data_entrada
+        FROM lotes l
+        WHERE l.ativo = 1 AND l.piquete_atual_id IS NOT NULL
+        GROUP BY l.piquete_atual_id
     ''')
-    animais_por_piquete = {r['piquete_atual_id']: r for r in cursor.fetchall()}
+    lotes_por_piquete = {r['piquete_atual_id']: r for r in cursor.fetchall()}
     
     conn.close()
     
@@ -865,12 +866,25 @@ def listar_piquetes(fazenda_id=None):
     for r in rows:
         row_dict = dict(r)
         piquete_id = row_dict['id']
-        if piquete_id in animais_por_piquete:
-            row_dict['lotes_no_piquete'] = animais_por_piquete[piquete_id]['total_lotes']
-            row_dict['animais_no_piquete'] = animais_por_piquete[piquete_id]['total_animais']
+        if piquete_id in lotes_por_piquete:
+            lote_info = lotes_por_piquete[piquete_id]
+            row_dict['lotes_no_piquete'] = lote_info['total_lotes']
+            row_dict['animais_no_piquete'] = lote_info['total_animais']
+            row_dict['lote_id'] = lote_info['lote_id']
+            # Calcular dias no piquete
+            if lote_info['data_entrada']:
+                try:
+                    entrada = datetime.fromisoformat(lote_info['data_entrada'].replace('Z', '+00:00').replace('+00:00', ''))
+                    row_dict['dias_no_piquete'] = (data_teste_now() - entrada).days
+                except:
+                    row_dict['dias_no_piquete'] = 0
+            else:
+                row_dict['dias_no_piquete'] = 0
         else:
             row_dict['lotes_no_piquete'] = 0
             row_dict['animais_no_piquete'] = 0
+            row_dict['dias_no_piquete'] = 0
+            row_dict['lote_id'] = None
         
         # Calcular altura_estimada e determinar fonte
         altura_estimada, fonte = calcular_altura_estimada(row_dict)

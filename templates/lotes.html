@@ -675,17 +675,19 @@
                 .then(r => r.json())
                 .then(data => {
                     const select = document.getElementById('lote-piquete');
-                    // Mostrar piquetes disponíveis
+                    // Mostrar piquetes disponíveis com dias de descanso
                     select.innerHTML = '<option value="">Nenhum (lote sem piquete)</option>' +
                         data.map(p => {
                             // Usar altura_real_medida ou altura_estimada
                             const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
                             const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
                             const fonte = temReal ? 'MEDIDA' : 'ESTIMADA';
+                            const diasDescanso = p.dias_descanso || 0;
+                            const diasIdeais = p.dias_ideais || 30;
                             
                             const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
                             const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
-                            return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} [${fonte}]</option>`;
+                            return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} [${fonte}] • ${diasDescanso}/${diasIdeais} dias</option>`;
                         }).join('');
                 });
         }
@@ -818,18 +820,20 @@
                     // Opção "Sem piquete" primeiro
                     let html = '<option value="">🚫 Sem piquete</option>';
                     
-                    // Mostrar piquetes disponíveis
+                    // Mostrar piquetes disponíveis com dias de descanso
                     data.forEach(p => {
                         const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
                         const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
                         const fonte = temReal ? '[MEDIDA]' : '[ESTIMADA]';
+                        const diasDescanso = p.dias_descanso || 0;
+                        const diasIdeais = p.dias_ideais || 30;
                         
                         const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
                         const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
                         const isRecuperando = !p.bloqueado && alturaUsada < p.altura_entrada;
                         const selected = lote.piquete_atual_id === p.id ? 'selected' : '';
                         const dangerClass = isRecuperando ? 'background:#f8d7da;' : '';
-                        html += `<option value="${p.id}" ${selected} style="${dangerClass}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} ${fonte}</option>`;
+                        html += `<option value="${p.id}" ${selected} style="${dangerClass}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} ${fonte} • ${diasDescanso}/${diasIdeais} dias</option>`;
                     });
                     
                     // Se o lote já tem um piquete (mesmo que ocupado), adicionar como opção
@@ -1072,6 +1076,8 @@
                         const isApto = p.status === 'APTO' || p.status === 'APTO_ALCANCADA';
                         const emoji = isApto ? '🟢' : '🟡';
                         const statusText = isApto ? 'APTO' : 'RECUPERANDO';
+                        const diasDescanso = p.dias_descanso || 0;
+                        const diasIdeais = p.dias_ideais || 30;
                         
                         if (isApto) {
                             // Piquete apto - pronto para receber
@@ -1083,6 +1089,7 @@
                                     </div>
                                     <div class="sugestao-info">
                                         🌿 ${p.capim || 'N/I'} • 📐 ${p.area || 0} ha
+                                        <br>⏱️ ${diasDescanso}/${diasIdeais} dias descansando
                                     </div>
                                 </div>
                             `;
@@ -1099,6 +1106,7 @@
                                     <div class="sugestao-info">
                                         🌿 ${p.capim || 'N/I'} • 📐 ${p.area || 0} ha
                                         <br>📏 ${alturaAtual}/${alturaMin} cm
+                                        <br>⏱️ ${diasDescanso}/${diasIdeais} dias descansando
                                     </div>
                                 </div>
                             `;
