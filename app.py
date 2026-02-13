@@ -393,6 +393,7 @@ def api_criar_piquete():
         data.get('altura_saida'),
         data.get('dias_ocupacao'),
         data.get('altura_atual'),
+        data.get('data_medicao'),
         data.get('irrigado'),
         data.get('observacao')
     )
@@ -630,6 +631,7 @@ def api_put_piquete(id):
         data.get('altura_saida'),
         data.get('dias_ocupacao'),
         data.get('altura_atual'),
+        data.get('data_medicao'),
         data.get('irrigado'),
         data.get('observacao'),
         data.get('limpar_altura', False)

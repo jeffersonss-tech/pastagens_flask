@@ -825,7 +825,7 @@ def sugerir_proximo_piquete(fazenda_id, lote_id):
 # ============ PIQUETES ============
 def criar_piquete(fazenda_id, nome, area=None, capim=None, geometria=None, 
                   altura_entrada=None, altura_saida=None, dias_ocupacao=None,
-                  altura_atual=None, irrigado=None, observacao=None):
+                  altura_atual=None, data_medicao=None, irrigado=None, observacao=None):
     conn = get_db()
     cursor = conn.cursor()
     
@@ -839,7 +839,7 @@ def criar_piquete(fazenda_id, nome, area=None, capim=None, geometria=None,
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (fazenda_id, nome, area, capim, geometria,
               altura_entrada, altura_saida, dias_ocupacao,
-              altura_atual, data_teste_now().isoformat(), irrigado, observacao,
+              altura_atual, data_medicao, irrigado, observacao,
               datetime.now().isoformat(), datetime.now().isoformat()))
     else:
         cursor.execute('''
@@ -968,11 +968,11 @@ def get_piquete(id):
 
 def atualizar_piquete(id, nome=None, area=None, capim=None, 
                      altura_entrada=None, altura_saida=None, dias_ocupacao=None,
-                     altura_atual=None, irrigado=None, observacao=None,
+                     altura_atual=None, data_medicao=None, irrigado=None, observacao=None,
                      limpar_altura=False):
     """
     Atualiza piquete. 
-    - Se altura_atual for informada: salva como altura_real_medida
+    - Se altura_atual for informada: salva como altura_real_medida com data_medicao
     - Se limpar_altura=True: define altura_real_medida como NULL
     """
     conn = get_db()
@@ -1006,20 +1006,32 @@ def atualizar_piquete(id, nome=None, area=None, capim=None,
             WHERE id=?
         ''', (nome or nome_atual, area, capim,
               altura_entrada, altura_saida, dias_ocupacao,
-              altura_atual, data_teste_now().isoformat(), irrigado, observacao,
+              altura_atual, data_medicao, irrigado, observacao,
               datetime.now().isoformat(), id))
     else:
-        # Atualizar sem mudar altura
-        cursor.execute('''
-            UPDATE piquetes SET nome=?, area=?, capim=?, 
-                              altura_entrada=?, altura_saida=?, dias_ocupacao=?,
-                              irrigado=?, observacao=?,
-                              updated_at=?
-            WHERE id=?
-        ''', (nome or nome_atual, area, capim,
-              altura_entrada, altura_saida, dias_ocupacao,
-              irrigado, observacao,
-              datetime.now().isoformat(), id))
+        # Atualizar sem mudar altura mas pode mudar data_medicao
+        if data_medicao:
+            cursor.execute('''
+                UPDATE piquetes SET nome=?, area=?, capim=?, 
+                                  altura_entrada=?, altura_saida=?, dias_ocupacao=?,
+                                  data_medicao=?, irrigado=?, observacao=?,
+                                  updated_at=?
+                WHERE id=?
+            ''', (nome or nome_atual, area, capim,
+                  altura_entrada, altura_saida, dias_ocupacao,
+                  data_medicao, irrigado, observacao,
+                  datetime.now().isoformat(), id))
+        else:
+            cursor.execute('''
+                UPDATE piquetes SET nome=?, area=?, capim=?, 
+                                  altura_entrada=?, altura_saida=?, dias_ocupacao=?,
+                                  irrigado=?, observacao=?,
+                                  updated_at=?
+                WHERE id=?
+            ''', (nome or nome_atual, area, capim,
+                  altura_entrada, altura_saida, dias_ocupacao,
+                  irrigado, observacao,
+                  datetime.now().isoformat(), id))
     conn.commit()
     conn.close()
 

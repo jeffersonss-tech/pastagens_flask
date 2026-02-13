@@ -389,11 +389,16 @@
                             🔧 Parâmetros Avançados (Opcionais)
                         </summary>
                         <div style="padding: 15px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                                 <div class="form-group">
                                     <label>Altura Atual do Pasto (cm)</label>
                                     <input type="number" id="edit-pq-altura-atual" value="" min="0" step="1" placeholder="Opcional">
-                                    <small style="color: #666;">Usado para cálculo inicial de disponibilidade de pasto</small>
+                                    <small style="color: #666;">Usado para cálculo</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Data da Medição</label>
+                                    <input type="date" id="edit-pq-data-medicao">
+                                    <small style="color: #666;">Quando foi medida</small>
                                 </div>
                                 <div class="form-group">
                                     <label>É Irrigado?</label>
@@ -538,11 +543,16 @@
                     🔧 Parâmetros Avançados (Opcionais)
                 </summary>
                 <div style="padding: 15px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group">
                             <label>Altura Atual do Pasto (cm)</label>
                             <input type="number" id="pq-altura-atual" value="" min="0" step="1" placeholder="Opcional">
-                            <small style="color: #666;">Usado para cálculo inicial de disponibilidade de pasto</small>
+                            <small style="color: #666;">Usado para cálculo</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Data da Medição</label>
+                            <input type="date" id="pq-data-medicao">
+                            <small style="color: #666;">Quando foi medida</small>
                         </div>
                         <div class="form-group">
                             <label>É Irrigado?</label>
@@ -1086,6 +1096,9 @@
             const coords = pontos.map(p => [p[1], p[0]]);
             coords.push(coords[0]);
             
+            // Data da medição (se informada)
+            const dataMedicao = document.getElementById('pq-data-medicao').value || null;
+            
             fetch('/api/piquetes', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1099,6 +1112,7 @@
                     altura_saida: parseFloat(document.getElementById('pq-altura-saida').value) || 0,
                     dias_ocupacao: parseInt(document.getElementById('pq-dias-ocupacao').value) || 3,
                     altura_atual: parseFloat(document.getElementById('pq-altura-atual').value) || null,
+                    data_medicao: dataMedicao,
                     irrigado: document.getElementById('pq-irrigado').value || 'nao',
                     observacao: document.getElementById('pq-observacoes').value || null
                 })
@@ -1168,6 +1182,10 @@
                 ? p.altura_real_medida 
                 : '';
             document.getElementById('edit-pq-altura-atual').value = alturaReal;
+            
+            // Data da medição
+            document.getElementById('edit-pq-data-medicao').value = p.data_medicao || '';
+            
             document.getElementById('edit-pq-irrigado').value = p.irrigado || 'nao';
             document.getElementById('edit-pq-observacoes').value = p.observacao || '';
             
@@ -1228,6 +1246,7 @@
             if (!id) return;
             
             const valorAltura = document.getElementById('edit-pq-altura-atual').value.trim();
+            const dataMedicao = document.getElementById('edit-pq-data-medicao').value.trim();
             const p = piquetes.find(x => x.id == id);
             const alturaAnterior = p.altura_real_medida !== null && p.altura_real_medida !== undefined 
                 ? p.altura_real_medida 
@@ -1240,17 +1259,23 @@
                 altura_entrada: parseFloat(document.getElementById('edit-pq-altura-entrada').value) || 0,
                 altura_saida: parseFloat(document.getElementById('edit-pq-altura-saida').value) || 0,
                 dias_ocupacao: parseInt(document.getElementById('edit-pq-dias-ocupacao').value) || 3,
+                data_medicao: dataMedicao || null,
                 irrigado: document.getElementById('edit-pq-irrigado').value || 'nao',
                 observacao: document.getElementById('edit-pq-observacoes').value || null
             };
             
             if (valorAltura === '') {
                 bodyObj.altura_atual = null;
+                bodyObj.data_medicao = null;
                 bodyObj.limpar_altura = true;
             } else {
                 const novaAltura = parseFloat(valorAltura);
                 if (!isNaN(novaAltura) && novaAltura !== alturaAnterior) {
                     bodyObj.altura_atual = novaAltura;
+                    // Se mudou a altura e não tem data_medicao informada, usar hoje
+                    if (!dataMedicao) {
+                        bodyObj.data_medicao = new Date().toISOString().split('T')[0];
+                    }
                 }
             }
             
