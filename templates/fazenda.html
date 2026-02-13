@@ -781,7 +781,7 @@
                                 <strong style="font-size:14px;">${p.nome}</strong><br>
                                 <strong>🌿 ${p.capim || 'N/I'}</strong>${animaisInfo}<br>
                                 📐 ${p.area || 0} hectares<br>
-                                📏 ${alturaMostrada || '?'}/${p.altura_entrada || '?'} cm${badgeFonte}${diasInfo}${avisoUrgente}
+                                📏 ${p.altura_estimada || '?'}/${p.altura_entrada || '?'} cm${badgeFonte}${diasInfo}${avisoUrgente}
                             `);
                             
                             // Add label in center of polygon
@@ -1460,7 +1460,7 @@
                                 <strong style="font-size:14px;">${p.nome}</strong><br>
                                 <strong>🌿 ${p.capim || 'N/I'}</strong>${animaisInfo}<br>
                                 📐 ${p.area || 0} hectares<br>
-                                📏 ${alturaMostrada || '?'}/${p.altura_entrada || '?'} cm${badgeFonte}${diasInfo}${avisoUrgente}
+                                📏 ${p.altura_estimada || '?'}/${p.altura_entrada || '?'} cm${badgeFonte}${diasInfo}${avisoUrgente}
                             `);
                             
                             // Add label in center of polygon (igual ao dashboard)
