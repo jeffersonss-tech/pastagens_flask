@@ -926,7 +926,7 @@
                             // Tem estimativa mas não tem medição real
                             badgeClass = 'badge-yellow';
                             badgeText = '⚠️ PRECISA MEDIR';
-                            statusInfo = `<small style="color: #fd7e14;">📐 Altura estimada: ${alturaMostrada} cm - <a href="#" onclick="fecharModal('modal-ver-piquete'); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color:#007bff;">Atualizar medição</a></small>`;
+                            statusInfo = `<small style="color: #fd7e14;">📏 ${alturaMostrada}cm (estimada) - <a href="#" onclick="fecharModal('modal-ver-piquete'); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color:#007bff;">Atualizar medição</a></small>`;
                         }
                     } else if (p.estado === 'ocupado') {
                         badgeClass = 'badge-blue';
@@ -937,12 +937,12 @@
                         // Se estimativa atingiu altura de entrada = disponível
                         badgeClass = 'badge-green';
                         badgeText = '🟢 Disponível';
-                        statusInfo = `<small style="color: #28a745;">📐 Estimativa: ${p.altura_estimada}cm</small>`;
+                        statusInfo = `<small style="color: #28a745;">📏 ${p.altura_estimada}cm (estimada)</small>`;
                     } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
                         // Se medição real atingiu = disponível
                         badgeClass = 'badge-green';
                         badgeText = '🟢 Disponível';
-                        statusInfo = `<small style="color: #28a745;">📏 Medida: ${p.altura_real_medida}cm</small>`;
+                        statusInfo = `<small style="color: #28a745;">📏 ${p.altura_real_medida}cm (medida)</small>`;
                     } else {
                         // Recuperando - usar a maior altura disponível (medida ou estimada)
                         const alturaBase = Math.max(p.altura_real_medida || 0, p.altura_estimada || 0);
@@ -1048,8 +1048,7 @@
                         ${animaisNoPiquete ? `<p style="color: #007bff;"><strong>🐄 ${p.animais_no_piquete} animal(is)</strong></p>` : ''}
                         <span class="badge ${badgeClass}">${badgeText}</span>
                         ${statusInfo ? `<br>${statusInfo}` : ''}
-                        ${temReal && p.altura_estimada ? `<small style="color: #6c757d; display: block; margin-top: 5px;">📐 Est: ${p.altura_estimada}cm</small>` : ''}
-                        ${p.data_medicao ? `<small style="color: #999; font-size: 0.7rem;">Medido: ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</small>` : ''}
+                        ${p.data_medicao ? `<small style="color: #999; font-size: 0.7rem;">📏 ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</small>` : ''}
                         ${diasRestantes}
                         ${alertaUrgente}
                         <div style="margin-top: 10px; display: flex; gap: 5px;">
