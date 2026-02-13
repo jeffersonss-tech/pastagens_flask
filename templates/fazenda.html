@@ -1013,6 +1013,8 @@
                         ${animaisNoPiquete ? `<p style="color: #007bff;"><strong>🐄 ${p.animais_no_piquete} animal(is)</strong></p>` : ''}
                         <span class="badge ${badgeClass}">${badgeText}</span>
                         ${statusInfo ? `<br>${statusInfo}` : ''}
+                        ${temReal && p.altura_estimada ? `<small style="color: #6c757d; display: block; margin-top: 5px;">📐 Est: ${p.altura_estimada}cm</small>` : ''}
+                        ${p.data_medicao ? `<small style="color: #999; font-size: 0.7rem;">Medido: ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</small>` : ''}
                         ${diasRestantes}
                         ${alertaUrgente}
                         <div style="margin-top: 10px; display: flex; gap: 5px;">
