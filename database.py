@@ -1355,22 +1355,22 @@ def calcular_altura_estimada(piquete):
     Calcula a altura do piquete baseada em medição real ou estimativa.
     Returns: (altura, fonte) onde fonte é 'real' ou 'estimada'
     
+    Se houver medição real E dias_passados > 0:
+    - Em ocupação: calcular degradação a partir da medição real
+    - Em recuperação: calcular crescimento a partir da medição real
+    
+    Se não houver medição real OU dias_passados = 0:
+    - Usar a medição real (se existir) OU calcular estimativa
+    
     Prioridade:
-    1. altura_real_medida → real (verdade absoluta)
-    2. altura_atual (legado) → real (para compatibilidade)
-    3. calcular estimativa
+    1. Se tem medição real E dias > 0: calcular com crescimento/degradação
+    2. Se tem medição real E dias = 0: retornar medição real
+    3. Se tem altura_atual legado: retornar como real
+    4. Calcular estimativa
     """
     from datetime import datetime
     
-    # Prioridade 1: altura_real_medida informada pelo usuário
-    if piquete.get('altura_real_medida') is not None:
-        return piquete['altura_real_medida'], 'real'
-    
-    # Prioridade 2: altura_atual legado (para compatibilidade)
-    if piquete.get('altura_atual') is not None:
-        return piquete['altura_atual'], 'real'
-    
-    # Prioridade 3: calcular estimativa
+    altura_real = piquete.get('altura_real_medida')
     estado = piquete.get('estado')
     dias_descanso = piquete.get('dias_descanso', 0) or 0
     dias_ocupacao = piquete.get('dias_ocupacao', 0) or 0
@@ -1380,27 +1380,76 @@ def calcular_altura_estimada(piquete):
     altura_saida = piquete.get('altura_saida', 15) or 15
     altura_entrada = piquete.get('altura_entrada', 25) or 25
     
+    # Se tem medição real E passaram dias, calcular crescimento/degradação
+    if altura_real is not None and dias_descanso > 0:
+        if estado == 'ocupado':
+            # Em ocupação: calcular degradação a partir da medição real
+            # A medição foi feita na entrada, agora precisamos subtrair o consumo
+            consumo_base = get_consumo_base(capim)
+            
+            # Obter dados do lote para cálculo de lotação
+            quantidade_animais = piquete.get('animais_no_piquete', 0) or 0
+            area_piquete = piquete.get('area', 0) or 0
+            
+            if quantidade_animais > 0 and area_piquete > 0:
+                # Usar modelo avançado com lotação
+                try:
+                    resultado = calcular_altura_ocupacao(
+                        altura_base=altura_real,
+                        altura_saida=altura_saida,
+                        dias_ocupacao=dias_ocupacao,
+                        consumo_base_capim=consumo_base,
+                        quantidade_animais=quantidade_animais,
+                        area_piquete=area_piquete,
+                        detalhar=False
+                    )
+                    return round(resultado, 1), 'estimada'
+                except:
+                    pass
+            
+            # Fallback: modelo linear simples
+            consumo_diario = consumo_base
+            altura_calc = altura_real - (dias_ocupacao * consumo_diario)
+            return max(altura_saida, round(altura_calc, 1)), 'estimada'
+        else:
+            # Em recuperação: calcular crescimento a partir da medição real
+            # A medição foi feita na saída, agora precisamos somar o crescimento
+            from services.clima_service import calcular_fator_climatico
+            from services.manejo_service import calcular_altura_descanso
+            
+            condicao_climatica = piquete.get('condicao_climatica', 'normal') or 'normal'
+            
+            # Usar a altura_saida como base porque a medição foi feita na saída
+            # Os dias de descanso são desde a saída, então o crescimento é a partir da saída
+            resultado = calcular_altura_descanso(
+                altura_saida=altura_real,  # Usar a medição como ponto de partida
+                dias_descanso=dias_descanso,
+                capim=capim,
+                condicao_climatica=condicao_climatica,
+                altura_entrada=altura_entrada,
+                detalhar=False
+            )
+            return round(resultado, 1), 'estimada'
+    
+    # Se tem medição real E não passaram dias, retornar a medição
+    if altura_real is not None:
+        return altura_real, 'real'
+    
+    # Prioridade 2: altura_atual legado (para compatibilidade)
+    if piquete.get('altura_atual') is not None:
+        return piquete['altura_atual'], 'real'
+    
+    # Prioridade 3: calcular estimativa sem medição real
     if estado == 'ocupado':
-        # Em ocupação: usar modelo intermediário com taxa de lotação
-        # Dados do lote para cálculo de lotação
+        # Em ocupação
         quantidade_animais = piquete.get('animais_no_piquete', 0) or 0
         area_piquete = piquete.get('area', 0) or 0
         consumo_base = get_consumo_base(capim)
         
-        # BASE DINÂMICA: usar altura_real_medida se existir, senão usar altura_base
-        altura_real = piquete.get('altura_real_medida')
-        if altura_real is not None:
-            altura_base = altura_real
-        else:
-            # Usar altura_estimada anterior se disponível, senão altura_entrada
-            altura_estimada_anterior = piquete.get('altura_estimada')
-            altura_base = altura_estimada_anterior if altura_estimada_anterior else altura_entrada
-        
-        # Se tiver dados do lote, usar modelo avançado
         if quantidade_animais > 0 and area_piquete > 0:
             try:
                 resultado = calcular_altura_ocupacao(
-                    altura_base=altura_base,
+                    altura_base=altura_entrada,
                     altura_saida=altura_saida,
                     dias_ocupacao=dias_ocupacao,
                     consumo_base_capim=consumo_base,
@@ -1409,25 +1458,19 @@ def calcular_altura_estimada(piquete):
                     detalhar=False
                 )
                 return resultado, 'estimada'
-            except Exception:
-                # Fallback para modelo simples se houver erro
+            except:
                 pass
         
-        # Fallback: modelo linear simples
-        consumo_diario = calcular_consumo_diario(capim)
-        altura_calc = altura_base - (dias_ocupacao * consumo_diario)
+        consumo_diario = consumo_base
+        altura_calc = altura_entrada - (dias_ocupacao * consumo_diario)
         return max(altura_saida, round(altura_calc, 1)), 'estimada'
     else:
-        # Em recuperação: altura aumenta com o crescimento
-        # LIMITE: Altura máxima é 1.5x a altura de entrada (evita crescimento infinito)
-        # Usar modelo com fator climático
+        # Em recuperação
         from services.clima_service import calcular_fator_climatico
+        from services.manejo_service import calcular_altura_descanso
         
-        # Obter condição climática do piquete (padrão = 'normal')
         condicao_climatica = piquete.get('condicao_climatica', 'normal') or 'normal'
         
-        # Calcular crescimento com fator climático
-        from services.manejo_service import calcular_altura_descanso
         resultado = calcular_altura_descanso(
             altura_saida=altura_saida,
             dias_descanso=dias_descanso,
@@ -1436,7 +1479,7 @@ def calcular_altura_estimada(piquete):
             altura_entrada=altura_entrada,
             detalhar=False
         )
-        return resultado, 'estimada'
+        return round(resultado, 1), 'estimada'
 
 
 # Função removida - agora está em services/manejo_service.py
