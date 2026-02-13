@@ -446,11 +446,40 @@ def listar_lotes(fazenda_id=None, status_filtro=None, categoria_filtro=None):
         lote = dict(row)
         lote['dias_no_piquete'] = calcular_dias_no_piquete(lote)
         
-        # Pegar dados completos do piquete (já com altura_estimada calculada)
+        # Calcular altura_estimada diretamente (igual listar_piquetes faz)
         if lote.get('piquete_atual_id'):
-            piquete_completo = get_piquete(lote['piquete_atual_id'])
-            if piquete_completo:
-                lote['altura_estimada'] = piquete_completo.get('altura_estimada')
+            # Buscar dados do piquete para calcular altura_estimada
+            piquete_info = get_piquete(lote['piquete_atual_id'])
+            if piquete_info:
+                # Usar dados do piquete para calcular
+                lote['data_medicao'] = piquete_info.get('data_medicao')
+                lote['capim'] = piquete_info.get('capim')
+                lote['altura_entrada'] = piquete_info.get('altura_entrada')
+                lote['altura_saida'] = piquete_info.get('altura_saida')
+                lote['estado'] = piquete_info.get('estado')
+                lote['dias_ocupacao'] = piquete_info.get('dias_ocupacao')
+                lote['animais_no_piquete'] = lote.get('quantidade', 0) or 0
+                lote['area'] = piquete_info.get('area')
+                
+                # Calcular dias_descanso desde data_medicao
+                data_medicao = lote.get('data_medicao')
+                if data_medicao:
+                    try:
+                        if 'T' in data_medicao:
+                            medicao_dt = datetime.fromisoformat(data_medicao.replace('Z', '+00:00').replace('+00:00', ''))
+                        else:
+                            medicao_dt = datetime.fromisoformat(data_medicao)
+                        lote['dias_descanso'] = (data_teste_now() - medicao_dt).days
+                    except:
+                        lote['dias_descanso'] = 0
+                else:
+                    lote['dias_descanso'] = 0
+                
+                # Calcular altura_estimada
+                altura_est, fonte = calcular_altura_estimada(lote)
+                lote['altura_estimada'] = altura_est
+                # Usar altura_real_medida do piquete
+                lote['altura_real_medida'] = piquete_info.get('altura_real_medida')
         
         lote['status_info'] = calcular_status_lote(lote)
         lotes.append(lote)
