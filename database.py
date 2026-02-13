@@ -451,8 +451,8 @@ def listar_lotes(fazenda_id=None, status_filtro=None, categoria_filtro=None):
             piquete_info = {
                 'id': lote['piquete_atual_id'],
                 'estado': lote.get('estado'),
-                'altura_real_medida': None,  # Forçar cálculo estimado
-                'altura_estimada': None,
+                'altura_real_medida': lote.get('altura_real_medida'),
+                'altura_estimada': None,  # Forçar recálculo
                 'data_medicao': lote.get('data_medicao'),
                 'altura_entrada': lote.get('altura_entrada'),
                 'altura_saida': lote.get('altura_saida'),
@@ -460,7 +460,7 @@ def listar_lotes(fazenda_id=None, status_filtro=None, categoria_filtro=None):
                 'dias_descanso': lote.get('dias_descanso'),
                 'dias_ocupacao': lote.get('dias_ocupacao'),
             }
-            altura_est, fonte = calcular_altura_estimada(piquete_info, calcular_forcado=True)
+            altura_est, fonte = calcular_altura_estimada(piquete_info)
             lote['altura_estimada'] = altura_est
         
         lote['altura_atual'] = lote.get('altura_real_medida') if lote.get('tem_altura_real') else lote.get('altura_estimada')
@@ -1481,7 +1481,7 @@ def calcular_consumo_diario(capim):
     }
     return consumo.get(capim, 0.8)
 
-def calcular_altura_estimada(piquete, calcular_forcado=False):
+def calcular_altura_estimada(piquete):
     """
     Calcula a altura do piquete baseada em medição real ou estimativa.
     Returns: (altura, fonte) onde fonte é 'real' ou 'estimada'
@@ -1495,7 +1495,7 @@ def calcular_altura_estimada(piquete, calcular_forcado=False):
     
     Prioridade:
     1. Se tem medição real E dias > 0: calcular com crescimento/degradação
-    2. Se tem medição real E dias = 0: retornar medição real (exceto se calcular_forcado=True)
+    2. Se tem medição real E dias = 0: retornar medição real
     3. Se tem altura_atual legado: retornar como real
     4. Calcular estimativa
     """
@@ -1571,14 +1571,14 @@ def calcular_altura_estimada(piquete, calcular_forcado=False):
             )
             return round(resultado, 1), 'estimada'
     
-    # Se tem medição real E não passaram dias, retornar a medição (exceto se forçado)
-    if altura_real is not None and not calcular_forcado:
+    # Se tem medição real E não passaram dias, retornar a medição
+    if altura_real is not None:
         return altura_real, 'real'
     
     # REMOVIDO: Prioridade 2 - altura_atual legado (estava retornando valor antigo como "real")
     # O campo altura_atual não deve ser usado como medição real
     
-    # Prioridade 3: calcular estimativa sem medição real (ou forçado)
+    # Prioridade 3: calcular estimativa sem medição real
     if estado == 'ocupado':
         # Em ocupação
         quantidade_animais = piquete.get('animais_no_piquete', 0) or 0
