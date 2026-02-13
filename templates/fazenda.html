@@ -743,31 +743,31 @@
                                 const diasMax = p.dias_ocupacao || 3;
                                 const faltamDias = Math.max(0, diasMax - diasOcupacao);
                                 diasInfo = `<br>📅 ${diasOcupacao}/${diasMax} dias ocupacao${badgeFonte}`;
-                                if (alturaMostrada) {
-                                    diasInfo += `<br>📏 Altura: ${alturaMostrada}/${p.altura_entrada || '?'} cm`;
+                                if (p.altura_estimada) {
+                                    diasInfo += `<br>📏 Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
                                 }
                                 if (faltamDias === 0) {
                                     diasInfo += `<br><strong style="color:#dc3545;">⚠️ Passou do limite!</strong>`;
                                 } else if (faltamDias <= 1) {
                                     diasInfo += `<br><strong style="color:#fd7e14;">⚠️ Ultimo dia!</strong>`;
                                 }
-                            } else if (alturaMostrada >= p.altura_entrada) {
+                            } else if (p.altura_estimada >= p.altura_entrada) {
                                 diasInfo = `<br>🟢 APTO para entrada${badgeFonte}`;
-                                if (alturaMostrada) {
-                                    diasInfo += `<br>📏 Altura: ${alturaMostrada} cm`;
+                                if (p.altura_estimada) {
+                                    diasInfo += `<br>📏 Altura: ${p.altura_estimada} cm`;
                                 }
                             } else {
                                 const diasDescanso = p.dias_descanso || 0;
                                 const diasMin = p.dias_descanso_min || 30;
                                 const faltam = Math.max(0, diasMin - diasDescanso);
                                 diasInfo = `<br>🔄 ${diasDescanso}/${diasMin} dias (falta ${faltam})${badgeFonte}`;
-                                if (alturaMostrada) {
-                                    diasInfo += `<br>📏 Altura: ${alturaMostrada}/${p.altura_entrada || '?'} cm`;
+                                if (p.altura_estimada) {
+                                    diasInfo += `<br>📏 Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
                                 }
                             }
                             
                             // Aviso urgente se animais em piquete em recuperação
-                            const avisoUrgente = (p.animais_no_piquete > 0 && alturaMostrada && alturaMostrada < p.altura_entrada)
+                            const avisoUrgente = (p.animais_no_piquete > 0 && p.altura_estimada && p.altura_estimada < p.altura_entrada)
                                 ? `<br><strong style="color:#dc3545;">🚨 AVISO: Remova urgentemente!</strong>`
                                 : '';
                             
@@ -1423,31 +1423,31 @@
                                 const diasMax = p.dias_ocupacao || 3;
                                 const faltamDias = Math.max(0, diasMax - diasOcupacao);
                                 diasInfo = `<br>📅 ${diasOcupacao}/${diasMax} dias ocupacao${badgeFonte}`;
-                                if (alturaMostrada) {
-                                    diasInfo += `<br>📏 Altura: ${alturaMostrada}/${p.altura_entrada || '?'} cm`;
+                                if (p.altura_estimada) {
+                                    diasInfo += `<br>📏 Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
                                 }
                                 if (faltamDias === 0) {
                                     diasInfo += `<br><strong style="color:#dc3545;">⚠️ Passou do limite!</strong>`;
                                 } else if (faltamDias <= 1) {
                                     diasInfo += `<br><strong style="color:#fd7e14;">⚠️ Ultimo dia!</strong>`;
                                 }
-                            } else if (alturaMostrada >= p.altura_entrada) {
+                            } else if (p.altura_estimada >= p.altura_entrada) {
                                 diasInfo = `<br>🟢 APTO para entrada${badgeFonte}`;
-                                if (alturaMostrada) {
-                                    diasInfo += `<br>📏 Altura: ${alturaMostrada} cm`;
+                                if (p.altura_estimada) {
+                                    diasInfo += `<br>📏 Altura: ${p.altura_estimada} cm`;
                                 }
                             } else {
                                 const diasDescanso = p.dias_descanso || 0;
                                 const diasMin = p.dias_descanso_min || 30;
                                 const faltam = Math.max(0, diasMin - diasDescanso);
                                 diasInfo = `<br>🔄 ${diasDescanso}/${diasMin} dias (falta ${faltam})${badgeFonte}`;
-                                if (alturaMostrada) {
-                                    diasInfo += `<br>📏 Altura: ${alturaMostrada}/${p.altura_entrada || '?'} cm`;
+                                if (p.altura_estimada) {
+                                    diasInfo += `<br>📏 Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
                                 }
                             }
                             
                             // Aviso urgente se animais em piquete em recuperação
-                            const avisoUrgente = (p.animais_no_piquete > 0 && alturaMostrada && alturaMostrada < p.altura_entrada)
+                            const avisoUrgente = (p.animais_no_piquete > 0 && p.altura_estimada && p.altura_estimada < p.altura_entrada)
                                 ? `<br><strong style="color:#dc3545;">🚨 AVISO: Remova urgentemente!</strong>`
                                 : '';
                             
