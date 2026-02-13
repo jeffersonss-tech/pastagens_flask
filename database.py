@@ -448,6 +448,24 @@ def listar_lotes(fazenda_id=None, status_filtro=None, categoria_filtro=None):
         
         # Calcular altura atual baseada em real vs estimada
         temReal = lote.get('altura_real_medida') is not None
+        
+        # Calcular altura_estimada dinamicamente se não vier do banco
+        if lote.get('piquete_atual_id'):
+            piquete_info = {
+                'id': lote['piquete_atual_id'],
+                'estado': lote.get('estado'),
+                'altura_real_medida': lote.get('altura_real_medida'),
+                'altura_estimada': lote.get('altura_estimada'),
+                'data_medicao': lote.get('data_medicao'),
+                'altura_entrada': lote.get('altura_entrada'),
+                'altura_saida': lote.get('altura_saida'),
+                'capim': lote.get('capim'),
+                'dias_descanso': lote.get('dias_descanso'),
+                'dias_ocupacao': lote.get('dias_ocupacao'),
+            }
+            altura_est, fonte = calcular_altura_estimada(piquete_info)
+            lote['altura_estimada'] = altura_est
+        
         lote['altura_atual'] = lote.get('altura_real_medida') if temReal else lote.get('altura_estimada')
         lote['tem_altura_real'] = temReal
         
