@@ -1560,17 +1560,31 @@
             
             // Dias de descanso info
             let diasInfo = '';
+            let crescimentoInfo = '';
             if (p.estado === 'ocupado') {
                 diasInfo = `<p><strong>Dias em Ocupação:</strong> ${p.dias_descanso || 0}</p>`;
             } else if (!temAlgumaAltura) {
                 diasInfo = `<p><strong>Dias de Descanso:</strong> ${p.dias_descanso || 0}</p>`;
+                const diasMin = calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
+                const crescimento = getCrescimentoCapim(p.capim);
+                diasInfo += `<p style="color:#6c757d;"><strong>Necessários:</strong> ~${diasMin} dias<br><small>(Crescimento: ${crescimento} cm/dia)</small></p>`;
             } else if ((temReal ? p.altura_real_medida : p.altura_estimada) >= p.altura_entrada) {
                 diasInfo = `<p style="color:#28a745;"><strong>✅ APTO para receber animais!</strong></p>`;
             } else {
                 const diasDescanso = p.dias_descanso || 0;
-                const diasMin = p.dias_descanso_min || 30;
+                const diasMin = p.dias_descanso_min || calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
+                const crescimento = getCrescimentoCapim(p.capim);
                 const faltam = Math.max(0, diasMin - diasDescanso);
-                diasInfo = `<p><strong>Dias de Descanso:</strong> ${diasDescanso}/${diasMin} (falta ${faltam})</p>`;
+                const alturaMostrada = temReal ? p.altura_real_medida : p.altura_estimada;
+                const faltaCm = Math.max(0, p.altura_entrada - alturaMostrada);
+                const limiteMaximo = 30;
+                
+                diasInfo = `<p><strong>Dias de Descanso:</strong> ${diasDescanso}/${diasMin} (necessários)</p>`;
+                diasInfo += `<p style="color:#6c757d;"><small>Crescimento: ${crescimento} cm/dia | Falta: ${faltaCm}cm</small></p>`;
+                
+                if (diasDescanso > limiteMaximo) {
+                    diasInfo += `<p style="color:#dc3545;"><strong>⚠️ Ineficiência!</strong><br><small>Passou de ${limiteMaximo} dias sem atingir altura</small></p>`;
+                }
             }
             
             // Mostrar se tem estimativa disponível
