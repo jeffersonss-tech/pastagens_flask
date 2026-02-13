@@ -903,6 +903,20 @@ def listar_piquetes(fazenda_id=None):
             row_dict['dias_no_piquete'] = 0
             row_dict['lote_id'] = None
         
+        # Calcular dias_descanso desde data_medicao
+        data_medicao = row_dict.get('data_medicao')
+        if data_medicao:
+            try:
+                if 'T' in data_medicao:
+                    medicao_dt = datetime.fromisoformat(data_medicao.replace('Z', '+00:00').replace('+00:00', ''))
+                else:
+                    medicao_dt = datetime.fromisoformat(data_medicao)
+                row_dict['dias_descanso'] = (data_teste_now() - medicao_dt).days
+            except:
+                row_dict['dias_descanso'] = 0
+        else:
+            row_dict['dias_descanso'] = 0
+        
         # Calcular altura_estimada e determinar fonte
         altura_estimada, fonte = calcular_altura_estimada(row_dict)
         row_dict['altura_estimada'] = altura_estimada
