@@ -470,7 +470,14 @@ def calcular_status_lote(lote):
     """
     Calcula status do lote baseado no status do piquete + dias
     Retorna: status, emoji, cor, acao, dias_faltam, mensagem
+    
+    LOGICA: Usar altura_estimada
+ como fonte da verdade    - Se altura_estimada >= altura_entrada -> disponível
+    - Se altura_real_medida >= altura_entrada -> disponível  
+    - Se nenhuma atingiu -> avaliar dias de ocupação
     """
+    from services.rotacao_service import DADOS_CAPINS
+    
     # Se não tem piquete atual, está aguardando alocação
     if not lote.get('piquete_atual_id'):
         return {
@@ -485,37 +492,76 @@ def calcular_status_lote(lote):
     dias_no = lote.get('dias_no_piquete', 0)
     dias_max = lote.get('dias_ocupacao', 3) or 3
     
-    # Usar altura_real_medida ou altura_estimada
-    temReal = lote.get('altura_real_medida') is not None
-    altura_atual = lote.get('altura_real_medida') if temReal else lote.get('altura_estimada')
-    altura_entrada = lote.get('altura_entrada', 25) or 25
-    altura_saida = lote.get('altura_saida', 15) or 15
+    # Pegar valores
+    altura_real = lote.get('altura_real_medida')
+    altura_estimada = lote.get('altura_estimada')
+    altura_entrada = float(lote.get('altura_entrada', 25) or 25)
+    altura_saida = float(lote.get('altura_saida', 15) or 15)
     bloqueado = lote.get('piquete_bloqueado', 0)
+    capim = lote.get('capim')
     
-    # Se não tem nenhuma altura (real nem estimada)
-    if altura_atual is None:
-        return {
-            'status': 'SEM_ALTURA',
-            'emoji': '⚠️',
-            'cor': 'yellow',
-            'acao': 'Atualizar medição',
-            'dias_faltam': None,
-            'mensagem': 'Piquete sem altura definida!'
-        }
+    # PRIORIDADE: Usar ALTURA ESTIMADA para determinar status
+    # Se estimativa atingiu a altura de entrada = disponível!
+    if altura_estimada is not None and altura_estimada >= altura_entrada:
+        # Altura estimada atingiu - disponível!
+        if dias_no > dias_max:
+            return {
+                'status': 'RETIRAR',
+                'emoji': '🔴',
+                'cor': 'red',
+                'acao': 'RETIRAR JÁ',
+                'dias_faltam': 0,
+                'mensagem': f'Passou do limite! {dias_no}/{dias_max} dias (alt: {altura_estimada}cm)'
+            }
+        elif dias_no >= dias_max - 1:
+            return {
+                'status': 'ATENCAO',
+                'emoji': '🟠',
+                'cor': 'orange',
+                'acao': 'Preparar saída',
+                'dias_faltam': dias_max - dias_no,
+                'mensagem': f'Último dia! {dias_no}/{dias_max} dias (alt: {altura_estimada}cm)'
+            }
+        else:
+            return {
+                'status': 'EM_OCUPACAO',
+                'emoji': '🔵',
+                'cor': 'blue',
+                'acao': 'Em ocupação',
+                'dias_faltam': dias_max - dias_no,
+                'mensagem': f'{dias_no}/{dias_max} dias (alt: {altura_estimada}cm - ESTIMADA)'
+            }
     
-    # Se altura_atual < altura_entrada = RETIRAR (pasto muito baixo)
-    if altura_atual < altura_entrada:
-        msg = f'Pasto baixo! {altura_atual}/{altura_entrada} cm'
-        if not temReal:
-            msg += ' (estimado)'
-        return {
-            'status': 'RETIRAR',
-            'emoji': '🔴',
-            'cor': 'red',
-            'acao': 'RETIRAR JÁ',
-            'dias_faltam': 0,
-            'mensagem': msg
-        }
+    # Se medição real atingiu a altura de entrada = disponível!
+    if altura_real is not None and altura_real >= altura_entrada:
+        # Altura real atingiu - disponível!
+        if dias_no > dias_max:
+            return {
+                'status': 'RETIRAR',
+                'emoji': '🔴',
+                'cor': 'red',
+                'acao': 'RETIRAR JÁ',
+                'dias_faltam': 0,
+                'mensagem': f'Passou do limite! {dias_no}/{dias_max} dias (alt: {altura_real}cm)'
+            }
+        elif dias_no >= dias_max - 1:
+            return {
+                'status': 'ATENCAO',
+                'emoji': '🟠',
+                'cor': 'orange',
+                'acao': 'Preparar saída',
+                'dias_faltam': dias_max - dias_no,
+                'mensagem': f'Último dia! {dias_no}/{dias_max} dias (alt: {altura_real}cm)'
+            }
+        else:
+            return {
+                'status': 'EM_OCUPACAO',
+                'emoji': '🔵',
+                'cor': 'blue',
+                'acao': 'Em ocupação',
+                'dias_faltam': dias_max - dias_no,
+                'mensagem': f'{dias_no}/{dias_max} dias (alt: {altura_real}cm - MEDIDA)'
+            }
     
     # Se piquete bloqueado
     if bloqueado:
@@ -528,36 +574,47 @@ def calcular_status_lote(lote):
             'mensagem': 'Piquete bloqueado!'
         }
     
-    # Verificar dias de ocupação
+    # Se não tem nenhuma altura (real nem estimada)
+    if altura_real is None and altura_estimada is None:
+        return {
+            'status': 'SEM_ALTURA',
+            'emoji': '⚠️',
+            'cor': 'yellow',
+            'acao': 'Atualizar medição',
+            'dias_faltam': None,
+            'mensagem': 'Piquete sem altura definida!'
+        }
+    
+    # Nenhuma altura atingiu a entrada - avaliar status baseado em dias
+    # Usar a maior altura disponível (medida ou estimada)
+    altura_base = altura_real if altura_real is not None else altura_estimada
+    
     if dias_no > dias_max:
-        # 🔴 Passou do tempo máximo
         return {
             'status': 'RETIRAR',
             'emoji': '🔴',
             'cor': 'red',
             'acao': 'RETIRAR JÁ',
             'dias_faltam': 0,
-            'mensagem': f'Passou do limite! {dias_no}/{dias_max} dias'
+            'mensagem': f'Passou do limite! {dias_no}/{dias_max} dias (alt: {altura_base}cm)'
         }
     elif dias_no >= dias_max - 1:
-        # 🟠 Último dia
         return {
             'status': 'ATENCAO',
             'emoji': '🟠',
             'cor': 'orange',
             'acao': 'Preparar saída',
             'dias_faltam': dias_max - dias_no,
-            'mensagem': f'Último dia! {dias_no}/{dias_max} dias'
+            'mensagem': f'Último dia! {dias_no}/{dias_max} dias (alt: {altura_base}cm)'
         }
     else:
-        # 🔵 EM OCUPAÇÃO (OK - altura达标 E dentro do tempo)
         return {
             'status': 'EM_OCUPACAO',
             'emoji': '🔵',
             'cor': 'blue',
             'acao': 'Em ocupação',
             'dias_faltam': dias_max - dias_no,
-            'mensagem': f'{dias_no}/{dias_max} dias'
+            'mensagem': f'{dias_no}/{dias_max} dias (alt: {altura_base}cm)'
         }
 
 def atualizar_status_lotes(fazenda_id):
