@@ -5,6 +5,7 @@ import sqlite3
 import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from config_data_teste import now as data_teste_now  # Suporte a data de teste
 from services.manejo_service import calcular_altura_ocupacao, get_consumo_base
 from services.rotacao_service import (
     calcular_prioridade_rotacao,
@@ -458,9 +459,8 @@ def calcular_dias_no_piquete(lote):
     if not lote.get('data_entrada'):
         return 0
     try:
-        from datetime import datetime
         entrada = datetime.fromisoformat(lote['data_entrada'].replace('Z', '+00:00').replace('+00:00', ''))
-        return (datetime.now() - entrada).days
+        return (data_teste_now() - entrada).days
     except:
         return 0
 
@@ -762,7 +762,7 @@ def sugerir_proximo_piquete(fazenda_id, lote_id):
         try:
             if p['ultima_mov']:
                 mov_dt = datetime.fromisoformat(p['ultima_mov'].replace('Z', '+00:00').replace('+00:00', ''))
-                dias_descanso = (datetime.now() - mov_dt).days
+                dias_descanso = (data_teste_now() - mov_dt).days
             else:
                 dias_descanso = 0
         except:
@@ -1036,7 +1036,7 @@ def listar_piquetes_apto(fazenda_id):
         try:
             if p['ultima_mov']:
                 mov_dt = datetime.fromisoformat(p['ultima_mov'].replace('Z', '+00:00').replace('+00:00', ''))
-                dias_descanso = (datetime.now() - mov_dt).days
+                dias_descanso = (data_teste_now() - mov_dt).days
             else:
                 dias_descanso = 0
         except:
@@ -1269,14 +1269,14 @@ def verificar_alertas_piquetes(fazenda_id):
         if data_entrada:
             try:
                 entrada_dt = datetime.fromisoformat(data_entrada.replace('Z', '+00:00').replace('+00:00', ''))
-                dias_passados = (datetime.now() - entrada_dt).days
+                dias_passados = (data_teste_now() - entrada_dt).days
                 
                 if dias_passados >= dias_ocupacao:
                     cursor.execute('''
                         INSERT INTO alertas (usuario_id, fazenda_id, piquete_id, tipo, titulo, mensagem, created_at)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                     ''', (1, fazenda_id, p['id'], 'ocupacao_max', 
-                          f'Tempo máximo de ocupação excedido',
+                          f'Tempo maximo de ocupacao excedido',
                           f'O piquete {p["nome"]} está ocupado há {dias_passados} dias (máximo: {dias_ocupacao})',
                           datetime.now().isoformat()))
                     alertas_criados.append(f"Alerta criado para {p['nome']}: ocupação máxima")

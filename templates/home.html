@@ -149,6 +149,24 @@
             color: #666;
             margin-bottom: 15px;
         }
+        
+        /* Data Teste Display */
+        .data-teste-display {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-left: 15px;
+        }
+        .data-teste-display.modo-real {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: rgba(40, 167, 69, 0.5);
+        }
+        .data-teste-label { opacity: 0.7; font-size: 0.75rem; }
+        .data-teste-valor { color: #00d9ff; font-weight: bold; }
+        .data-teste-display.modo-real .data-teste-valor { color: #28a745; }
         .coordenadas-info strong { color: #1a1a2e; }
         
         .warning-text {
@@ -162,7 +180,13 @@
 </head>
 <body>
     <div class="header">
-        <h1>🐄 Sistema de Pastagens</h1>
+        <div style="display: flex; align-items: center;">
+            <h1>🐄 Sistema de Pastagens</h1>
+            <div id="data-teste-display" class="data-teste-display modo-real">
+                <span class="data-teste-label">Data: </span>
+                <span class="data-teste-valor" id="data-teste-valor">Carregando...</span>
+            </div>
+        </div>
         <div class="user-info">
             <span class="user-name">Olá, {{ usuario.nome or usuario.username }}</span>
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Sair</a>
@@ -444,6 +468,31 @@
                 }
             });
         });
+        
+        // Carregar data de teste
+        function carregarDataTeste() {
+            fetch('/api/data-teste')
+                .then(r => r.json())
+                .then(data => {
+                    const display = document.getElementById('data-teste-display');
+                    const valor = document.getElementById('data-teste-valor');
+                    if (display && valor) {
+                        valor.textContent = data.data_formatada;
+                        if (data.modo === 'teste') {
+                            display.classList.remove('modo-real');
+                        } else {
+                            display.classList.add('modo-real');
+                        }
+                    }
+                })
+                .catch(() => {
+                    const valor = document.getElementById('data-teste-valor');
+                    if (valor) valor.textContent = 'Erro';
+                });
+        }
+        
+        // Carregar data ao iniciar
+        carregarDataTeste();
     </script>
 </body>
 </html>

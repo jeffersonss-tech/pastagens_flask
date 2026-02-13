@@ -195,9 +195,21 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <div>
-            <h1>🧠 IA Rotação</h1>
-            <p style="opacity: 0.8; font-size: 0.9rem;">{{ fazenda.nome }}</p>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div>
+                <h1>🧠 IA Rotação</h1>
+                <p style="opacity: 0.8; font-size: 0.9rem;">{{ fazenda.nome }}</p>
+            </div>
+            <div id="data-teste-display" class="data-teste-display modo-real" style="
+                background: rgba(255, 193, 7, 0.2);
+                border: 1px solid rgba(255, 193, 7, 0.5);
+                border-radius: 6px;
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            ">
+                <span style="opacity: 0.7; font-size: 0.75rem;">Data: </span>
+                <span id="data-teste-valor" style="color: #00d9ff; font-weight: bold;">Carregando...</span>
+            </div>
         </div>
         <div>
             <a href="/fazenda/{{ fazenda.id }}">← Voltar para Dashboard</a>
@@ -499,7 +511,34 @@
                 });
         }
         
-        window.onload = atualizar;
+        // Carregar data de teste
+        function carregarDataTeste() {
+            fetch('/api/data-teste')
+                .then(r => r.json())
+                .then(data => {
+                    const display = document.getElementById('data-teste-display');
+                    const valor = document.getElementById('data-teste-valor');
+                    if (display && valor) {
+                        valor.textContent = data.data_formatada;
+                        if (data.modo === 'teste') {
+                            display.style.borderColor = 'rgba(255, 193, 7, 0.5)';
+                            valor.style.color = '#00d9ff';
+                        } else {
+                            display.style.borderColor = 'rgba(40, 167, 69, 0.5)';
+                            valor.style.color = '#28a745';
+                        }
+                    }
+                })
+                .catch(() => {
+                    const valor = document.getElementById('data-teste-valor');
+                    if (valor) valor.textContent = 'Erro';
+                });
+        }
+        
+        window.onload = () => {
+            atualizar();
+            carregarDataTeste();
+        };
     </script>
 </body>
 </html>

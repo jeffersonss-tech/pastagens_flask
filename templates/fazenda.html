@@ -24,6 +24,21 @@
         }
         .sidebar-header h1 { font-size: 1.2rem; margin-bottom: 5px; }
         .sidebar-header span { font-size: 0.85rem; opacity: 0.7; }
+        .data-teste {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        .data-teste.modo-real {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: rgba(40, 167, 69, 0.5);
+        }
+        .data-teste-label { opacity: 0.7; font-size: 0.75rem; }
+        .data-teste-valor { color: #00d9ff; font-weight: bold; font-size: 0.9rem; }
+        .data-teste.modo-real .data-teste-valor { color: #28a745; }
         .menu { list-style: none; }
         .menu-item {
             padding: 15px 20px;
@@ -187,6 +202,10 @@
         <div class="sidebar-header">
             <h1>🐄 Pastagens</h1>
             <span>{{ fazenda.nome }}</span>
+            <div id="data-teste-display" class="data-teste modo-real">
+                <div class="data-teste-label">Data do Sistema</div>
+                <div class="data-teste-valor" id="data-teste-valor">Carregando...</div>
+            </div>
         </div>
         <ul class="menu">
             <li class="menu-item active" onclick="showSection('dashboard')">
@@ -1934,11 +1953,36 @@
             fetch('/api/alertas/verificar', {method: 'POST'})
                 .then(r => r.json())
                 .then(data => {
-                    alert('Verificação concluída! ' + (data.alertas_criados && data.alertas_criados.length > 0 ? data.alertas_criados.length + ' alertas criados' : 'Nenhum alerta novo'));
+                    alert('Verificacao concluida! ' + (data.alertas_criados && data.alertas_criados.length > 0 ? data.alertas_criados.length + ' alertas criados' : 'Nenhum alerta novo'));
                     carregarAlertas();
                     exibirAlertas();
                 });
         }
+        
+        // Carregar data de teste
+        function carregarDataTeste() {
+            fetch('/api/data-teste')
+                .then(r => r.json())
+                .then(data => {
+                    const display = document.getElementById('data-teste-display');
+                    const valor = document.getElementById('data-teste-valor');
+                    if (display && valor) {
+                        valor.textContent = data.data_formatada;
+                        if (data.modo === 'teste') {
+                            display.classList.remove('modo-real');
+                        } else {
+                            display.classList.add('modo-real');
+                        }
+                    }
+                })
+                .catch(() => {
+                    const valor = document.getElementById('data-teste-valor');
+                    if (valor) valor.textContent = 'Erro';
+                });
+        }
+        
+        // Carregar data ao iniciar
+        carregarDataTeste();
     </script>
     
     <!-- Modal de Alertas -->

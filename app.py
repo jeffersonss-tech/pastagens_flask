@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import database
 import logging
 from routes.api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
+from config_data_teste import now, get_status  # Suporte a data de teste
 
 app = Flask(__name__)
 app.secret_key = 'pastagens_secret_key_2024'
@@ -13,6 +14,12 @@ database.init_db()
 
 # Registrar módulos de APIs
 criar_api_fazendas(app)
+
+# ============ API DATA ============
+@app.route('/api/data-teste')
+def api_data_teste():
+    """Retorna a data atual (teste ou real)"""
+    return jsonify(get_status())
 
 # ============ AUTH ============
 @app.route('/login', methods=['GET', 'POST'])
