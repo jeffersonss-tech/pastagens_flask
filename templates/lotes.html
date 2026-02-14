@@ -601,23 +601,25 @@
         
         // Função para atualizar peso médio baseado na categoria
         function atualizarPesoMedio(prefixo) {
-            const categoriaSelect = document.getElementById(`${prefixo}-lote-categoria`);
-            const pesoInput = document.getElementById(`${prefixo}-lote-peso`);
+            const categoriaSelect = document.getElementById('lote-categoria');
+            const pesoInput = document.getElementById('lote-peso');
             
-            if (!categoriaSelect || !pesoInput) return;
+            if (!categoriaSelect || !pesoInput) {
+                console.log('Elementos não encontrados');
+                return;
+            }
             
             const categoria = categoriaSelect.value;
+            console.log('Categoria selecionada:', categoria);
             
-            // Se for Personalizado, não alterar (usuário deve usar o modal)
+            // Se for Personalizado, não alterar
             if (categoria === 'Personalizado') {
-                // Manter valor atual ou usar parâmetros salvos
-                if (window.personalizadoParams) {
-                    pesoInput.value = window.personalizadoParams.peso_medio;
-                }
                 return;
             }
             
             const peso = pesosCategorias[categoria];
+            console.log('Peso encontrado:', peso);
+            
             if (peso !== undefined && peso !== null) {
                 pesoInput.value = peso;
             }
