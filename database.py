@@ -769,10 +769,10 @@ def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
     data_saida_prevista = None
     
     if piquete:
-        altura_atual = piquete.get('altura_real_medida') or piquete.get('altura_atual') or 25
-        altura_saida = piquete.get('altura_saida', 15) or 15
-        capim = piquete.get('capim')
-        area = piquete.get('area', 0) or 0
+        altura_atual = piquete['altura_real_medida'] or piquete['altura_atual'] or 25
+        altura_saida = piquete['altura_saida'] or 15
+        capim = piquete['capim']
+        area = piquete['area'] or 0
         qtd_animais = lote['quantidade'] or 0
         peso_medio = lote['peso_medio'] or 0
         
