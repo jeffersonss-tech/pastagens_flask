@@ -7,6 +7,102 @@ from services.clima_service import calcular_fator_climatico
 
 # ========== CONSTANTES ==========
 TAXA_MAXIMA_LOTACAO = 10  # UA/ha - limite técnico para evitar explosão
+FATOR_CONVERSAO_UA = 450  # kg por Unidade Animal
+
+
+# ========== CATEGORIAS DE ANIMAIS ==========
+# Categorias técnicas para bovinos de corte com pesos médios e fatores de consumo
+CATEGORIAS_BOVINOS = {
+    'Bezerro(a)': {
+        'peso_medio': 200,      # kg
+        'consumo_relativo': 0.6, # 60% do consumo base (menor pressão)
+        'fator_pressao': 0.5     # Baixa pressão no pasto
+    },
+    'Garrote / Novilho(a)': {
+        'peso_medio': 325,      # kg
+        'consumo_relativo': 0.8, # 80% do consumo base
+        'fator_pressao': 0.7     # Pressão média
+    },
+    'Boi Magro / Engorda': {
+        'peso_medio': 475,      # kg
+        'consumo_relativo': 1.0, # 100% do consumo base (referência)
+        'fator_pressao': 1.0     # Alta pressão no pasto
+    },
+    'Vaca': {
+        'peso_medio': 500,      # kg
+        'consumo_relativo': 1.0, # 100% do consumo base
+        'fator_pressao': 1.0     # Alta pressão
+    },
+    'Touro': {
+        'peso_medio': 850,      # kg
+        'consumo_relativo': 1.3, # 130% do consumo base
+        'fator_pressao': 1.3     # Muito alta pressão
+    },
+    'Personalizado': {
+        'peso_medio': None,     # Usuário define manualmente
+        'consumo_relativo': 1.0,
+        'fator_pressao': 1.0
+    }
+}
+
+
+def get_peso_medio_categoria(categoria: str) -> float | None:
+    """
+    Retorna o peso médio padrão para a categoria de animal.
+
+    Args:
+        nome da categoria
+
+    Returns:
+        Peso médio em kg ou None se for Personalizado
+    """
+    dados = CATEGORIAS_BOVINOS.get(categoria)
+    return dados['peso_medio'] if dados else None
+
+
+def get_consumo_relativo_categoria(categoria: str) -> float:
+    """
+    Retorna o fator de consumo relativo para a categoria.
+
+    Args:
+        nome da categoria
+
+    Returns:
+        Fator de consumo (1.0 = referência)
+    """
+    dados = CATEGORIAS_BOVINOS.get(categoria)
+    return dados['consumo_relativo'] if dados else 1.0
+
+
+def calcular_peso_total_categoria(quantidade: int, categoria: str, peso_manual: float = None) -> float:
+    """
+    Calcula o peso total do lote baseado na categoria.
+
+    Args:
+        quantidade: Número de animais
+        categoria: Categoria do lote
+        peso_manual: Peso médio manual (se fornecido, sobrescreve o padrão)
+
+    Returns:
+        Peso total em kg
+    """
+    peso_medio = peso_manual if peso_manual else get_peso_medio_categoria(categoria)
+    if peso_medio is None:
+        return 0
+    return quantidade * peso_medio
+
+
+def calcular_ua_total(peso_total_kg: float) -> float:
+    """
+    Calcula o total de UA (Unidade Animal) baseado no peso total.
+
+    Args:
+        peso_total_kg: Peso total do lote em kg
+
+    Returns:
+        Total de UA (1 UA = 450 kg)
+    """
+    return round(peso_total_kg / FATOR_CONVERSAO_UA, 2)
 
 
 class ManejoError(Exception):
@@ -21,11 +117,14 @@ def calcular_altura_ocupacao(
     consumo_base_capim: float,
     quantidade_animais: int,
     area_piquete: float,
+    categoria: str = None,
+    peso_medio_kg: float = None,
     detalhar: bool = False
 ) -> float | dict:
     """
-    Calcula a altura estimada do pasto durante ocupação considerando taxa de lotação.
-    
+    Calcula a altura estimada do pasto durante ocupação considerando taxa de lotação
+    e peso da categoria de animal.
+
     Args:
         altura_base: Altura inicial do pasto (real medida ou estimada anterior)
         altura_saida: Altura mínima fisiológica de saída (cm)
@@ -33,74 +132,94 @@ def calcular_altura_ocupacao(
         consumo_base_capim: Consumo base diário do capim (cm/animal em 2 UA/ha)
         quantidade_animais: Quantidade de animais no lote
         area_piquete: Área do piquete em hectares
+        categoria: Categoria do lote (Bezerro, Garrote, Boi, etc.)
+        peso_medio_kg: Peso médio manual do animal (se fornecido, sobrescreve categoria)
         detalhar: Se True, retorna dict com detalhes do cálculo
-    
+
     Returns:
         Se detalhar=False: altura_estimada (float)
-        Se detalhar=True: dict com {"altura", "taxa_lotacao", "consumo_real", "reducao_diaria", "reducao_total"}
-    
+        Se detalhar=True: dict com detalhes do cálculo
+
     Raises:
         ManejoError: Se parâmetros inválidos
     """
     # ========== VALIDAÇÕES ==========
     if area_piquete <= 0:
         raise ManejoError(f"Área do piquete deve ser maior que 0. Recebido: {area_piquete}")
-    
+
     if altura_base < altura_saida:
         raise ManejoError(
             f"Altura base ({altura_base}) não pode ser menor que "
             f"altura de saída ({altura_saida})"
         )
-    
+
     if dias_ocupacao < 0:
         raise ManejoError(f"Dias de ocupação não pode ser negativo: {dias_ocupacao}")
-    
+
     # ========== CÁLCULO ==========
-    
+
     # Se sem animais, altura não muda
     if quantidade_animais <= 0:
         if detalhar:
             return {
                 "altura": altura_base,
                 "taxa_lotacao": 0,
+                "ua_total": 0,
+                "ua_ha": 0,
                 "consumo_real": 0,
                 "reducao_diaria": 0,
                 "reducao_total": 0,
+                "categoria": categoria,
+                "peso_usado": None,
                 "status": "sem_animais"
             }
         return altura_base
-    
-    # Taxa de lotação: animais por hectare
-    taxa_lotacao = quantidade_animais / area_piquete
-    
-    # Limitar taxa de lotação para evitar valores absurdos
-    taxa_original = taxa_lotacao
-    taxa_lotacao = min(taxa_lotacao, TAXA_MAXIMA_LOTACAO)
-    
-    # Ajuste do consumo baseado na lotação
-    # O consumo_base é para 2 UA/ha, então ajustamos proporcionalmente
-    consumo_real = consumo_base_capim * (taxa_lotacao / 2)
-    
+
+    # ========== CÁLCULO POR CATEGORIA ==========
+    # Calcular peso total e UA baseado na categoria
+    peso_total = calcular_peso_total_categoria(quantidade_animais, categoria, peso_medio_kg)
+    ua_total = calcular_ua_total(peso_total) if peso_total > 0 else 0
+
+    # Taxa de lotação em UA/ha
+    ua_ha = ua_total / area_piquete if area_piquete > 0 else 0
+
+    # Fator de consumo da categoria (se não tiver peso manual)
+    fator_categoria = get_consumo_relativo_categoria(categoria) if not peso_medio_kg and categoria else 1.0
+
+    # Limitar UA/ha para evitar valores absurdos
+    ua_ha_limitado = min(ua_ha, TAXA_MAXIMA_LOTACAO)
+
+    # Ajuste do consumo baseado na lotação e categoria
+    # O consumo_base é para 2 UA/ha (padrão de referência), ajustamos proporcionalmente
+    # E aplicamos o fator da categoria
+    consumo_real = consumo_base_capim * (ua_ha_limitado / 2) * fator_categoria
+
     # Redução total durante ocupação
     reducao_diaria = consumo_real
     reducao_total = consumo_real * dias_ocupacao
-    
+
     # ========== APLICAÇÃO ==========
     altura_estimada = altura_base - reducao_total
-    
+
     # Limite físico inferior: nunca低于 altura mínima
     altura_estimada = max(altura_estimada, altura_saida)
-    
+
     # Limite físico superior: nunca ultrapassar altura base
     altura_estimada = min(altura_estimada, altura_base)
-    
+
     # ========== RETORNO ==========
     if detalhar:
         return {
             "altura": round(altura_estimada, 1),
-            "taxa_lotacao": round(taxa_lotacao, 2),
-            "taxa_original": round(taxa_original, 2),
-            "taxa_limitada": taxa_lotacao < taxa_original,
+            "taxa_lotacao": round(ua_ha, 2),
+            "taxa_limitada": ua_ha > TAXA_MAXIMA_LOTACAO,
+            "ua_total": ua_total,
+            "ua_ha": round(ua_ha_limitado, 2),
+            "peso_total": peso_total,
+            "peso_medio": peso_medio_kg or get_peso_medio_categoria(categoria),
+            "categoria": categoria,
+            "consumo_base_capim": consumo_base_capim,
+            "consumo_ajustado": round(consumo_real, 2),
             "consumo_real": round(consumo_real, 2),
             "reducao_diaria": round(reducao_diaria, 2),
             "reducao_total": round(reducao_total, 1),
@@ -109,7 +228,7 @@ def calcular_altura_ocupacao(
             "dias_ocupacao": dias_ocupacao,
             "status": "ok"
         }
-    
+
     return round(altura_estimada, 1)
 
 

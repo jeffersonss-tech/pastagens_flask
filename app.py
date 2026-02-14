@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import database
 import logging
 from routes.api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
+from routes.api_categorias import api_categorias  # Módulo de APIs de categorias de animais
 from config_data_teste import now, get_status  # Suporte a data de teste
 
 app = Flask(__name__)
@@ -14,6 +15,7 @@ database.init_db()
 
 # Registrar módulos de APIs
 criar_api_fazendas(app)
+app.register_blueprint(api_categorias)  # Registrar API de categorias
 
 # ============ API DATA ============
 @app.route('/api/data-teste')
