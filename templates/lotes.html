@@ -402,7 +402,7 @@
                 
                 <div class="form-group">
                     <label>Categoria</label>
-                    <select id="edit-lote-categoria" onchange="verificarPersonalizadoEdit()">
+                    <select id="edit-lote-categoria" onchange="verificarPersonalizadoEdit(); atualizarPesoMedioEdit();">
                         <option value="">Selecione...</option>
                         <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
                         <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
@@ -599,16 +599,30 @@
             // Não usado mais - agora usa modal separado
         }
         
-        // Função para atualizar peso médio baseado na categoria
-        function atualizarPesoMedio(prefixo) {
+        // Função para atualizar peso médio baseado na categoria (CRIAÇÃO)
+        function atualizarPesoMedio() {
             const categoriaSelect = document.getElementById('lote-categoria');
             const pesoInput = document.getElementById('lote-peso');
             
             if (!categoriaSelect || !pesoInput) return;
             
             const categoria = categoriaSelect.value;
+            if (categoria === 'Personalizado') return;
             
-            // Se for Personalizado, não alterar
+            const peso = pesosCategorias[categoria];
+            if (peso !== undefined && peso !== null) {
+                pesoInput.value = peso;
+            }
+        }
+        
+        // Função para atualizar peso médio (EDIÇÃO)
+        function atualizarPesoMedioEdit() {
+            const categoriaSelect = document.getElementById('edit-lote-categoria');
+            const pesoInput = document.getElementById('edit-lote-peso');
+            
+            if (!categoriaSelect || !pesoInput) return;
+            
+            const categoria = categoriaSelect.value;
             if (categoria === 'Personalizado') return;
             
             const peso = pesosCategorias[categoria];
