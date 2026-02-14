@@ -1046,6 +1046,7 @@
                         <p>📐 ${p.area || 0} hectares</p>
                         <p>🌿 ${p.capim || 'N/I'}</p>
                         ${animaisNoPiquete ? `<p style="color: #007bff;"><strong>🐄 ${p.animais_no_piquete} animal(is)</strong></p>` : ''}
+                        ${p.dias_tecnicos ? `<p style="color: #007bff;"><strong>📊 ${p.dias_tecnicos} dias técnicos</strong></p>` : ''}
                         <span class="badge ${badgeClass}">${badgeText}</span>
                         ${statusInfo ? `<br>${statusInfo}` : ''}
                         ${p.altura_real_medida ? `<small style="color: #28a745;">📏 ${p.altura_real_medida}cm (medida)</small>` : ''}
@@ -1532,7 +1533,7 @@
                                 📐 ${p.area || 0} hectares<br>
                                 📏 ${p.altura_atual || '?'}/${p.altura_entrada || '?'} cm<br>
                                 ${p.estado === 'ocupado' 
-                                    ? `📅 ${p.dias_no_piquete || 0}/${p.dias_ocupacao || 3} dias ocupacao`
+                                    ? `📅 ${p.dias_no_piquete || 0}/${p.dias_tecnicos || p.dias_ocupacao || 3} dias • 📆 ${p.data_saida_prevista || '-'}`
                                     : `📅 ${p.dias_descanso || 0}/${p.dias_descanso_min || 30} dias descanso`}
                             `).openPopup();
                         }
@@ -1650,7 +1651,8 @@
                     <h4 style="margin-bottom: 10px; color: #856404;">⚙️ Parâmetros Técnicos</h4>
                     <p><strong>Altura de Entrada:</strong> ${p.altura_entrada || 0} cm</p>
                     <p><strong>Altura Mínima de Saída:</strong> ${p.altura_saida || 0} cm</p>
-                    <p><strong>Dias Máx. Ocupação:</strong> ${p.dias_ocupacao || 3} dias</p>
+                    ${p.dias_tecnicos ? `<p style="color: #1976d2;"><strong>📊 Dias Técnicos de Ocupação:</strong> ${p.dias_tecnicos} dias</p>` : ''}
+                    ${p.data_saida_prevista ? `<p style="color: #1976d2;"><strong>📆 Saída Prevista:</strong> ${p.data_saida_prevista}</p>` : ''}
                     ${alturaInfo}
                     ${estimativaInfo}
                 </div>
