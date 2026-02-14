@@ -481,3 +481,57 @@ def calcular_altura_descanso(
         }
     
     return round(altura_estimada, 1)
+
+
+# ========== CÁLCULO DE DIAS TÉCNICOS ==========
+
+def calcular_dias_tecnicos(
+    altura_atual: float,
+    altura_saida: float,
+    consumo_diario: float,
+    detalhar: bool = False
+) -> dict:
+    """
+    Calcula os dias técnicos de ocupação baseado na altura do pasto e consumo.
+    
+    Fórmula: dias_tecnicos = (altura_atual - altura_saida) / consumo_diario
+    """
+    from datetime import datetime, timedelta
+    
+    # Validações
+    if altura_atual <= altura_saida:
+        if detalhar:
+            return {"dias_tecnicos": 0, "consumo_invalido": False, "mensagem": "⚠️ Altura atual ≤ altura de saída", "data_saida_prevista": None, "status": "erro_altura"}
+        return 0
+    
+    if consumo_diario <= 0:
+        if detalhar:
+            return {"dias_tecnicos": 999, "consumo_invalido": True, "mensagem": "⚠️ Consumo insuficiente", "data_saida_prevista": None, "status": "erro_consumo"}
+        return 999
+    
+    # Cálculo
+    altura_total_consumir = altura_atual - altura_saida
+    dias_brutos = altura_total_consumir / consumo_diario
+    dias_tecnicos = max(0, int(dias_brutos))
+    
+    # Data de saída prevista
+    if dias_tecnicos > 0:
+        data_saida = datetime.now() + timedelta(days=dias_tecnicos)
+        data_saida_prevista = data_saida.strftime('%d/%m/%Y')
+    else:
+        data_saida_prevista = None
+    
+    if detalhar:
+        return {
+            "dias_tecnicos": dias_tecnicos,
+            "altura_atual": altura_atual,
+            "altura_saida": altura_saida,
+            "altura_total_consumir": round(altura_total_consumir, 1),
+            "consumo_diario": round(consumo_diario, 2),
+            "dias_brutos": round(dias_brutos, 1),
+            "consumo_invalido": False,
+            "data_saida_prevista": data_saida_prevista,
+            "status": "ok"
+        }
+    
+    return dias_tecnicos
