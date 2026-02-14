@@ -604,22 +604,14 @@
             const categoriaSelect = document.getElementById('lote-categoria');
             const pesoInput = document.getElementById('lote-peso');
             
-            if (!categoriaSelect || !pesoInput) {
-                console.log('Elementos não encontrados');
-                return;
-            }
+            if (!categoriaSelect || !pesoInput) return;
             
             const categoria = categoriaSelect.value;
-            console.log('Categoria selecionada:', categoria);
             
             // Se for Personalizado, não alterar
-            if (categoria === 'Personalizado') {
-                return;
-            }
+            if (categoria === 'Personalizado') return;
             
             const peso = pesosCategorias[categoria];
-            console.log('Peso encontrado:', peso);
-            
             if (peso !== undefined && peso !== null) {
                 pesoInput.value = peso;
             }
