@@ -847,9 +847,12 @@
         function abrirModalNovoLote() {
             // Limpar parâmetros do Personalizado anterior
             window.personalizadoParams = null;
-            document.getElementById('lote-peso').value = 0;
             document.getElementById('lote-nome').value = '';
             document.getElementById('lote-quantidade').value = '1';
+            
+            // Resetar categoria para primeira opção e preencher peso automaticamente
+            document.getElementById('lote-categoria').selectedIndex = 0;
+            atualizarPesoMedio('lote');
             
             document.getElementById('modal-novo-lote').classList.add('active');
             carregarPiquetesSelect();
