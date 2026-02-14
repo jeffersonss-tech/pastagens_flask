@@ -274,10 +274,11 @@
             <label>Categoria:</label>
             <select id="filtro-categoria" onchange="carregarLotes()">
                 <option value="">Todas</option>
-                <option value="Bezerro">Bezerro</option>
-                <option value="Recria">Recria</option>
-                <option value="Engorda">Engorda</option>
-                <option value="Adulto">Adulto</option>
+                <option value="Bezerro(a)">Bezerro(a)</option>
+                <option value="Garrote / Novilho(a)">Garrote / Novilho(a)</option>
+                <option value="Boi Magro / Engorda">Boi Magro / Engorda</option>
+                <option value="Vaca">Vaca</option>
+                <option value="Touro">Touro</option>
             </select>
             
             <button class="btn btn-warning" onclick="atualizarStatus()">🔄 Atualizar Status</button>
@@ -325,11 +326,13 @@
                 </div>
                 <div class="form-group">
                     <label>Categoria</label>
-                    <select id="lote-categoria">
-                        <option value="Bezerro">Bezerro</option>
-                        <option value="Recria">Recria</option>
-                        <option value="Engorda">Engorda</option>
-                        <option value="Adulto">Adulto</option>
+                    <select id="lote-categoria" onchange="atualizarPesoMedio('lote')">
+                        <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
+                        <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
+                        <option value="Boi Magro / Engorda">Boi Magro / Engorda - 475kg</option>
+                        <option value="Vaca">Vaca - 500kg</option>
+                        <option value="Touro">Touro - 850kg</option>
+                        <option value="Personalizado">Personalizado</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -368,12 +371,14 @@
                 
                 <div class="form-group">
                     <label>Categoria</label>
-                    <select id="edit-lote-categoria">
+                    <select id="edit-lote-categoria" onchange="atualizarPesoMedio('edit')">
                         <option value="">Selecione...</option>
-                        <option value="Bezerro">Bezerro</option>
-                        <option value="Recria">Recria</option>
-                        <option value="Engorda">Engorda</option>
-                        <option value="Adulto">Adulto</option>
+                        <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
+                        <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
+                        <option value="Boi Magro / Engorda">Boi Magro / Engorda - 475kg</option>
+                        <option value="Vaca">Vaca - 500kg</option>
+                        <option value="Touro">Touro - 850kg</option>
+                        <option value="Personalizado">Personalizado</option>
                     </select>
                 </div>
                 
@@ -473,6 +478,32 @@
     <script>
         const fazendaId = {{ fazenda.id }};
         let lotes = [];
+        
+        // Pesos médios por categoria
+        const pesosCategorias = {
+            'Bezerro(a)': 200,
+            'Garrote / Novilho(a)': 325,
+            'Boi Magro / Engorda': 475,
+            'Vaca': 500,
+            'Touro': 850,
+            'Personalizado': null
+        };
+        
+        // Função para atualizar peso médio baseado na categoria
+        function atualizarPesoMedio(prefixo) {
+            const categoriaSelect = document.getElementById(`${prefixo}-lote-categoria`);
+            const pesoInput = document.getElementById(`${prefixo}-lote-peso`);
+            
+            if (!categoriaSelect || !pesoInput) return;
+            
+            const categoria = categoriaSelect.value;
+            const peso = pesosCategorias[categoria];
+            
+            if (peso !== undefined && peso !== null) {
+                pesoInput.value = peso;
+            }
+            // Se for Personalizado, não altera (deixa o usuário digitar)
+        }
         
         // Carregar tudo ao iniciar
         window.onload = function() {
