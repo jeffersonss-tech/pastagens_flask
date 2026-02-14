@@ -350,6 +350,33 @@ def calcular_lotacao_fazenda(fazenda_id):
 
 # ============ LOTES ============
 def criar_lote(fazenda_id, nome, categoria=None, quantidade=0, peso_medio=0, observacao=None, piquete_id=None, consumo_base=None):
+    """
+    Cria um novo lote com validações técnicas.
+    
+    Args:
+        categoria: Se for 'Personalizado', usa consumo_base_manual
+        consumo_base: Obrigatório se categoria='Personalizado'
+    """
+    # ========== VALIDAÇÕES ==========
+    if categoria == 'Personalizado':
+        # Peso obrigatório para Personalizado
+        if peso_medio <= 0:
+            raise ValueError("Peso médio é obrigatório para categoria Personalizado")
+        # Validar limites
+        if peso_medio < 50:
+            raise ValueError("Peso médio mínimo é 50 kg")
+        if peso_medio > 1200:
+            raise ValueError("Peso médio máximo é 1200 kg")
+        # Validar consumo_base
+        if consumo_base is not None:
+            if consumo_base < 0.1:
+                raise ValueError("Consumo base mínimo é 0.1 cm/dia")
+            if consumo_base > 3.0:
+                raise ValueError("Consumo base máximo é 3.0 cm/dia")
+    else:
+        # Para outras categorias, ignorar consumo_base (usar do capim)
+        consumo_base = None
+    
     conn = get_db()
     cursor = conn.cursor()
     

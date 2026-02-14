@@ -780,7 +780,11 @@
             if (categoria === 'Personalizado') {
                 peso_medio = parseFloat(document.getElementById('lote-peso-personalizado').value) || 0;
                 if (!peso_medio) return alert('Informe o peso médio para categoria Personalizado!');
+                if (peso_medio < 50) return alert('Peso médio mínimo: 50 kg');
+                if (peso_medio > 1200) return alert('Peso médio máximo: 1200 kg');
                 consumo_base = parseFloat(document.getElementById('lote-consumo-base').value) || 0.8;
+                if (consumo_base < 0.1) return alert('Consumo base mínimo: 0.1 cm/dia');
+                if (consumo_base > 3.0) return alert('Consumo base máximo: 3.0 cm/dia');
             }
             
             const payload = {
@@ -996,6 +1000,38 @@
             const pesoTotal = (lote.quantidade || 0) * (lote.peso_medio || 0);
             const ua = pesoTotal / 450; // 1 UA = 450kg
             
+            // Calcular consumo estimado
+            let consumoEstimado = '-';
+            let consumoInfo = '';
+            if (lote.quantidade && lote.peso_medio && lote.piquete_area) {
+                const uaHa = ua / (lote.piquete_area || 1);
+                const fatorCategoria = {
+                    'Bezerro(a)': 0.6,
+                    'Garrote / Novilho(a)': 0.8,
+                    'Boi Magro / Engorda': 1.0,
+                    'Vaca': 1.0,
+                    'Touro': 1.3,
+                    'Personalizado': null
+                };
+                
+                // Usar consumo_base do lote se personalizado
+                const consumoBase = lote.consumo_base || 0.8; // padrão
+                const fator = fatorCategoria[lote.categoria] || 1.0;
+                const fatorUsado = (lote.categoria === 'Personalizado') ? 1.0 : fator;
+                const consumoCmDia = consumoBase * (uaHa / 2) * fatorUsado;
+                
+                consumoEstimado = consumoCmDia.toFixed(2) + ' cm/dia';
+                consumoInfo = `
+                    <div style="background: #e8f5e9; padding: 8px; border-radius: 6px; margin-top: 8px; font-size: 0.8rem;">
+                        <strong style="color: #2e7d32;">📊 Detalhamento Técnico</strong><br>
+                        UA/ha: ${uaHa.toFixed(2)}<br>
+                        ${lote.categoria === 'Personalizado' 
+                            ? `Consumo base customizado: ${consumoBase} cm/dia`
+                            : `Fator categoria: ${(fator * 100).toFixed(0)}%`}
+                    </div>
+                `;
+            }
+            
             // Status do lote - usar status_info (calculado) em vez de status_calculado (cache)
             let statusTexto = '';
             let statusCor = '';
@@ -1045,29 +1081,39 @@
                     </span>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
                     <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.8rem; color: #007bff; font-weight: bold;">${lote.quantidade || 0}</div>
+                        <div style="font-size: 1.6rem; color: #007bff; font-weight: bold;">${lote.quantidade || 0}</div>
                         <small style="color: #495057;">🐄 Animais</small>
                     </div>
                     <div style="background: #fff3cd; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.8rem; color: #856404; font-weight: bold;">${ua.toFixed(2)}</div>
-                        <small style="color: #495057;">📏 UA (450kg)</small>
+                        <div style="font-size: 1.6rem; color: #856404; font-weight: bold;">${ua.toFixed(2)}</div>
+                        <small style="color: #495057;">📏 UA Total</small>
                     </div>
-                    <div style="background: #d4edda; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.8rem; color: #155724; font-weight: bold;">${(lote.peso_medio || 0).toFixed(1)}</div>
-                        <small style="color: #495057;">⚖️ Peso Médio (kg)</small>
-                    </div>
-                    <div style="background: #f8d7da; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.8rem; color: #721c24; font-weight: bold;">${pesoTotal.toFixed(1)}</div>
-                        <small style="color: #495057;">🏋️ Peso Total (kg)</small>
+                    <div style="background: #28a745; color: white; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.6rem; font-weight: bold;">${consumoEstimado}</div>
+                        <small style="color: rgba(255,255,255,0.9);">📉 Consumo Est.</small>
                     </div>
                 </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.4rem; color: #495057; font-weight: bold;">${(lote.peso_medio || 0).toFixed(0)} kg</div>
+                        <small style="color: #6c757d;">⚖️ Peso Médio</small>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.4rem; color: #495057; font-weight: bold;">${pesoTotal.toFixed(0)} kg</div>
+                        <small style="color: #6c757d;">🏋️ Peso Total</small>
+                    </div>
+                </div>
+                
+                ${consumoInfo}
                 
                 ${diasInfo}
                 
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                     <strong style="color: #495057;">📁 Categoria:</strong> ${lote.categoria || 'Não informada'}<br>
+                    ${lote.consumo_base ? `<strong style="color: #495057;">⚙️ Consumo Base:</strong> ${lote.consumo_base} cm/dia<br>` : ''}
                     <strong style="color: #495057;">📍 Piquete Atual:</strong> ${lote.piquete_nome || 'Sem piquete'}<br>
                     ${lote.capim ? `<strong style="color: #495057;">🌿 Capim:</strong> ${lote.capim}<br>` : ''}
                     ${lote.piquete_area ? `<strong style="color: #495057;">📐 Área do Piquete:</strong> ${lote.piquete_area} ha` : ''}

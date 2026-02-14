@@ -164,25 +164,51 @@ def api_lotes():
 
 @app.route('/api/lotes', methods=['POST'])
 def api_criar_lote():
-    """Cria um novo lote"""
+    """Cria um novo lote com validações técnicas."""
     if 'user_id' not in session:
         return jsonify({'error': 'Não autorizado'}), 401
     
     data = request.json
     fazenda_id = session.get('fazenda_id')
     
-    lote_id = database.criar_lote(
-        fazenda_id,
-        data['nome'],
-        data.get('categoria'),
-        data.get('quantidade', 0),
-        data.get('peso_medio', 0),
-        data.get('observacao'),
-        data.get('piquete_id'),
-        data.get('consumo_base')  # Campo opcional para Personalizado
-    )
+    # ========== VALIDAÇÕES ==========
+    categoria = data.get('categoria')
+    peso_medio = data.get('peso_medio', 0)
+    consumo_base = data.get('consumo_base')
     
-    return jsonify({'id': lote_id, 'status': 'ok'})
+    if categoria == 'Personalizado':
+        # Peso obrigatório para Personalizado
+        if peso_medio <= 0:
+            return jsonify({'error': 'Peso médio é obrigatório para categoria Personalizado'}), 400
+        if peso_medio < 50:
+            return jsonify({'error': 'Peso médio mínimo é 50 kg'}), 400
+        if peso_medio > 1200:
+            return jsonify({'error': 'Peso médio máximo é 1200 kg'}), 400
+        if consumo_base is not None:
+            if consumo_base < 0.1:
+                return jsonify({'error': 'Consumo base mínimo é 0.1 cm/dia'}), 400
+            if consumo_base > 3.0:
+                return jsonify({'error': 'Consumo base máximo é 3.0 cm/dia'}), 400
+    else:
+        # Para outras categorias, ignorar consumo_base
+        consumo_base = None
+    
+    try:
+        lote_id = database.criar_lote(
+            fazenda_id,
+            data['nome'],
+            categoria,
+            data.get('quantidade', 0),
+            peso_medio,
+            data.get('observacao'),
+            data.get('piquete_id'),
+            consumo_base
+        )
+        return jsonify({'id': lote_id, 'status': 'ok'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Erro ao criar lote: {str(e)}'}), 500
 
 @app.route('/api/lotes/<int:id>', methods=['GET'])
 def api_get_lote(id):
