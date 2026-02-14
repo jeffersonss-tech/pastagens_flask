@@ -312,6 +312,37 @@
         </div>
     </div>
     
+    <!-- Modal Parâmetros Personalizado -->
+    <div class="modal" id="modal-personalizado">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h3>⚙️ Parâmetros Técnicos</h3>
+                <button class="modal-close" onclick="fecharModal('modal-personalizado')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+                    Informe os parâmetros técnicos para categoria <strong>Personalizado</strong>:
+                </p>
+                
+                <div class="form-group">
+                    <label>Peso Médio (kg) *</label>
+                    <input type="number" id="param-peso-medio" placeholder="Ex: 350" step="0.1" min="50" max="1200">
+                </div>
+                
+                <div class="form-group">
+                    <label>Consumo Base (cm/dia em 2 UA/ha)</label>
+                    <input type="number" id="param-consumo-base" value="0.8" step="0.05" min="0.1" max="3.0">
+                    <small style="color: #666; font-size: 0.75rem;">Quanto o pasto é consumido por animal por dia</small>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                    <button class="btn" style="background: #6c757d; color: white;" onclick="fecharModal('modal-personalizado')">Cancelar</button>
+                    <button class="btn btn-success" onclick="confirmarPersonalizado()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Modal Novo Lote -->
     <div class="modal" id="modal-novo-lote">
         <div class="modal-content">
@@ -326,7 +357,7 @@
                 </div>
                 <div class="form-group">
                     <label>Categoria</label>
-                    <select id="lote-categoria" onchange="togglePersonalizado('lote')">
+                    <select id="lote-categoria" onchange="verificarPersonalizado()">
                         <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
                         <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
                         <option value="Boi Magro / Engorda">Boi Magro / Engorda - 475kg</option>
@@ -334,22 +365,6 @@
                         <option value="Touro">Touro - 850kg</option>
                         <option value="Personalizado">⭐ Personalizado</option>
                     </select>
-                </div>
-                
-                <!-- Campos técnicos para Personalizado -->
-                <div id="lote-campos-personalizado" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #2196f3;">
-                    <div style="font-weight: 600; margin-bottom: 10px; color: #0d47a1;">⚙️ Parâmetros Técnicos - Personalizado</div>
-                    
-                    <div class="form-group">
-                        <label>Peso Médio (kg) *</label>
-                        <input type="number" id="lote-peso-personalizado" placeholder="Ex: 350" step="0.1" min="50" max="1200">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Consumo Base (cm/dia em 2 UA/ha)</label>
-                        <input type="number" id="lote-consumo-base" value="0.8" step="0.05" placeholder="Padrão: 0.8" min="0.1" max="3.0">
-                        <small style="color: #666; font-size: 0.75rem;">Quanto o pasto é consumido por animal por dia</small>
-                    </div>
                 </div>
                 <div class="form-group">
                     <label>Quantidade de Animais</label>
@@ -387,7 +402,7 @@
                 
                 <div class="form-group">
                     <label>Categoria</label>
-                    <select id="edit-lote-categoria" onchange="togglePersonalizado('edit')">
+                    <select id="edit-lote-categoria" onchange="verificarPersonalizadoEdit()">
                         <option value="">Selecione...</option>
                         <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
                         <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
@@ -396,22 +411,6 @@
                         <option value="Touro">Touro - 850kg</option>
                         <option value="Personalizado">⭐ Personalizado</option>
                     </select>
-                </div>
-                
-                <!-- Campos técnicos para Personalizado (Edição) -->
-                <div id="edit-campos-personalizado" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #2196f3;">
-                    <div style="font-weight: 600; margin-bottom: 10px; color: #0d47a1;">⚙️ Parâmetros Técnicos - Personalizado</div>
-                    
-                    <div class="form-group">
-                        <label>Peso Médio (kg) *</label>
-                        <input type="number" id="edit-peso-personalizado" placeholder="Ex: 350" step="0.1" min="50" max="1200">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Consumo Base (cm/dia em 2 UA/ha)</label>
-                        <input type="number" id="edit-consumo-base" value="0.8" step="0.05" placeholder="Padrão: 0.8" min="0.1" max="3.0">
-                        <small style="color: #666; font-size: 0.75rem;">Quanto o pasto é consumido por animal por dia</small>
-                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -521,20 +520,75 @@
             'Personalizado': null
         };
         
+        // Função para verificar se é Personalizado e abrir modal
+        let categoriaSelecionada = '';
+        function verificarPersonalizado() {
+            const select = document.getElementById('lote-categoria');
+            if (select.value === 'Personalizado') {
+                // Abrir modal de parâmetros
+                document.getElementById('modal-personalizado').classList.add('active');
+            }
+        }
+        
+        // Função para verificar Personalizado na edição
+        function verificarPersonalizadoEdit() {
+            const select = document.getElementById('edit-lote-categoria');
+            if (select.value === 'Personalizado') {
+                // Abrir modal de parâmetros
+                document.getElementById('modal-personalizado').classList.add('active');
+                // Preencher com valores atuais se existirem
+                const pesoEdit = document.getElementById('edit-lote-peso').value;
+                if (pesoEdit && pesoEdit > 0) {
+                    document.getElementById('param-peso-medio').value = pesoEdit;
+                }
+            }
+        }
+        
+        // Função para confirmar Personalizado na edição
+        function confirmarPersonalizadoEdit() {
+            const peso = parseFloat(document.getElementById('param-peso-medio').value) || 0;
+            const consumo = parseFloat(document.getElementById('param-consumo-base').value) || 0.8;
+            
+            if (!peso || peso < 50 || peso > 1200) {
+                alert('Peso médio deve ser entre 50 e 1200 kg');
+                return;
+            }
+            
+            window.personalizadoParamsEdit = {
+                peso_medio: peso,
+                consumo_base: consumo
+            };
+            
+            document.getElementById('edit-lote-peso').value = peso;
+            fecharModal('modal-personalizado');
+        }
+        
+        // Sobrescrever confirmarPersonalizado para edição também
+        function confirmarPersonalizado() {
+            const peso = parseFloat(document.getElementById('param-peso-medio').value) || 0;
+            const consumo = parseFloat(document.getElementById('param-consumo-base').value) || 0.8;
+            
+            if (!peso || peso < 50 || peso > 1200) {
+                alert('Peso médio deve ser entre 50 e 1200 kg');
+                return;
+            }
+            if (consumo < 0.1 || consumo > 3.0) {
+                alert('Consumo base deve ser entre 0.1 e 3.0 cm/dia');
+                return;
+            }
+            
+            window.personalizadoParams = {
+                peso_medio: peso,
+                consumo_base: consumo
+            };
+            
+            document.getElementById('lote-peso').value = peso;
+            fecharModal('modal-personalizado');
+        }
+        
         // Função específica para mostrar/ocultar campos de Personalizado
         function togglePersonalizado(prefixo) {
-            const categoriaSelect = document.getElementById(`${prefixo}-lote-categoria`);
-            const camposPersonalizado = document.getElementById(`${prefixo}-campos-personalizado`);
-            
-            if (!categoriaSelect || !camposPersonalizado) return;
-            
-            if (categoriaSelect.value === 'Personalizado') {
-                camposPersonalizado.style.display = 'block';
-            } else {
-                camposPersonalizado.style.display = 'none';
-                // Atualizar peso médio normalmente
-                atualizarPesoMedio(prefixo);
-            }
+            // Não usado mais - agora usa modal separado
         }
         
         // Função para atualizar peso médio baseado na categoria
@@ -545,13 +599,17 @@
             if (!categoriaSelect || !pesoInput) return;
             
             const categoria = categoriaSelect.value;
-            const peso = pesosCategorias[categoria];
             
-            // Se for Personalizado, não alterar (usuário digita manualmente)
+            // Se for Personalizado, não alterar (usuário deve usar o modal)
             if (categoria === 'Personalizado') {
+                // Manter valor atual ou usar parâmetros salvos
+                if (window.personalizadoParams) {
+                    pesoInput.value = window.personalizadoParams.peso_medio;
+                }
                 return;
             }
             
+            const peso = pesosCategorias[categoria];
             if (peso !== undefined && peso !== null) {
                 pesoInput.value = peso;
             }
@@ -779,6 +837,12 @@
         }
         
         function abrirModalNovoLote() {
+            // Limpar parâmetros do Personalizado anterior
+            window.personalizadoParams = null;
+            document.getElementById('lote-peso').value = 0;
+            document.getElementById('lote-nome').value = '';
+            document.getElementById('lote-quantidade').value = '1';
+            
             document.getElementById('modal-novo-lote').classList.add('active');
             carregarPiquetesSelect();
         }
@@ -790,16 +854,14 @@
             const categoria = document.getElementById('lote-categoria').value;
             let peso_medio = parseFloat(document.getElementById('lote-peso').value) || 0;
             
-            // Se personalizado, usar peso do campo específico e incluir consumo_base
+            // Se personalizado, usar parâmetros do modal
             let consumo_base = null;
             if (categoria === 'Personalizado') {
-                peso_medio = parseFloat(document.getElementById('lote-peso-personalizado').value) || 0;
-                if (!peso_medio) return alert('Informe o peso médio para categoria Personalizado!');
-                if (peso_medio < 50) return alert('Peso médio mínimo: 50 kg');
-                if (peso_medio > 1200) return alert('Peso médio máximo: 1200 kg');
-                consumo_base = parseFloat(document.getElementById('lote-consumo-base').value) || 0.8;
-                if (consumo_base < 0.1) return alert('Consumo base mínimo: 0.1 cm/dia');
-                if (consumo_base > 3.0) return alert('Consumo base máximo: 3.0 cm/dia');
+                if (!window.personalizadoParams) {
+                    return alert('Por favor, configure os parâmetros técnicos do Personalizado!');
+                }
+                peso_medio = window.personalizadoParams.peso_medio;
+                consumo_base = window.personalizadoParams.consumo_base;
             }
             
             const payload = {
@@ -931,6 +993,17 @@
             
             // Esconder aviso inicialmente
             document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
+            
+            // Limpar parâmetros do Personalizado anterior
+            window.personalizadoParamsEdit = null;
+            
+            // Se Personalizado, configurar parâmetros existentes
+            if (lote.categoria === 'Personalizado') {
+                window.personalizadoParamsEdit = {
+                    peso_medio: lote.peso_medio || 0,
+                    consumo_base: lote.consumo_base || 0.8
+                };
+            }
             
             // Carregar piquetes disponíveis
             fetch('/api/piquetes/disponiveis?fazenda_id=' + fazendaId)
@@ -1172,16 +1245,14 @@
             const categoria = document.getElementById('edit-lote-categoria').value;
             let peso_medio = parseFloat(document.getElementById('edit-lote-peso').value) || 0;
             
-            // Se personalizado, usar peso do campo específico e incluir consumo_base
+            // Se personalizado, usar parâmetros do modal
             let consumo_base = null;
             if (categoria === 'Personalizado') {
-                peso_medio = parseFloat(document.getElementById('edit-peso-personalizado').value) || 0;
-                if (!peso_medio) return alert('Informe o peso médio para categoria Personalizado!');
-                if (peso_medio < 50) return alert('Peso médio mínimo: 50 kg');
-                if (peso_medio > 1200) return alert('Peso médio máximo: 1200 kg');
-                consumo_base = parseFloat(document.getElementById('edit-consumo-base').value) || 0.8;
-                if (consumo_base < 0.1) return alert('Consumo base mínimo: 0.1 cm/dia');
-                if (consumo_base > 3.0) return alert('Consumo base máximo: 3.0 cm/dia');
+                if (!window.personalizadoParamsEdit) {
+                    return alert('Por favor, configure os parâmetros técnicos do Personalizado!');
+                }
+                peso_medio = window.personalizadoParamsEdit.peso_medio;
+                consumo_base = window.personalizadoParamsEdit.consumo_base;
             }
             
             const payload = {
