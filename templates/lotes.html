@@ -852,7 +852,7 @@
             
             // Resetar categoria para primeira opção e preencher peso automaticamente
             document.getElementById('lote-categoria').selectedIndex = 0;
-            atualizarPesoMedio('lote');
+            document.getElementById('lote-peso').value = 200; // Bezerro = 200kg
             
             document.getElementById('modal-novo-lote').classList.add('active');
             carregarPiquetesSelect();
