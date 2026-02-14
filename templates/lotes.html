@@ -312,9 +312,9 @@
         </div>
     </div>
     
-    <!-- Modal Parâmetros Personalizado -->
-    <div class="modal" id="modal-personalizado">
-        <div class="modal-content" style="width: 400px;">
+    <!-- Modal Parâmetros Personalizado (z-index maior para ficar por cima) -->
+    <div class="modal" id="modal-personalizado" style="z-index: 2000;">
+        <div class="modal-content" style="width: 400px; z-index: 2001;">
             <div class="modal-header">
                 <h3>⚙️ Parâmetros Técnicos</h3>
                 <button class="modal-close" onclick="fecharModal('modal-personalizado')">×</button>
@@ -525,8 +525,12 @@
         function verificarPersonalizado() {
             const select = document.getElementById('lote-categoria');
             if (select.value === 'Personalizado') {
-                // Abrir modal de parâmetros
+                // Limpar o campo de peso e abrir modal de parâmetros
+                document.getElementById('lote-peso').value = '';
                 document.getElementById('modal-personalizado').classList.add('active');
+            } else {
+                // Para categorias normais, auto-preencher o peso
+                atualizarPesoMedio('lote');
             }
         }
         
@@ -534,13 +538,17 @@
         function verificarPersonalizadoEdit() {
             const select = document.getElementById('edit-lote-categoria');
             if (select.value === 'Personalizado') {
-                // Abrir modal de parâmetros
+                // Limpar o campo de peso e abrir modal de parâmetros
+                document.getElementById('edit-lote-peso').value = '';
                 document.getElementById('modal-personalizado').classList.add('active');
                 // Preencher com valores atuais se existirem
                 const pesoEdit = document.getElementById('edit-lote-peso').value;
                 if (pesoEdit && pesoEdit > 0) {
                     document.getElementById('param-peso-medio').value = pesoEdit;
                 }
+            } else {
+                // Para categorias normais, auto-preencher o peso
+                atualizarPesoMedio('edit');
             }
         }
         
