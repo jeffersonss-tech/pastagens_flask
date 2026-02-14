@@ -224,21 +224,47 @@ def api_get_lote(id):
 
 @app.route('/api/lotes/<int:id>', methods=['PUT'])
 def api_put_lote(id):
-    """Atualiza um lote"""
+    """Atualiza um lote com validações técnicas."""
     if 'user_id' not in session:
         return jsonify({'error': 'Não autorizado'}), 401
     
     data = request.json
-    database.atualizar_lote(
-        id,
-        data.get('nome'),
-        data.get('categoria'),
-        data.get('quantidade'),
-        data.get('peso_medio'),
-        data.get('observacao'),
-        data.get('piquete_atual_id')
-    )
-    return jsonify({'status': 'ok'})
+    
+    # ========== VALIDAÇÕES ==========
+    categoria = data.get('categoria')
+    peso_medio = data.get('peso_medio')
+    consumo_base = data.get('consumo_base')
+    
+    if categoria == 'Personalizado':
+        if peso_medio is not None and peso_medio > 0:
+            if peso_medio < 50:
+                return jsonify({'error': 'Peso médio mínimo é 50 kg'}), 400
+            if peso_medio > 1200:
+                return jsonify({'error': 'Peso médio máximo é 1200 kg'}), 400
+        if consumo_base is not None:
+            if consumo_base < 0.1:
+                return jsonify({'error': 'Consumo base mínimo é 0.1 cm/dia'}), 400
+            if consumo_base > 3.0:
+                return jsonify({'error': 'Consumo base máximo é 3.0 cm/dia'}), 400
+    else:
+        consumo_base = None
+    
+    try:
+        database.atualizar_lote(
+            id,
+            data.get('nome'),
+            categoria,
+            data.get('quantidade'),
+            peso_medio,
+            data.get('observacao'),
+            data.get('piquete_atual_id'),
+            consumo_base
+        )
+        return jsonify({'status': 'ok'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Erro ao atualizar lote: {str(e)}'}), 500
 
 @app.route('/api/lotes/<int:id>', methods=['DELETE'])
 def api_delete_lote(id):

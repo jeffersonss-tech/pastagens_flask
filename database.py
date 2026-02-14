@@ -418,14 +418,32 @@ def criar_lote(fazenda_id, nome, categoria=None, quantidade=0, peso_medio=0, obs
     conn.close()
     return lote_id
 
-def atualizar_lote(id, nome=None, categoria=None, quantidade=None, peso_medio=None, observacao=None, piquete_atual_id=None):
-    """Atualiza um lote"""
+def atualizar_lote(id, nome=None, categoria=None, quantidade=None, peso_medio=None, observacao=None, piquete_atual_id=None, consumo_base=None):
+    """Atualiza um lote com validações técnicas."""
+    # ========== VALIDAÇÕES ==========
+    if categoria == 'Personalizado':
+        # Peso obrigatório para Personalizado
+        if peso_medio is not None and peso_medio > 0:
+            if peso_medio < 50:
+                raise ValueError("Peso médio mínimo é 50 kg")
+            if peso_medio > 1200:
+                raise ValueError("Peso médio máximo é 1200 kg")
+        # Validar consumo_base
+        if consumo_base is not None:
+            if consumo_base < 0.1:
+                raise ValueError("Consumo base mínimo é 0.1 cm/dia")
+            if consumo_base > 3.0:
+                raise ValueError("Consumo base máximo é 3.0 cm/dia")
+    else:
+        # Para outras categorias, ignorar consumo_base
+        consumo_base = None
+    
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        UPDATE lotes SET nome=?, categoria=?, quantidade=?, peso_medio=?, observacao=?, piquete_atual_id=?, updated_at=?
+        UPDATE lotes SET nome=?, categoria=?, quantidade=?, peso_medio=?, observacao=?, piquete_atual_id=?, consumo_base=?, updated_at=?
         WHERE id=?
-    ''', (nome, categoria, quantidade, peso_medio, observacao, piquete_atual_id, datetime.now().isoformat(), id))
+    ''', (nome, categoria, quantidade, peso_medio, observacao, piquete_atual_id, consumo_base, datetime.now().isoformat(), id))
     conn.commit()
     conn.close()
 
