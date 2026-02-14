@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from config_data_teste import now as data_teste_now  # Suporte a data de teste
-from services.manejo_service import calcular_altura_ocupacao, get_consumo_base
+from services.manejo_service import calcular_altura_ocupacao, get_consumo_base, calcular_dias_tecnicos
 from services.rotacao_service import (
     calcular_prioridade_rotacao,
     calcular_status_piquete,
@@ -738,7 +738,7 @@ def atualizar_status_lotes(fazenda_id):
 def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
     """
     Move um lote para outro piquete.
-    Atualiza automaticamente: lote.data_entrada, lote.piquete_atual_id, status, estado dos piquetes
+    Calcula automaticamente: dias_tecnicos e data_saida_prevista
     """
     conn = get_db()
     cursor = conn.cursor()
@@ -760,42 +760,57 @@ def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
     ''', (lote_id, piquete_origem_id, piquete_destino_id, datetime.now().isoformat(), 
           quantidade or lote['quantidade'], 'movimentacao', motivo, datetime.now().isoformat()))
     
-    # Atualizar lote
+    # Buscar dados do piquete de destino
+    cursor.execute('SELECT * FROM piquetes WHERE id = ?', (piquete_destino_id,))
+    piquete = cursor.fetchone()
+    
+    # Calcular dias técnicos se tiver dados necessários
+    dias_tecnicos = None
+    data_saida_prevista = None
+    
+    if piquete:
+        altura_atual = piquete.get('altura_real_medida') or piquete.get('altura_atual') or 25
+        altura_saida = piquete.get('altura_saida', 15) or 15
+        capim = piquete.get('capim')
+        area = piquete.get('area', 0) or 0
+        qtd_animais = lote['quantidade'] or 0
+        peso_medio = lote['peso_medio'] or 0
+        
+        # Calcular consumo diário
+        if area > 0 and qtd_animais > 0 and peso_medio > 0:
+            consumo_base = get_consumo_base(capim) if capim else 0.8
+            ua_total = (qtd_animais * peso_medio) / 450
+            ua_ha = ua_total / area
+            consumo_diario = consumo_base * (ua_ha / 2)
+            
+            # Calcular dias técnicos
+            resultado = calcular_dias_tecnicos(
+                altura_atual=altura_atual,
+                altura_saida=altura_saida,
+                consumo_diario=consumo_diario,
+                detalhar=True
+            )
+            dias_tecnicos = resultado.get('dias_tecnicos')
+            data_saida_prevista = resultado.get('data_saida_prevista')
+    
+    # Atualizar lote com dias técnicos
     cursor.execute('''
-        UPDATE lotes SET piquete_atual_id = ?, data_entrada = ?, updated_at = ?
+        UPDATE lotes SET piquete_atual_id = ?, data_entrada = ?, dias_tecnicos = ?, data_saida_prevista = ?, updated_at = ?
         WHERE id = ?
-    ''', (piquete_destino_id, datetime.now().isoformat(), datetime.now().isoformat(), lote_id))
+    ''', (piquete_destino_id, datetime.now().isoformat(), dias_tecnicos, data_saida_prevista, datetime.now().isoformat(), lote_id))
     
     # ATUALIZAR ESTADO DOS PIQUETES
-    # Piquete de origem: ficar disponível (se existir)
+    # Piquete de origem: ficar disponível
     if piquete_origem_id:
         cursor.execute('UPDATE piquetes SET estado = NULL WHERE id = ?', (piquete_origem_id,))
     
     # Piquete de destino: ficar ocupado
     cursor.execute('UPDATE piquetes SET estado = ? WHERE id = ?', ('ocupado', piquete_destino_id))
     
-    # Recalcular status baseado no novo piquete
-    cursor.execute('SELECT * FROM piquetes WHERE id = ?', (piquete_destino_id,))
-    piquete = cursor.fetchone()
-    if piquete:
-        lote_fake = {
-            'piquete_atual_id': piquete_destino_id,
-            'data_entrada': datetime.now().isoformat(),
-            'dias_no_piquete': 0,
-            'dias_ocupacao': piquete['dias_ocupacao'] or 3,
-            'altura_atual': piquete['altura_atual'],
-            'altura_entrada': piquete['altura_entrada'] or 25,
-            'altura_saida': piquete['altura_saida'] or 15,
-            'piquete_bloqueado': piquete['bloqueado']
-        }
-        status_info = calcular_status_lote(lote_fake)
-        cursor.execute('UPDATE lotes SET status_calculado = ? WHERE id = ?', 
-                      (status_info['status'], lote_id))
-    
     conn.commit()
     conn.close()
     
-    return {'status': 'ok'}
+    return {'status': 'ok', 'dias_tecnicos': dias_tecnicos, 'data_saida_prevista': data_saida_prevista}
 
 def get_lote(id):
     """Busca um lote pelo ID"""
@@ -1015,7 +1030,7 @@ def listar_piquetes(fazenda_id=None):
     # Buscar contagem de animais e dados do lote por piquete
     cursor.execute('''
         SELECT l.piquete_atual_id, COUNT(*) as total_lotes, SUM(l.quantidade) as total_animais,
-               l.id as lote_id, l.data_entrada
+               l.id as lote_id, l.data_entrada, l.dias_tecnicos, l.data_saida_prevista
         FROM lotes l
         WHERE l.ativo = 1 AND l.piquete_atual_id IS NOT NULL
         GROUP BY l.piquete_atual_id
@@ -1033,6 +1048,8 @@ def listar_piquetes(fazenda_id=None):
             row_dict['lotes_no_piquete'] = lote_info['total_lotes']
             row_dict['animais_no_piquete'] = lote_info['total_animais']
             row_dict['lote_id'] = lote_info['lote_id']
+            row_dict['dias_tecnicos'] = lote_info['dias_tecnicos']
+            row_dict['data_saida_prevista'] = lote_info['data_saida_prevista']
             # Calcular dias no piquete
             if lote_info['data_entrada']:
                 try:
@@ -1047,6 +1064,8 @@ def listar_piquetes(fazenda_id=None):
             row_dict['animais_no_piquete'] = 0
             row_dict['dias_no_piquete'] = 0
             row_dict['lote_id'] = None
+            row_dict['dias_tecnicos'] = None
+            row_dict['data_saida_prevista'] = None
         
         # Calcular dias_descanso desde data_medicao
         data_medicao = row_dict.get('data_medicao')
@@ -1088,10 +1107,29 @@ def get_piquete(id):
         WHERE piquete_destino_id = ? OR piquete_origem_id = ?
     ''', (id, id))
     mov_row = cursor.fetchone()
+    
+    # Buscar dados do lote no piquete
+    cursor.execute('''
+        SELECT id, data_entrada, dias_tecnicos, data_saida_prevista
+        FROM lotes
+        WHERE ativo = 1 AND piquete_atual_id = ?
+    ''', (id,))
+    lote_row = cursor.fetchone()
     conn.close()
     
     if row:
         row_dict = dict(row)
+        
+        # Adicionar dados do lote se existir
+        if lote_row:
+            row_dict['lote_id'] = lote_row['id']
+            row_dict['data_entrada'] = lote_row['data_entrada']
+            row_dict['dias_tecnicos'] = lote_row['dias_tecnicos']
+            row_dict['data_saida_prevista'] = lote_row['data_saida_prevista']
+        else:
+            row_dict['lote_id'] = None
+            row_dict['dias_tecnicos'] = None
+            row_dict['data_saida_prevista'] = None
         
         # Calcular dias de descanso desde a data_medicao (se houver) ou ultima_mov
         data_medicao = row_dict.get('data_medicao')
