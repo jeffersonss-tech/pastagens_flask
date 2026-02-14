@@ -178,7 +178,8 @@ def api_criar_lote():
         data.get('quantidade', 0),
         data.get('peso_medio', 0),
         data.get('observacao'),
-        data.get('piquete_id')
+        data.get('piquete_id'),
+        data.get('consumo_base')  # Campo opcional para Personalizado
     )
     
     return jsonify({'id': lote_id, 'status': 'ok'})

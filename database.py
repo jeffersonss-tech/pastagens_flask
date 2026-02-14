@@ -99,6 +99,8 @@ def init_db():
             categoria TEXT,
             quantidade INTEGER DEFAULT 0,
             peso_medio REAL DEFAULT 0,
+            -- Campos técnicos para Personalizado
+            consumo_base REAL DEFAULT NULL,
             -- Localização atual
             piquete_atual_id INTEGER,
             data_entrada TEXT,
@@ -113,6 +115,12 @@ def init_db():
             FOREIGN KEY (piquete_atual_id) REFERENCES piquetes(id)
         )
     ''')
+
+    # Adicionar coluna consumo_base se não existir (migração)
+    cursor.execute('PRAGMA table_info(lotes)')
+    colunas = [r['name'] for r in cursor.fetchall()]
+    if 'consumo_base' not in colunas:
+        cursor.execute('ALTER TABLE lotes ADD COLUMN consumo_base REAL DEFAULT NULL')
     
     # Movimentações
     cursor.execute('''
@@ -341,16 +349,16 @@ def calcular_lotacao_fazenda(fazenda_id):
     }
 
 # ============ LOTES ============
-def criar_lote(fazenda_id, nome, categoria=None, quantidade=0, peso_medio=0, observacao=None, piquete_id=None):
+def criar_lote(fazenda_id, nome, categoria=None, quantidade=0, peso_medio=0, observacao=None, piquete_id=None, consumo_base=None):
     conn = get_db()
     cursor = conn.cursor()
     
     # Criar o lote primeiro
     cursor.execute('''
-        INSERT INTO lotes (fazenda_id, nome, categoria, quantidade, peso_medio, observacao, piquete_atual_id, data_entrada, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO lotes (fazenda_id, nome, categoria, quantidade, peso_medio, observacao, piquete_atual_id, data_entrada, consumo_base, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (fazenda_id, nome, categoria, quantidade, peso_medio, observacao, 
-          piquete_id, datetime.now().isoformat(),
+          piquete_id, datetime.now().isoformat(), consumo_base,
           datetime.now().isoformat(), datetime.now().isoformat()))
     conn.commit()
     lote_id = cursor.lastrowid
@@ -479,7 +487,8 @@ def listar_lotes(fazenda_id=None, status_filtro=None, categoria_filtro=None):
                 altura_est, fonte = calcular_altura_estimada(
                     lote,
                     categoria=lote.get('categoria'),
-                    peso_medio=lote.get('peso_medio')
+                    peso_medio=lote.get('peso_medio'),
+                    consumo_base=lote.get('consumo_base')
                 )
                 lote['altura_estimada'] = altura_est
                 # Usar altura_real_medida do piquete
@@ -1501,7 +1510,7 @@ def calcular_consumo_diario(capim):
     }
     return consumo.get(capim, 0.8)
 
-def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
+def calcular_altura_estimada(piquete, categoria=None, peso_medio=None, consumo_base=None):
     """
     Calcula a altura do piquete baseada em medição real ou estimativa.
     Returns: (altura, fonte) onde fonte é 'real' ou 'estimada'
@@ -1510,6 +1519,7 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
         piquete: Dict com dados do piquete
         categoria: Categoria do lote (para cálculo de degradação)
         peso_medio: Peso médio do lote (para cálculo de UA)
+        consumo_base: Consumo base personalizado (para categoria Personalizado)
 
     Se houver medição real E dias_passados > 0:
     - Em ocupação: calcular degradação a partir da medição real
@@ -1551,7 +1561,8 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
         if estado == 'ocupado':
             # Em ocupação: calcular degradação a partir da medição real
             # A medição foi feita na entrada, agora precisamos subtrair o consumo
-            consumo_base = get_consumo_base(capim)
+            # Usar consumo_base personalizado se fornecido, senão usar do capim
+            consumo_base_calc = consumo_base if consumo_base is not None else get_consumo_base(capim)
 
             # Obter dados do lote para cálculo de lotação
             quantidade_animais = piquete.get('animais_no_piquete', 0) or 0
@@ -1564,7 +1575,7 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
                         altura_base=altura_real,
                         altura_saida=altura_saida,
                         dias_ocupacao=dias_desde_medicao,
-                        consumo_base_capim=consumo_base,
+                        consumo_base_capim=consumo_base_calc,
                         quantidade_animais=quantidade_animais,
                         area_piquete=area_piquete,
                         categoria=categoria,
@@ -1576,7 +1587,7 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
                     pass
 
             # Fallback: modelo linear simples
-            consumo_diario = consumo_base
+            consumo_diario = consumo_base_calc
             altura_calc = altura_real - (dias_desde_medicao * consumo_diario)
             return max(altura_saida, round(altura_calc, 1)), 'estimada'
         else:
@@ -1610,7 +1621,8 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
         # Em ocupação
         quantidade_animais = piquete.get('animais_no_piquete', 0) or 0
         area_piquete = piquete.get('area', 0) or 0
-        consumo_base = get_consumo_base(capim)
+        # Usar consumo_base personalizado se fornecido, senão usar do capim
+        consumo_base_calc = consumo_base if consumo_base is not None else get_consumo_base(capim)
 
         if quantidade_animais > 0 and area_piquete > 0:
             try:
@@ -1618,7 +1630,7 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
                     altura_base=altura_entrada,
                     altura_saida=altura_saida,
                     dias_ocupacao=dias_ocupacao,
-                    consumo_base_capim=consumo_base,
+                    consumo_base_capim=consumo_base_calc,
                     quantidade_animais=quantidade_animais,
                     area_piquete=area_piquete,
                     categoria=categoria,
@@ -1629,7 +1641,7 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None):
             except:
                 pass
 
-        consumo_diario = consumo_base
+        consumo_diario = consumo_base_calc
         altura_calc = altura_entrada - (dias_ocupacao * consumo_diario)
         return max(altura_saida, round(altura_calc, 1)), 'estimada'
     else:

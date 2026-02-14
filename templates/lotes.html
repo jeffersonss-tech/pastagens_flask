@@ -332,8 +332,24 @@
                         <option value="Boi Magro / Engorda">Boi Magro / Engorda - 475kg</option>
                         <option value="Vaca">Vaca - 500kg</option>
                         <option value="Touro">Touro - 850kg</option>
-                        <option value="Personalizado">Personalizado</option>
+                        <option value="Personalizado">⭐ Personalizado</option>
                     </select>
+                </div>
+                
+                <!-- Campos técnicos para Personalizado -->
+                <div id="lote-campos-personalizado" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="font-weight: 600; margin-bottom: 10px; color: #0d47a1;">⚙️ Parâmetros Técnicos - Personalizado</div>
+                    
+                    <div class="form-group">
+                        <label>Peso Médio (kg) *</label>
+                        <input type="number" id="lote-peso-personalizado" placeholder="Ex: 350" step="0.1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Consumo Base (cm/dia em 2 UA/ha)</label>
+                        <input type="number" id="lote-consumo-base" value="0.8" step="0.05" placeholder="Padrão: 0.8">
+                        <small style="color: #666; font-size: 0.75rem;">Quanto o pasto é consumido por animal por dia</small>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Quantidade de Animais</label>
@@ -499,10 +515,31 @@
             const categoria = categoriaSelect.value;
             const peso = pesosCategorias[categoria];
             
-            if (peso !== undefined && peso !== null) {
-                pesoInput.value = peso;
+            // Mostrar/ocultar campos de Personalizado
+            const camposPersonalizado = document.getElementById(`${prefixo}-campos-personalizado`);
+            const pesoPersonalizadoInput = document.getElementById(`${prefixo}-lote-peso-personalizado`);
+            
+            if (camposPersonalizado) {
+                if (categoria === 'Personalizado') {
+                    camposPersonalizado.style.display = 'block';
+                    // Se tem valor anterior no peso manual, usar ele
+                    if (pesoPersonalizadoInput && pesoPersonalizadoInput.value) {
+                        pesoInput.value = pesoPersonalizadoInput.value;
+                    } else {
+                        pesoInput.value = '';
+                    }
+                } else {
+                    camposPersonalizado.style.display = 'none';
+                    if (peso !== undefined && peso !== null) {
+                        pesoInput.value = peso;
+                    }
+                }
+            } else {
+                // Se não tem campos personalizado (caso do filtro)
+                if (peso !== undefined && peso !== null) {
+                    pesoInput.value = peso;
+                }
             }
-            // Se for Personalizado, não altera (deixa o usuário digitar)
         }
         
         // Carregar tudo ao iniciar
@@ -735,16 +772,34 @@
             const nome = document.getElementById('lote-nome').value;
             if (!nome) return alert('Digite o nome do lote!');
             
+            const categoria = document.getElementById('lote-categoria').value;
+            let peso_medio = parseFloat(document.getElementById('lote-peso').value) || 0;
+            
+            // Se personalizado, usar peso do campo específico e incluir consumo_base
+            let consumo_base = null;
+            if (categoria === 'Personalizado') {
+                peso_medio = parseFloat(document.getElementById('lote-peso-personalizado').value) || 0;
+                if (!peso_medio) return alert('Informe o peso médio para categoria Personalizado!');
+                consumo_base = parseFloat(document.getElementById('lote-consumo-base').value) || 0.8;
+            }
+            
+            const payload = {
+                nome: nome,
+                categoria: categoria,
+                quantidade: parseInt(document.getElementById('lote-quantidade').value) || 1,
+                peso_medio: peso_medio,
+                piquete_id: document.getElementById('lote-piquete').value || null
+            };
+            
+            // Adicionar consumo_base se personalizado
+            if (consumo_base !== null) {
+                payload.consumo_base = consumo_base;
+            }
+            
             fetch('/api/lotes', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    nome: nome,
-                    categoria: document.getElementById('lote-categoria').value,
-                    quantidade: parseInt(document.getElementById('lote-quantidade').value) || 1,
-                    peso_medio: parseFloat(document.getElementById('lote-peso').value) || 0,
-                    piquete_id: document.getElementById('lote-piquete').value || null
-                })
+                body: JSON.stringify(payload)
             }).then(r => r.json())
               .then(data => {
                   if (data.status === 'ok') {
