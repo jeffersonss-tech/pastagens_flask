@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ fazenda.nome }} - Sistema de Pastagens</title>
+    <title>{{ fazenda.nome }} - PastoFlow</title>
+    <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -200,7 +201,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h1>🐄 Pastagens</h1>
+            <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="width: 120px; margin-bottom: 10px;">
             <span>{{ fazenda.nome }}</span>
             <div id="data-teste-display" class="data-teste modo-real">
                 <div class="data-teste-label">Data do Sistema</div>

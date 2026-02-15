@@ -1,5 +1,5 @@
 """
-App Flask - Sistema de Pastagens
+App Flask - PastoFlow
 """
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import database

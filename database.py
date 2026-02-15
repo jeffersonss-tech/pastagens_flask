@@ -1,5 +1,5 @@
 """
-Banco de Dados SQLite - Sistema de Pastagens com Lotes Completos
+Banco de Dados SQLite - PastoFlow com Lotes Completos
 """
 import sqlite3
 import os

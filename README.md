@@ -1,4 +1,4 @@
-# 🌱 Sistema de Pastagens - Gerenciamento de Fazendas
+# 🌱 PastoFlow - Gerenciamento de Fazendas
 
 Sistema web completo para gestão de pastagens, piquetes, lotes de animais e rotação inteligente de pastejo.
 

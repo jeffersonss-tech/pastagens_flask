@@ -1,5 +1,5 @@
 """
-Módulo de controle de data para testes do sistema de pastagens.
+Módulo de controle de data para testes do PastoFlow.
 Permite simular datas diferentes para testar contadores de crescimento/degradação.
 
 Uso:

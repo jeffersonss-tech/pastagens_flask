@@ -1,5 +1,5 @@
 """
-Controle de data de teste do Sistema de Pastagens
+Controle de data de teste do PastoFlow
 Uso: python data_teste.py [comando]
 """
 import sys
@@ -9,7 +9,7 @@ def main():
     if len(sys.argv) < 2:
         # Mostrar ajuda
         print("=" * 50)
-        print("  CONTROLE DE DATA - SISTEMA DE PASTAGENS")
+        print("  CONTROLE DE DATA - PASTOFLOW")
         print("=" * 50)
         print()
         print("  COMANDOS:")
