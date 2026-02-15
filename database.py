@@ -1233,11 +1233,27 @@ def atualizar_piquete(id, nome=None, area=None, capim=None,
     conn.close()
 
 def deletar_piquete(id):
-    """Exclui (desativa) um piquete"""
+    """Exclui (desativa) um piquete e desvincula os lotes vinculados."""
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Primeiro: desvincular lotes que estão neste piquete
+    # Definir piquete_atual_id como NULL e limpar data_entrada
+    cursor.execute('''
+        UPDATE lotes SET 
+            piquete_atual_id = NULL, 
+            data_entrada = NULL,
+            dias_tecnicos = NULL,
+            data_saida_prevista = NULL,
+            status_calculado = 'AGUARDANDO_ALOCACAO',
+            updated_at = ?
+        WHERE piquete_atual_id = ? AND ativo = 1
+    ''', (datetime.now().isoformat(), id))
+    
+    # Depois: desativar o piquete
     cursor.execute('UPDATE piquetes SET ativo = 0, updated_at = ? WHERE id = ?', 
                    (datetime.now().isoformat(), id))
+    
     conn.commit()
     conn.close()
 
