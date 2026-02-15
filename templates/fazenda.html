@@ -373,13 +373,6 @@
                                 <label>Altura Mínima de Saída (cm) *</label>
                                 <input type="number" id="edit-pq-altura-saida" value="0" min="1" step="1">
                             </div>
-                            <div class="form-group">
-                                <label>
-                                    Dias Máx. Ocupação *
-                                    <span title="Evita repastejo. Recomenda-se no máximo 3 dias." style="cursor: help;">ℹ️</span>
-                                </label>
-                                <input type="number" id="edit-pq-dias-ocupacao" value="3" min="1" step="1">
-                            </div>
                         </div>
                     </div>
                     
@@ -526,13 +519,6 @@
                     <div class="form-group">
                         <label>Altura Mínima de Saída (cm) *</label>
                         <input type="number" id="pq-altura-saida" value="0" min="1" step="1">
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            Dias Máx. Ocupação *
-                            <span title="Evita repastejo. Recomenda-se no máximo 3 dias." style="cursor: help;">ℹ️</span>
-                        </label>
-                        <input type="number" id="pq-dias-ocupacao" value="3" min="1" step="1">
                     </div>
                 </div>
             </div>
@@ -1114,7 +1100,6 @@
             document.getElementById('pq-area').value = '0';
             document.getElementById('pq-altura-entrada').value = '0';
             document.getElementById('pq-altura-saida').value = '0';
-            document.getElementById('pq-dias-ocupacao').value = '3';
             document.getElementById('pq-altura-atual').value = '';
             document.getElementById('pq-irrigado').value = 'nao';
             document.getElementById('pq-observacoes').value = '';
@@ -1145,10 +1130,9 @@
                     nome,
                     capim: document.getElementById('pq-capim').value,
                     area: parseFloat(document.getElementById('pq-area').value) || 0,
-                    geometria: JSON.stringify({type: 'Polygon', coordinates: [coords]}),
+                    geometria: JSON.stringify({type: 'Polygon', coordinates: coords}),
                     altura_entrada: parseFloat(document.getElementById('pq-altura-entrada').value) || 0,
                     altura_saida: parseFloat(document.getElementById('pq-altura-saida').value) || 0,
-                    dias_ocupacao: parseInt(document.getElementById('pq-dias-ocupacao').value) || 3,
                     altura_atual: parseFloat(document.getElementById('pq-altura-atual').value) || null,
                     data_medicao: dataMedicao,
                     irrigado: document.getElementById('pq-irrigado').value || 'nao',
@@ -1213,7 +1197,6 @@
             // Parâmetros técnicos
             document.getElementById('edit-pq-altura-entrada').value = p.altura_entrada || 0;
             document.getElementById('edit-pq-altura-saida').value = p.altura_saida || 0;
-            document.getElementById('edit-pq-dias-ocupacao').value = p.dias_ocupacao || 3;
             
             // Parâmetros avançados - usar altura_real_medida se existir
             const alturaReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined 
@@ -1261,7 +1244,6 @@
             const area = parseFloat(document.getElementById('edit-pq-area').value) || 0;
             const alturaEntrada = parseFloat(document.getElementById('edit-pq-altura-entrada').value) || 0;
             const alturaSaida = parseFloat(document.getElementById('edit-pq-altura-saida').value) || 0;
-            const diasOcupacao = parseInt(document.getElementById('edit-pq-dias-ocupacao').value) || 0;
             
             // Validações obrigatórias
             if (!nome) return alert('❌ Informe o nome do piquete!');
@@ -1270,7 +1252,6 @@
             if (alturaEntrada <= 0) return alert('❌ Informe a altura de entrada!');
             if (alturaSaida <= 0) return alert('❌ Informe a altura mínima de saída!');
             if (alturaSaida >= alturaEntrada) return alert('❌ A altura de saída deve ser MENOR que a altura de entrada!');
-            if (diasOcupacao <= 0) return alert('❌ Os dias de ocupação devem ser maior que 0!');
             
             salvarEdicaoPiquete();
         }
@@ -1296,7 +1277,6 @@
                 area: parseFloat(document.getElementById('edit-pq-area').value) || 0,
                 altura_entrada: parseFloat(document.getElementById('edit-pq-altura-entrada').value) || 0,
                 altura_saida: parseFloat(document.getElementById('edit-pq-altura-saida').value) || 0,
-                dias_ocupacao: parseInt(document.getElementById('edit-pq-dias-ocupacao').value) || 3,
                 data_medicao: dataMedicao || null,
                 irrigado: document.getElementById('edit-pq-irrigado').value || 'nao',
                 observacao: document.getElementById('edit-pq-observacoes').value || null
@@ -1896,7 +1876,6 @@
                 // Preencher valores padrão
                 document.getElementById('pq-altura-entrada').value = dados.alturaEntrada;
                 document.getElementById('pq-altura-saida').value = dados.alturaSaida;
-                document.getElementById('pq-dias-ocupacao').value = dados.diasOcupacao;
             } else {
                 infoDiv.style.display = 'none';
             }
@@ -1932,7 +1911,6 @@
             const area = parseFloat(document.getElementById('pq-area').value) || 0;
             const alturaEntrada = parseFloat(document.getElementById('pq-altura-entrada').value) || 0;
             const alturaSaida = parseFloat(document.getElementById('pq-altura-saida').value) || 0;
-            const diasOcupacao = parseInt(document.getElementById('pq-dias-ocupacao').value) || 0;
             
             // Validações obrigatórias
             if (!nome) return alert('❌ Informe o nome do piquete!');
@@ -1941,7 +1919,6 @@
             if (alturaEntrada <= 0) return alert('❌ Informe a altura ideal de entrada!');
             if (alturaSaida <= 0) return alert('❌ Informe a altura mínima de saída!');
             if (alturaSaida >= alturaEntrada) return alert('❌ A altura de saída deve ser MENOR que a altura de entrada!');
-            if (diasOcupacao <= 0) return alert('❌ Os dias de ocupação devem ser maior que 0!');
             
             // Se não desenhou polygon
             if (pontos.length < 3 && area <= 0) {
