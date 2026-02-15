@@ -1244,6 +1244,8 @@
             const area = parseFloat(document.getElementById('edit-pq-area').value) || 0;
             const alturaEntrada = parseFloat(document.getElementById('edit-pq-altura-entrada').value) || 0;
             const alturaSaida = parseFloat(document.getElementById('edit-pq-altura-saida').value) || 0;
+            const alturaAtual = document.getElementById('edit-pq-altura-atual').value.trim();
+            const dataMedicao = document.getElementById('edit-pq-data-medicao').value.trim();
             
             // Validações obrigatórias
             if (!nome) return alert('❌ Informe o nome do piquete!');
@@ -1252,6 +1254,7 @@
             if (alturaEntrada <= 0) return alert('❌ Informe a altura de entrada!');
             if (alturaSaida <= 0) return alert('❌ Informe a altura mínima de saída!');
             if (alturaSaida >= alturaEntrada) return alert('❌ A altura de saída deve ser MENOR que a altura de entrada!');
+            if (alturaAtual && !dataMedicao) return alert('❌ Se informar a Altura Atual, informe também a Data da Medição!');
             
             salvarEdicaoPiquete();
         }
@@ -1911,6 +1914,8 @@
             const area = parseFloat(document.getElementById('pq-area').value) || 0;
             const alturaEntrada = parseFloat(document.getElementById('pq-altura-entrada').value) || 0;
             const alturaSaida = parseFloat(document.getElementById('pq-altura-saida').value) || 0;
+            const alturaAtual = document.getElementById('pq-altura-atual').value.trim();
+            const dataMedicao = document.getElementById('pq-data-medicao').value.trim();
             
             // Validações obrigatórias
             if (!nome) return alert('❌ Informe o nome do piquete!');
@@ -1919,6 +1924,7 @@
             if (alturaEntrada <= 0) return alert('❌ Informe a altura ideal de entrada!');
             if (alturaSaida <= 0) return alert('❌ Informe a altura mínima de saída!');
             if (alturaSaida >= alturaEntrada) return alert('❌ A altura de saída deve ser MENOR que a altura de entrada!');
+            if (alturaAtual && !dataMedicao) return alert('❌ Se informar a Altura Atual, informe também a Data da Medição!');
             
             // Se não desenhou polygon
             if (pontos.length < 3 && area <= 0) {
