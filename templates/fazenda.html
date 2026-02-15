@@ -795,6 +795,9 @@
         
         function initMapDesenho() {
             if (mapDesenhoInit) {
+                // Limpar layer anterior e redesenhar todos os polígonos
+                layerGroup.clearLayers();
+                drawPiquetesExistentes();
                 setTimeout(() => mapDesenho.invalidateSize(), 200);
                 return;
             }
@@ -803,6 +806,17 @@
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapDesenho);
             layerGroup = L.layerGroup().addTo(mapDesenho);
             
+            drawPiquetesExistentes();
+            
+            mapDesenho.on('click', function(e) {
+                pontos.push([e.latlng.lat, e.latlng.lng]);
+                atualizarDesenho();
+            });
+            mapDesenhoInit = true;
+            setTimeout(() => mapDesenho.invalidateSize(), 200);
+        }
+        
+        function drawPiquetesExistentes() {
             // Desenhar polígonos existentes
             piquetes.forEach(p => {
                 if (p.geometria) {
@@ -815,18 +829,11 @@
                                 weight: 2,
                                 fill: true,
                                 fillOpacity: 0.2
-                            }).addTo(mapDesenho).bindPopup(`${p.nome} (existente)`);
+                            }).addTo(layerGroup).bindPopup(`${p.nome} (existente)`);
                         }
                     } catch (e) {}
                 }
             });
-            
-            mapDesenho.on('click', function(e) {
-                pontos.push([e.latlng.lat, e.latlng.lng]);
-                atualizarDesenho();
-            });
-            mapDesenhoInit = true;
-            setTimeout(() => mapDesenho.invalidateSize(), 200);
         }
         
         function atualizarDesenho() {
@@ -1130,7 +1137,7 @@
                     nome,
                     capim: document.getElementById('pq-capim').value,
                     area: parseFloat(document.getElementById('pq-area').value) || 0,
-                    geometria: JSON.stringify({type: 'Polygon', coordinates: coords}),
+                    geometria: JSON.stringify({type: 'Polygon', coordinates: [coords]}),
                     altura_entrada: parseFloat(document.getElementById('pq-altura-entrada').value) || 0,
                     altura_saida: parseFloat(document.getElementById('pq-altura-saida').value) || 0,
                     altura_atual: parseFloat(document.getElementById('pq-altura-atual').value) || null,
