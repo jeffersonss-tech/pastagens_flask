@@ -295,7 +295,7 @@
                     <tr>
                         <th>🐂 Lote</th>
                         <th>📍 Piquete Atual</th>
-                        <th>⏱️ Dias no Piquete</th>
+                        <th>⏱️ Dias Técnicos</th>
                         <th>📊 Status</th>
                         <th>📋 Próximos</th>
                         <th>⚙️ Ações</th>
@@ -705,8 +705,7 @@
                 tbody.innerHTML = lotes.map((lote, idx) => {
                     const sugestoes = sugestoesMap[lote.id] || [];
                     const temPiquete = !!lote.piquete_atual_id;
-                    const dias = lote.dias_no_piquete || 0;
-                    const limite = lote.dias_ocupacao || 3;
+                    const diasTecnicos = lote.dias_tecnicos || 0;
                     
                     // CORREÇÃO 1: Status - Aguardando Alocação se sem piquete
                     let statusBadge = '';
@@ -734,15 +733,11 @@
                     if (!temPiquete) {
                         diasHtml = '<span style="color: #999;">—</span>';
                     } else {
-                        const diasClass = dias > limite ? 'over' : (dias >= limite ? 'near' : '');
-                        const alertaTexto = dias >= limite 
-                            ? (dias > limite ? '⚠️ Passou do limite!' : '⚠️ Último dia!')
-                            : (dias >= limite - 1 ? '⚠️ Atenção!' : '');
-                        
+                        // Usar dias_tecnicos (calculado dinamicamente)
                         diasHtml = `
                             <div class="dias-info">
-                                <span class="atual ${diasClass}">${dias}</span> / ${limite} dias
-                                ${alertaTexto ? `<br><small style="color: #dc3545; font-weight: bold;">${alertaTexto}</small>` : ''}
+                                <span class="atual">${diasTecnicos}</span> dias técnicos
+                                ${lote.data_saida_prevista ? `<br><small style="color: #666;">📅 Saída: ${lote.data_saida_prevista}</small>` : ''}
                             </div>
                         `;
                     }
@@ -1175,18 +1170,17 @@
                 }
             }
             
-            // Dias no piquete
+            // Dias Técnicos
             let diasInfo = '';
-            if (lote.piquete_atual_id && lote.dias_no_piquete) {
-                const limite = lote.dias_ocupacao || 3;
+            if (lote.piquete_atual_id && lote.dias_tecnicos) {
                 diasInfo = `
                     <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                        <strong style="color: #495057;">📅 Tempo no Piquete</strong>
-                        <div style="font-size: 1.5rem; color: ${lote.dias_no_piquete > limite ? '#dc3545' : '#28a745'};">
-                            ${lote.dias_no_piquete} / ${limite} dias
+                        <strong style="color: #495057;">📅 Dias Técnicos</strong>
+                        <div style="font-size: 1.5rem; color: #28a745;">
+                            ${lote.dias_tecnicos} dias
                         </div>
-                        ${lote.dias_no_piquete > limite 
-                            ? '<small style="color: #dc3545;">⚠️ Passou do limite de ocupação!</small>' 
+                        ${lote.data_saida_prevista 
+                            ? `<small style="color: #666;">📅 Saída prevista: ${lote.data_saida_prevista}</small>` 
                             : ''}
                     </div>
                 `;
