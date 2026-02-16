@@ -512,20 +512,6 @@
         let lotes = [];
         let dataTeste = null;  // Data de teste do backend (quando em modo teste)
         
-        // Buscar data de teste do backend ao iniciar
-        fetch('/api/data-teste')
-            .then(r => r.json())
-            .then(data => {
-                if (data.modo_teste && data.data) {
-                    // Criar data no meio-dia para evitar problemas de fuso horário
-                    dataTeste = new Date(data.data + 'T12:00:00');
-                }
-            })
-            .catch(() => {
-                // Se falhar, usa data real
-                dataTeste = null;
-            });
-        
         // Pesos médios por categoria
         const pesosCategorias = {
             'Bezerro(a)': 200,
@@ -677,22 +663,37 @@
         
         // Carregar tudo ao iniciar
         window.onload = function() {
-            carregarLotes();
-            carregarPiquetesSelect();
-            
-            // Auto-refresh a cada 30 segundos para manter status atualizado
-            setInterval(() => {
-                carregarLotes();
-                carregarPiquetesSelect();
-            }, 30000);
-            
-            // Atualizar ao ganhar foco (quando usuário volta da aba de piquetes)
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) {
+            // Primeiro carregar a data de teste, depois os lotes
+            fetch('/api/data-teste')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.modo_teste && data.data) {
+                        // Criar data no meio-dia para evitar problemas de fuso horário
+                        dataTeste = new Date(data.data + 'T12:00:00');
+                    }
+                })
+                .catch(() => {
+                    dataTeste = null;
+                })
+                .finally(() => {
+                    // Só carregar os lotes depois de ter a data de teste
                     carregarLotes();
                     carregarPiquetesSelect();
-                }
-            });
+                    
+                    // Auto-refresh a cada 30 segundos para manter status atualizado
+                    setInterval(() => {
+                        carregarLotes();
+                        carregarPiquetesSelect();
+                    }, 30000);
+                    
+                    // Atualizar ao ganhar foco
+                    document.addEventListener('visibilitychange', () => {
+                        if (!document.hidden) {
+                            carregarLotes();
+                            carregarPiquetesSelect();
+                        }
+                    });
+                });
         };
         
         function carregarLotes() {
