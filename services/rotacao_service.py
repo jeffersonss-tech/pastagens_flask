@@ -6,15 +6,15 @@ import os
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "pastagens.db")
 
-# Dados técnicos dos capins (cm/dia)
+# Dados técnicos dos capins
 DADOS_CAPINS = {
-    'Tifton 85': {'crescimento_diario': 1.0, 'consumo_diario': 0.7},
-    'Brachiaria': {'crescimento_diario': 1.2, 'consumo_diario': 0.8},
-    'Andropogon': {'crescimento_diario': 1.2, 'consumo_diario': 0.8},
-    'Capim Aruana': {'crescimento_diario': 1.1, 'consumo_diario': 0.75},
-    'Natalino': {'crescimento_diario': 1.3, 'consumo_diario': 0.85},
-    'MG-5': {'crescimento_diario': 1.4, 'consumo_diario': 0.9},
-    'Mombaça': {'crescimento_diario': 1.5, 'consumo_diario': 1.0},
+    'Tifton 85': {'crescimento_diario': 1.0, 'consumo_diario': 0.7, 'dias_tecnicos': 21},
+    'Brachiaria': {'crescimento_diario': 1.2, 'consumo_diario': 0.8, 'dias_tecnicos': 28},
+    'Andropogon': {'crescimento_diario': 1.2, 'consumo_diario': 0.8, 'dias_tecnicos': 28},
+    'Capim Aruana': {'crescimento_diario': 1.1, 'consumo_diario': 0.75, 'dias_tecnicos': 28},
+    'Natalino': {'crescimento_diario': 1.3, 'consumo_diario': 0.85, 'dias_tecnicos': 30},
+    'MG-5': {'crescimento_diario': 1.4, 'consumo_diario': 0.9, 'dias_tecnicos': 35},
+    'Mombaça': {'crescimento_diario': 1.5, 'consumo_diario': 1.0, 'dias_tecnicos': 35},
 }
 
 
@@ -142,6 +142,9 @@ def calcular_status_piquete(piquete):
     
     # Info de crescimento
     crescimento = DADOS_CAPINS.get(capim, {}).get('crescimento_diario', 1.2) if capim else 1.2
+    # Dias técnicos baseado no capim
+    dias_tecnicos = DADOS_CAPINS.get(capim, {}).get('dias_tecnicos', 30) if capim else 30
+    
     limite_maximo = 30  # Fallback máximo para alerta de ineficiência
     
     # Calcular dias necessários baseado na ALTURA ATUAL (não na altura de saída)
@@ -173,22 +176,24 @@ def calcular_status_piquete(piquete):
                 'dias_min_calculado': None, 'crescimento': None, 'falta_cm': None, 'alerta_ineficiencia': False}
     
     if estado == 'ocupado':
-        if altura_base and altura_base <= altura_saida:
+        # Se ultrapassou o tempo técnico, saída imediata
+        if dias_ocupacao >= dias_tecnicos:
             return {'status': 'SAIDA_IMEDIATA', 'emoji': '🔴', 'acao': 'RETIRAR JÁ!',
-                    'pergunta_1': 'Abaixo do mínimo', 'pergunta_3': str(dias_ocupacao) + ' dias',
+                    'pergunta_1': 'Tempo técnico atingido', 'pergunta_3': f'{dias_ocupacao}/{dias_tecnicos} dias',
                     'progresso_descanso': None, 'cor': 'red',
                     'dias_min_calculado': None, 'crescimento': None, 'falta_cm': None, 'alerta_ineficiencia': False}
-        elif altura_base and altura_base <= altura_saida + 3:
+        # Se está próximo do tempo técnico (80%), preparar saída
+        elif dias_ocupacao >= dias_tecnicos * 0.8:
             return {'status': 'PROXIMO_SAIDA', 'emoji': '🟠', 'acao': 'Preparar saída',
                     'pergunta_1': fmt_altura(altura_base) + '/' + fmt_altura(altura_entrada) + ' cm', 
-                    'pergunta_3': str(dias_ocupacao) + ' dias',
-                    'progresso_descanso': None, 'cor': 'orange',
+                    'pergunta_3': f'{dias_ocupacao}/{dias_tecnicos} dias (80%)',
+                    'progresso_descanso': (dias_ocupacao / dias_tecnicos) * 100, 'cor': 'orange',
                     'dias_min_calculado': None, 'crescimento': None, 'falta_cm': None, 'alerta_ineficiencia': False}
         else:
             return {'status': 'EM_OCUPACAO', 'emoji': '🔵', 'acao': 'Em pastejo',
                     'pergunta_1': fmt_altura(altura_base) + '/' + fmt_altura(altura_entrada) + ' cm',
-                    'pergunta_3': str(dias_ocupacao) + ' dias',
-                    'progresso_descanso': None, 'cor': 'blue',
+                    'pergunta_3': f'{dias_ocupacao}/{dias_tecnicos} dias',
+                    'progresso_descanso': (dias_ocupacao / dias_tecnicos) * 100, 'cor': 'blue',
                     'dias_min_calculado': None, 'crescimento': None, 'falta_cm': None, 'alerta_ineficiencia': False}
     
     if altura_base is None:
