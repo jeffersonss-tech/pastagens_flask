@@ -677,12 +677,15 @@
             fetch('/api/data-teste')
                 .then(r => r.json())
                 .then(data => {
-                    if (data.modo_teste && data.data) {
+                    console.log('API data-teste:', data);
+                    if (data.modo === 'teste' && data.data) {
                         // Criar data no meio-dia para evitar problemas de fuso horário
                         dataTeste = new Date(data.data + 'T12:00:00');
+                        console.log('Data teste definida:', dataTeste);
                     }
                 })
-                .catch(() => {
+                .catch((err) => {
+                    console.error('Erro ao buscar data-teste:', err);
                     dataTeste = null;
                 })
                 .finally(() => {
