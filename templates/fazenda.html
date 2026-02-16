@@ -727,17 +727,9 @@
                             if (!temAlgumaAltura) {
                                 diasInfo = `<br>⚠️ Aguardando altura`;
                             } else if (p.estado === 'ocupado') {
-                                const diasOcupacao = p.dias_no_piquete || 0;
-                                const diasMax = p.dias_ocupacao || 3;
-                                const faltamDias = Math.max(0, diasMax - diasOcupacao);
-                                diasInfo = `<br>📅 ${diasOcupacao}/${diasMax} dias ocupacao${badgeFonte}`;
+                                diasInfo = `<br>📊 ${p.dias_tecnicos || 0} dias técnicos${badgeFonte}`;
                                 if (p.altura_estimada) {
                                     diasInfo += `<br>📏 Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
-                                }
-                                if (faltamDias === 0) {
-                                    diasInfo += `<br><strong style="color:#dc3545;">⚠️ Passou do limite!</strong>`;
-                                } else if (faltamDias <= 1) {
-                                    diasInfo += `<br><strong style="color:#fd7e14;">⚠️ Ultimo dia!</strong>`;
                                 }
                             } else if (p.altura_estimada >= p.altura_entrada) {
                                 diasInfo = `<br>🟢 APTO para entrada${badgeFonte}`;
@@ -961,17 +953,8 @@
                             // Sem altura definida
                             diasRestantes = '';
                         } else if (p.estado === 'ocupado') {
-                            // Em ocupacao - mostrar dias no piquete
-                            const diasOcupacao = p.dias_no_piquete || 0;
-                            const diasMax = p.dias_ocupacao || 3;
-                            const faltamDias = Math.max(0, diasMax - diasOcupacao);
-                            if (faltamDias === 0) {
-                                diasRestantes = `<small style="color: #dc3545;">🚨 Passou do limite! (${diasOcupacao}/${diasMax} dias)</small>`;
-                            } else if (faltamDias <= 1) {
-                                diasRestantes = `<small style="color: #fd7e14;">⚠️ Ultimo dia! (${diasOcupacao}/${diasMax})</small>`;
-                            } else {
-                                diasRestantes = `<small style="color: #004085;">📅 ${diasOcupacao}/${diasMax} dias ocupacao</small>`;
-                            }
+                            // Em ocupacao - mostrar dias tecnicos
+                            diasRestantes = `<small style="color: #004085;">📊 ${p.dias_tecnicos || 0} dias técnicos</small>`;
                         } else if (alturaMostrada >= p.altura_entrada) {
                             // Ja atingiu altura (usando a mesma lógica do badge)
                             diasRestantes = `<small style="color: #155724;">✅ Pronto para receber!</small>`;
@@ -1412,17 +1395,9 @@
                             if (!temAlgumaAltura) {
                                 diasInfo = `<br>⚠️ Aguardando altura`;
                             } else if (p.estado === 'ocupado') {
-                                const diasOcupacao = p.dias_no_piquete || 0;
-                                const diasMax = p.dias_ocupacao || 3;
-                                const faltamDias = Math.max(0, diasMax - diasOcupacao);
-                                diasInfo = `<br>📅 ${diasOcupacao}/${diasMax} dias ocupacao${badgeFonte}`;
+                                diasInfo = `<br>📊 ${p.dias_tecnicos || 0} dias técnicos${badgeFonte}`;
                                 if (p.altura_estimada) {
                                     diasInfo += `<br>📏 Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
-                                }
-                                if (faltamDias === 0) {
-                                    diasInfo += `<br><strong style="color:#dc3545;">⚠️ Passou do limite!</strong>`;
-                                } else if (faltamDias <= 1) {
-                                    diasInfo += `<br><strong style="color:#fd7e14;">⚠️ Ultimo dia!</strong>`;
                                 }
                             } else if (p.altura_estimada >= p.altura_entrada) {
                                 diasInfo = `<br>🟢 APTO para entrada${badgeFonte}`;
@@ -1443,17 +1418,68 @@
                             const avisoUrgente = (p.animais_no_piquete > 0 && p.altura_estimada && p.altura_estimada < p.altura_entrada)
                                 ? `<br><strong style="color:#dc3545;">🚨 AVISO: Remova urgentemente!</strong>`
                                 : '';
+
+                            // Badge de status (igual ao card)
+                            let badgeClass = '';
+                            let badgeText = '';
+                            let statusInfo = '';
+                            let diasRestantes = '';
                             
+                            if (!temAlgumaAltura) {
+                                badgeClass = 'badge-yellow';
+                                badgeText = '⚠️ SEM ALTURA';
+                                statusInfo = '<small style="color: #856404;">Adicione a altura medida</small>';
+                            } else if (p.estado === 'ocupado') {
+                                badgeClass = 'badge-blue';
+                                badgeText = '🔵 Em Ocupação';
+                                statusInfo = `<small style="color: #007bff;">📏 ${p.altura_estimada || '?'}cm (est.)</small>`;
+                            } else if (p.altura_estimada >= p.altura_entrada) {
+                                badgeClass = 'badge-green';
+                                badgeText = '🟢 Disponível';
+                                statusInfo = `<small style="color: #28a745;">📏 ${p.altura_estimada}cm (estimada)</small>`;
+                            } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
+                                badgeClass = 'badge-green';
+                                badgeText = '🟢 Disponível';
+                                statusInfo = `<small style="color: #28a745;">📏 ${p.altura_real_medida}cm (medida)</small>`;
+                            } else {
+                                badgeClass = 'badge-orange';
+                                badgeText = '🔄 Recuperando';
+                                statusInfo = `<small style="color: #c45a00;">📏 ${Math.max(p.altura_real_medida || 0, p.altura_estimada || 0)}/${p.altura_entrada} cm ${badgeFonte}</small>`;
+                            }
+
+                            // Dias restantes (igual ao card)
+                            if (!temAlgumaAltura) {
+                                diasRestantes = '';
+                            } else if (p.estado === 'ocupado') {
+                                diasRestantes = `<br><small style="color: #004085;">📊 ${p.dias_tecnicos || 0} dias técnicos</small>`;
+                            } else if (p.altura_estimada >= p.altura_entrada) {
+                                diasRestantes = `<br><small style="color: #155724;">✅ Pronto para receber!</small>`;
+                            } else {
+                                const diasDescanso = p.dias_descanso || 0;
+                                const crescimento = 1.2; // Valor padrão
+                                const faltaCm = Math.max(0, p.altura_entrada - (p.altura_estimada || 0));
+                                const diasNecessarios = Math.round(faltaCm / crescimento);
+                                diasRestantes = `<br><small style="color: #856404;">📅 ~${diasNecessarios} dias necessário${diasNecessarios !== 1 ? 's' : ''} ${badgeFonte}</small><br><small style="color: #6c757d;">📈 ${crescimento} cm/dia | Falta: ${faltaCm}cm</small>`;
+                            }
+
+                            // Popup completo (igual ao card)
                             L.polygon(coords, {
                                 color: corPoligono,
                                 weight: 3,
                                 fill: true,
                                 fillOpacity: 0.4
                             }).addTo(mapPiquetes).bindPopup(`
-                                <strong style="font-size:14px;">${p.nome}</strong><br>
-                                <strong>🌿 ${p.capim || 'N/I'}</strong>${animaisInfo}<br>
-                                📐 ${p.area || 0} hectares<br>
-                                📏 ${p.altura_estimada || '?'}/${p.altura_entrada || '?'} cm${badgeFonte}${diasInfo}${avisoUrgente}
+                                <div style="min-width:200px;">
+                                    <strong style="font-size:14px;">${p.nome}</strong><br>
+                                    <span class="badge ${badgeClass}" style="font-size:0.7rem;">${badgeText}</span><br>
+                                    <p style="margin:5px 0;">📐 ${p.area || 0} hectares | 🌿 ${p.capim || 'N/I'}</p>
+                                    ${p.animais_no_piquete > 0 ? `<p style="color:#007bff;margin:5px 0;"><strong>🐄 ${p.animais_no_piquete} animal(is)</strong></p>` : ''}
+                                    ${p.altura_real_medida ? `<p style="color:#28a745;margin:5px 0;">📏 ${p.altura_real_medida}cm (medida)</p>` : ''}
+                                    ${p.data_medicao ? `<p style="color:#999;font-size:0.75rem;margin:5px 0;">📅 ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</p>` : ''}
+                                    ${statusInfo ? `<p style="margin:5px 0;">${statusInfo}</p>` : ''}
+                                    ${diasRestantes}
+                                    ${avisoUrgente}
+                                </div>
                             `);
                             
                             // Add label in center of polygon (igual ao dashboard)
@@ -1525,7 +1551,7 @@
                                 📐 ${p.area || 0} hectares<br>
                                 📏 ${p.altura_atual || '?'}/${p.altura_entrada || '?'} cm<br>
                                 ${p.estado === 'ocupado' 
-                                    ? `📅 ${p.dias_no_piquete || 0}/${p.dias_tecnicos || p.dias_ocupacao || 3} dias • 📆 ${p.data_saida_prevista || '-'}`
+                                    ? `📊 ${p.dias_tecnicos || 0} dias técnicos${p.data_saida_prevista ? ' • 📆 ' + p.data_saida_prevista : ''}`
                                     : `📅 ${p.dias_descanso || 0}/${p.dias_descanso_min || 30} dias descanso`}
                             `).openPopup();
                         }
@@ -1589,7 +1615,7 @@
             let diasInfo = '';
             let crescimentoInfo = '';
             if (p.estado === 'ocupado') {
-                diasInfo = `<p><strong>Dias em Ocupação:</strong> ${p.dias_descanso || 0}</p>`;
+                diasInfo = `<p><strong>Dias Técnicos:</strong> ${p.dias_tecnicos || 0}</p>`;
             } else if (!temAlgumaAltura) {
                 diasInfo = `<p><strong>Dias de Descanso:</strong> ${p.dias_descanso || 0}</p>`;
                 const diasMin = calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
