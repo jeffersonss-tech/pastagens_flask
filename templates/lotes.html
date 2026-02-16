@@ -521,6 +521,34 @@
             'Personalizado': null
         };
         
+        // Função para calcular dias passados desde a entrada
+        function calcularDiasPassados(dataEntrada) {
+            if (!dataEntrada) return null;
+            try {
+                const entrada = new Date(dataEntrada);
+                const agora = new Date();
+                const diffTime = Math.abs(agora - entrada);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays;
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        // Função para formatar data para DD/MM/AAAA
+        function formatarData(dataEntrada) {
+            if (!dataEntrada) return null;
+            try {
+                const date = new Date(dataEntrada);
+                const dia = String(date.getDate()).padStart(2, '0');
+                const mes = String(date.getMonth() + 1).padStart(2, '0');
+                const ano = date.getFullYear();
+                return `${dia}/${mes}/${ano}`;
+            } catch (e) {
+                return null;
+            }
+        }
+        
         // Função para verificar se é Personalizado e abrir modal
         let categoriaSelecionada = '';
         function verificarPersonalizado() {
@@ -734,11 +762,16 @@
                     if (!temPiquete) {
                         diasHtml = '<span style="color: #999;">—</span>';
                     } else {
-                        // Usar dias_tecnicos (calculado dinamicamente)
+                        const diasPassados = calcularDiasPassados(lote.data_entrada);
+                        const dataFormatada = formatarData(lote.data_entrada);
+                        const diasRestantes = Math.max(0, diasTecnicos - diasPassados);
+                        
                         diasHtml = `
                             <div class="dias-info">
                                 <span class="atual">${diasTecnicos}</span> dias técnicos
-                                ${lote.data_saida_prevista ? `<br><small style="color: #666;">📅 Saída: ${lote.data_saida_prevista}</small>` : ''}
+                                ${dataFormatada ? `<br><small style="color: #666;">📅 Entrada: ${dataFormatada}</small>` : ''}
+                                ${diasPassados !== null ? `<br><small style="color: #007bff;">⏱️ ${diasPassados} dia(s)</small>` : ''}
+                                ${diasRestantes > 0 ? `<br><small style="color: #28a745;">📊 ${diasRestantes} dias restantes</small>` : ''}
                             </div>
                         `;
                     }
@@ -1174,14 +1207,35 @@
             // Dias Técnicos
             let diasInfo = '';
             if (lote.piquete_atual_id && lote.dias_tecnicos) {
+                const diasPassados = calcularDiasPassados(lote.data_entrada);
+                const dataFormatada = formatarData(lote.data_entrada);
+                const diasRestantes = Math.max(0, (lote.dias_tecnicos || 0) - diasPassados);
+                
                 diasInfo = `
                     <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
                         <strong style="color: #495057;">📅 Dias Técnicos</strong>
                         <div style="font-size: 1.5rem; color: #28a745;">
                             ${lote.dias_tecnicos} dias
                         </div>
+                        ${dataFormatada 
+                            ? `<div style="margin-top: 8px; padding: 8px; background: #e3f2fd; border-radius: 6px;">
+                                <strong style="color: #0d6efd;">📌 Data de Entrada:</strong> ${dataFormatada}
+                               </div>`
+                            : ''}
+                        ${diasPassados !== null 
+                            ? `<div style="margin-top: 8px; padding: 8px; background: #fff3cd; border-radius: 6px;">
+                                <strong style="color: #856404;">⏱️ Decorridos:</strong> ${diasPassados} dia(s)
+                               </div>`
+                            : ''}
                         ${lote.data_saida_prevista 
-                            ? `<small style="color: #666;">📅 Saída prevista: ${lote.data_saida_prevista}</small>` 
+                            ? `<div style="margin-top: 8px; padding: 8px; background: #d4edda; border-radius: 6px;">
+                                <strong style="color: #155724;">📅 Saída Prevista:</strong> ${lote.data_saida_prevista}
+                               </div>`
+                            : ''}
+                        ${diasRestantes > 0 
+                            ? `<div style="margin-top: 8px; padding: 8px; background: #d1ecf1; border-radius: 6px;">
+                                <strong style="color: #0c5460;">📊 Restantes:</strong> ${diasRestantes} dias
+                               </div>`
                             : ''}
                     </div>
                 `;
