@@ -510,6 +510,20 @@
     <script>
         const fazendaId = {{ fazenda.id }};
         let lotes = [];
+        let dataTeste = null;  // Data de teste do backend (quando em modo teste)
+        
+        // Buscar data de teste do backend ao iniciar
+        fetch('/api/data-teste')
+            .then(r => r.json())
+            .then(data => {
+                if (data.modo_teste && data.data_atual) {
+                    dataTeste = new Date(data.data_atual);
+                }
+            })
+            .catch(() => {
+                // Se falhar, usa data real
+                dataTeste = null;
+            });
         
         // Pesos médios por categoria
         const pesosCategorias = {
@@ -526,7 +540,7 @@
             if (!dataEntrada) return null;
             try {
                 const entrada = new Date(dataEntrada);
-                const agora = new Date();
+                const agora = dataTeste || new Date();
                 const diffTime = Math.abs(agora - entrada);
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 return diffDays;
