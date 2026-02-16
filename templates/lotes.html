@@ -690,24 +690,42 @@
                 })
                 .finally(() => {
                     // Só carregar os lotes depois de ter a data de teste
-                    carregarLotes();
-                    carregarPiquetesSelect();
+                    carregarLotesComDataTeste();
                     
                     // Auto-refresh a cada 30 segundos para manter status atualizado
                     setInterval(() => {
-                        carregarLotes();
-                        carregarPiquetesSelect();
+                        carregarLotesComDataTeste();
                     }, 30000);
                     
                     // Atualizar ao ganhar foco
                     document.addEventListener('visibilitychange', () => {
                         if (!document.hidden) {
-                            carregarLotes();
-                            carregarPiquetesSelect();
+                            carregarLotesComDataTeste();
                         }
                     });
                 });
         };
+        
+        function carregarLotesComDataTeste() {
+            // Primeiro buscar data de teste atualizada
+            fetch('/api/data-teste')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.modo === 'teste' && data.data) {
+                        dataTeste = new Date(data.data + 'T12:00:00');
+                        console.log('Data teste atualizada:', dataTeste);
+                    } else {
+                        dataTeste = null;
+                    }
+                })
+                .catch(() => {
+                    dataTeste = null;
+                })
+                .finally(() => {
+                    carregarLotes();
+                    carregarPiquetesSelect();
+                });
+        }
         
         function carregarLotes() {
             const status = document.getElementById('filtro-status').value;
