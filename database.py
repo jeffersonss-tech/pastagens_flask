@@ -1536,41 +1536,62 @@ def contar_alertas_nao_lidos(fazenda_id=None):
     return resultado['total'] if resultado else 0
 
 def verificar_alertas_piquetes(fazenda_id):
-    """Verifica piquetes e gera alertas."""
+    """Verifica piquetes e gera alertas baseados em dias técnicos dos lotes."""
     conn = get_db()
     cursor = conn.cursor()
     
+    # Buscar piquetes ocupados com seus lotes e dias técnicos
     cursor.execute('''
-        SELECT p.*, m.data_movimentacao as data_entrada
+        SELECT p.id as piquete_id, p.nome as piquete_nome, 
+               l.id as lote_id, l.nome as lote_nome, l.dias_tecnicos, l.data_entrada
         FROM piquetes p
-        LEFT JOIN movimentacoes m ON p.id = m.piquete_destino_id
+        LEFT JOIN lotes l ON p.id = l.piquete_atual_id AND l.ativo = 1
         WHERE p.fazenda_id = ? AND p.estado = 'ocupado'
-        ORDER BY m.data_movimentacao DESC
+        ORDER BY p.nome, l.nome
     ''', (fazenda_id,))
-    piquetes = cursor.fetchall()
+    resultados = cursor.fetchall()
+    
+    # Agrupar por piquete
+    piquetes_dict = {}
+    for row in resultados:
+        piquete_id = row['piquete_id']
+        if piquete_id not in piquetes_dict:
+            piquetes_dict[piquete_id] = {
+                'nome': row['piquete_nome'],
+                'lotes': []
+            }
+        if row['lote_id']:
+            piquetes_dict[piquete_id]['lotes'].append({
+                'id': row['lote_id'],
+                'nome': row['lote_nome'],
+                'dias_tecnicos': row['dias_tecnicos'],
+                'data_entrada': row['data_entrada']
+            })
     
     alertas_criados = []
     
-    for p in piquetes:
-        data_entrada = p['data_entrada']
-        dias_ocupacao = p['dias_ocupacao'] or 3
-        
-        if data_entrada:
-            try:
-                entrada_dt = datetime.fromisoformat(data_entrada.replace('Z', '+00:00').replace('+00:00', ''))
-                dias_passados = (data_teste_now() - entrada_dt).days
-                
-                if dias_passados >= dias_ocupacao:
-                    cursor.execute('''
-                        INSERT INTO alertas (usuario_id, fazenda_id, piquete_id, tipo, titulo, mensagem, created_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ''', (1, fazenda_id, p['id'], 'ocupacao_max', 
-                          f'Tempo maximo de ocupacao excedido',
-                          f'O piquete {p["nome"]} está ocupado há {dias_passados} dias (máximo: {dias_ocupacao})',
-                          datetime.now().isoformat()))
-                    alertas_criados.append(f"Alerta criado para {p['nome']}: ocupação máxima")
-            except Exception as e:
-                print(f"Erro ao verificar ocupação: {e}")
+    for piquete_id, p in piquetes_dict.items():
+        for lote in p['lotes']:
+            dias_tecnicos = lote['dias_tecnicos'] or 0
+            data_entrada = lote['data_entrada']
+            
+            if data_entrada and dias_tecnicos > 0:
+                try:
+                    entrada_dt = datetime.fromisoformat(data_entrada.replace('Z', '+00:00').replace('+00:00', ''))
+                    dias_passados = (data_teste_now() - entrada_dt).days
+                    
+                    # Alertar se dias_passados >= dias_tecnicos
+                    if dias_passados >= dias_tecnicos:
+                        cursor.execute('''
+                            INSERT INTO alertas (usuario_id, fazenda_id, piquete_id, tipo, titulo, mensagem, created_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ''', (1, fazenda_id, piquete_id, 'ocupacao_tecnica', 
+                              f'Tempo técnico de ocupação atingido',
+                              f'O lote {lote["nome"]} no piquete {p["nome"]} está há {dias_passados} dias (técnico: {dias_tecnicos} dias)',
+                              datetime.now().isoformat()))
+                        alertas_criados.append(f"Alerta criado para {p['nome']}: tempo técnico atingido")
+                except Exception as e:
+                    print(f"Erro ao verificar ocupação: {e}")
     
     conn.commit()
     conn.close()
