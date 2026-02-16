@@ -1429,11 +1429,6 @@
                                 badgeClass = 'badge-yellow';
                                 badgeText = '⚠️ SEM ALTURA';
                                 statusInfo = '<small style="color: #856404;">Adicione a altura medida</small>';
-                            } else if (!temReal) {
-                                // Tem estimativa mas não tem medição real
-                                badgeClass = 'badge-yellow';
-                                badgeText = '⚠️ PRECISA MEDIR';
-                                statusInfo = `<small style="color: #fd7e14;">📏 ${p.altura_estimada}cm (estimada) - Atualize a medição</small>`;
                             } else if (p.estado === 'ocupado') {
                                 badgeClass = 'badge-blue';
                                 badgeText = '🔵 Em Ocupação';
