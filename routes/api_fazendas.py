@@ -4,7 +4,7 @@ API de Fazendas - Operações CRUD para fazendas
 from flask import jsonify, request, session
 from database import get_db, atualizar_fazenda, excluir_fazenda
 from datetime import datetime
-from config_data_teste import now as data_teste_now  # Suporte a data de teste
+from simular_data import now as data_teste_now  # Suporte a data de teste
 
 def criar_api_fazendas(app):
     """Registra as rotas de API de fazendas no app Flask"""

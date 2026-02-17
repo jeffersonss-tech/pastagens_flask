@@ -6,7 +6,7 @@ import database
 import logging
 from routes.api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
 from routes.api_categorias import api_categorias  # Módulo de APIs de categorias de animais
-from config_data_teste import now, get_status  # Suporte a data de teste
+from simular_data import now, get_status  # Suporte a data de teste
 
 app = Flask(__name__)
 app.secret_key = 'pastagens_secret_key_2024'

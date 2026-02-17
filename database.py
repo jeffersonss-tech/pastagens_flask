@@ -5,7 +5,7 @@ import sqlite3
 import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from config_data_teste import now as data_teste_now  # Suporte a data de teste
+from simular_data import now as data_teste_now  # Suporte a data de teste
 from services.manejo_service import calcular_altura_ocupacao, get_consumo_base, calcular_dias_tecnicos
 from services.rotacao_service import (
     calcular_prioridade_rotacao,
@@ -584,7 +584,7 @@ def calcular_status_lote(lote):
     # ========== NOVA LÓGICA: Usar data_saida_prevista ==========
     if data_saida_prevista and dias_tecnicos > 0:
         try:
-            from config_data_teste import now as data_teste_now
+            from simular_data import now as data_teste_now
             data_teste = data_teste_now()
             saida_dt = datetime.fromisoformat(data_saida_prevista.replace('Z', '+00:00').replace('+00:00', ''))
             

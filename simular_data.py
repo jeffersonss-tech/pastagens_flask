@@ -157,12 +157,31 @@ def retroceder_dias(dias: int) -> dict:
 if __name__ == "__main__":
     import sys
     
+    print("""
+=== CONTROLE DE DATA DE TESTE ===
+
+Uso:
+    python config_data_teste.py           # ver status atual
+    python config_data_teste.py status   # ver status
+    python config_data_teste.py +<n>     # avançar n dias
+    python config_data_teste.py -<n>     # retroceder n dias
+    python config_data_teste.py YYYY-MM-DD  # data específica
+    python config_data_teste.py reset    # voltar para data real
+    python config_data_teste.py hoje     # data de hoje (reset)
+
+Exemplos:
+    python config_data_teste.py +10     # pula 10 dias
+    python config_data_teste.py -5       # volta 5 dias
+    python config_data_teste.py 2026-03-17  #define data para 17/03/2026
+""")
+    
     if len(sys.argv) < 2:
         # Mostrar status
         status = get_status()
-        print(f"Modo: {status['modo']}")
-        print(f"Data: {status['data_formatada']} ({status['dia_semana']})")
-        print(f"Arquivo config: {'Existe' if status['arquivo_existe'] else 'Não existe'}")
+        print(f"\nStatus atual:")
+        print(f"  Modo: {status['modo']}")
+        print(f"  Data: {status['data_formatada']} ({status['dia_semana']})")
+        print(f"  Arquivo config: {'Existe' if status['arquivo_existe'] else 'Nao existe'}")
     else:
         comando = sys.argv[1]
         
