@@ -1593,8 +1593,34 @@ def contar_alertas_nao_lidos(fazenda_id=None):
 
 def verificar_alertas_piquetes(fazenda_id):
     """Verifica piquetes e gera alertas baseados em dias técnicos dos lotes."""
+    import json
+    from pathlib import Path
+    
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Ler data de teste do arquivo JSON (para funcionar sem restart do Flask)
+    CONFIG_FILE = Path(__file__).parent / "data_teste_config.json"
+    data_teste = datetime.now()
+    
+    if CONFIG_FILE.exists():
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+            data_str = config.get('data')
+            if data_str:
+                data_teste = datetime.fromisoformat(data_str)
+        except Exception as e:
+            print(f"Erro ao ler data_teste: {e}")
+    
+    # Buscar alertas não lidos de ocupacao_tecnica já existentes (por lote)
+    cursor.execute('''
+        SELECT lote_id, COUNT(*) as total
+        FROM alertas
+        WHERE fazenda_id = ? AND tipo = 'ocupacao_tecnica' AND lido = 0 AND lote_id IS NOT NULL
+        GROUP BY lote_id
+    ''', (fazenda_id,))
+    alertas_existentes = {row['lote_id']: row['total'] for row in cursor.fetchall()}
     
     # Buscar piquetes ocupados com seus lotes e dias técnicos
     cursor.execute('''
@@ -1633,14 +1659,26 @@ def verificar_alertas_piquetes(fazenda_id):
             
             if data_saida_prevista:
                 try:
-                    saida_dt = datetime.fromisoformat(data_saida_prevista.replace('Z', '+00:00').replace('+00:00', ''))
+                    # Parse da data - pode ser ISO (2026-03-17) ou BR (17/03/2026)
+                    if '/' in data_saida_prevista:
+                        # Formato brasileiro: dd/mm/YYYY
+                        saida_dt = datetime.strptime(data_saida_prevista, '%d/%m/%Y')
+                    else:
+                        # Formato ISO: YYYY-MM-DD
+                        saida_dt = datetime.fromisoformat(data_saida_prevista.replace('Z', '+00:00').replace('+00:00', ''))
                     
                     # Alertar se data de teste já passou da data de saída prevista
-                    if data_teste_now() >= saida_dt:
+                    if data_teste >= saida_dt:
+                        # Verificar se já existe alerta não lido para este lote
+                        lote_id = lote.get('id')
+                        if lote_id and lote_id in alertas_existentes:
+                            # Já existe alerta para este lote, não criar duplicado
+                            continue
+                        
                         cursor.execute('''
-                            INSERT INTO alertas (usuario_id, fazenda_id, piquete_id, tipo, titulo, mensagem, created_at)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
-                        ''', (1, fazenda_id, piquete_id, 'ocupacao_tecnica', 
+                            INSERT INTO alertas (usuario_id, fazenda_id, piquete_id, lote_id, tipo, titulo, mensagem, created_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (1, fazenda_id, piquete_id, lote.get('id'), 'ocupacao_tecnica', 
                               'Tempo técnico de ocupação atingido',
                               f'O lote {lote["nome"]} no piquete {p["nome"]} atingiu a data de saída prevista ({data_saida_prevista})',
                               datetime.now().isoformat()))

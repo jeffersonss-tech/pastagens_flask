@@ -1844,6 +1844,9 @@
                 });
         }
         
+        // Auto-refresh de alertas a cada 30 segundos
+        setInterval(carregarAlertas, 30000);
+        
         function exibirAlertas() {
             fetch('/api/alertas')
                 .then(r => r.json())

@@ -70,7 +70,7 @@ def fazenda(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    from database import get_fazenda, listar_piquetes
+    from database import get_fazenda, listar_piquetes, verificar_alertas_piquetes
     fazenda = get_fazenda(id)
     
     if not fazenda:
@@ -81,6 +81,9 @@ def fazenda(id):
     
     session['fazenda_id'] = id
     piquetes = listar_piquetes(id)
+    
+    # Verificar alertas automaticamente ao carregar a página
+    verificar_alertas_piquetes(id)
     
     # Stats básicas
     stats = {
