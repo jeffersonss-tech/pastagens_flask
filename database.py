@@ -556,15 +556,15 @@ def calcular_dias_no_piquete(lote):
 
 def calcular_status_lote(lote):
     """
-    Calcula status do lote baseado no status do piquete + dias
+    Calcula status do lote baseado em data_saida_prevista
     Retorna: status, emoji, cor, acao, dias_faltam, mensagem
     
-    LOGICA: Usar altura_estimada
- como fonte da verdade    - Se altura_estimada >= altura_entrada -> disponível
-    - Se altura_real_medida >= altura_entrada -> disponível  
-    - Se nenhuma atingiu -> avaliar dias de ocupação
+    LOGICA: Usar data_saida_prevista como fonte da verdade
+    - data_teste_now() < data_saida_prevista - 1 dia -> EM_OCUPACAO
+    - data_teste_now() >= data_saida_prevista - 1 dia -> ATENCAO
+    - data_teste_now() >= data_saida_prevista -> RETIRAR
     """
-    from services.rotacao_service import DADOS_CAPINS
+    from datetime import datetime
     
     # Se não tem piquete atual, está aguardando alocação
     if not lote.get('piquete_atual_id'):
@@ -577,16 +577,72 @@ def calcular_status_lote(lote):
             'mensagem': 'Sem piquete'
         }
     
+    data_saida_prevista = lote.get('data_saida_prevista')
+    dias_tecnicos = lote.get('dias_tecnicos') or 0
     dias_no = lote.get('dias_no_piquete', 0)
-    dias_max = lote.get('dias_ocupacao', 3) or 3
     
-    # Pegar valores
+    # ========== NOVA LÓGICA: Usar data_saida_prevista ==========
+    if data_saida_prevista and dias_tecnicos > 0:
+        try:
+            from config_data_teste import now as data_teste_now
+            data_teste = data_teste_now()
+            saida_dt = datetime.fromisoformat(data_saida_prevista.replace('Z', '+00:00').replace('+00:00', ''))
+            
+            # Calcular dias restantes
+            dias_restantes = (saida_dt - data_teste).days
+            
+            if dias_restantes < 0:
+                # Passou da data de saída
+                return {
+                    'status': 'RETIRAR',
+                    'emoji': '🔴',
+                    'cor': 'red',
+                    'acao': 'RETIRAR JÁ',
+                    'dias_faltam': 0,
+                    'mensagem': f'Atrasado! Saída: {data_saida_prevista}'
+                }
+            elif dias_restantes == 0:
+                # Hoje é o último dia
+                return {
+                    'status': 'ATENCAO',
+                    'emoji': '🟠',
+                    'cor': 'orange',
+                    'acao': 'Preparar saída',
+                    'dias_faltam': 0,
+                    'mensagem': f'Último dia! Saída: {data_saida_prevista}'
+                }
+            elif dias_restantes == 1:
+                # Amanhã sai
+                return {
+                    'status': 'ATENCAO',
+                    'emoji': '🟠',
+                    'cor': 'orange',
+                    'acao': 'Preparar saída',
+                    'dias_faltam': 1,
+                    'mensagem': f'Saída amanhã! {data_saida_prevista}'
+                }
+            else:
+                # Ainda tem dias restantes
+                return {
+                    'status': 'EM_OCUPACAO',
+                    'emoji': '🔵',
+                    'cor': 'blue',
+                    'acao': 'Em pastejo',
+                    'dias_faltam': dias_restantes,
+                    'mensagem': f'{dias_restantes} dias até saída ({data_saida_prevista})'
+                }
+        except Exception as e:
+            # Se der erro no parsing, usar fallback
+            pass
+    
+    # ========== FALLBACK: Usar lógica antiga com dias_tecnicos ==========
+    dias_max = dias_tecnicos or 3
+    
     altura_real = lote.get('altura_real_medida')
     altura_estimada = lote.get('altura_estimada')
     altura_entrada = float(lote.get('altura_entrada', 25) or 25)
     altura_saida = float(lote.get('altura_saida', 15) or 15)
     bloqueado = lote.get('piquete_bloqueado', 0)
-    capim = lote.get('capim')
     
     # PRIORIDADE: Usar ALTURA ESTIMADA para determinar status
     # Se estimativa atingiu a altura de entrada = disponível!
@@ -1543,7 +1599,7 @@ def verificar_alertas_piquetes(fazenda_id):
     # Buscar piquetes ocupados com seus lotes e dias técnicos
     cursor.execute('''
         SELECT p.id as piquete_id, p.nome as piquete_nome, 
-               l.id as lote_id, l.nome as lote_nome, l.dias_tecnicos, l.data_entrada
+               l.id as lote_id, l.nome as lote_nome, l.dias_tecnicos, l.data_entrada, l.data_saida_prevista
         FROM piquetes p
         LEFT JOIN lotes l ON p.id = l.piquete_atual_id AND l.ativo = 1
         WHERE p.fazenda_id = ? AND p.estado = 'ocupado'
@@ -1565,29 +1621,28 @@ def verificar_alertas_piquetes(fazenda_id):
                 'id': row['lote_id'],
                 'nome': row['lote_nome'],
                 'dias_tecnicos': row['dias_tecnicos'],
-                'data_entrada': row['data_entrada']
+                'data_entrada': row['data_entrada'],
+                'data_saida_prevista': row['data_saida_prevista']
             })
     
     alertas_criados = []
     
     for piquete_id, p in piquetes_dict.items():
         for lote in p['lotes']:
-            dias_tecnicos = lote['dias_tecnicos'] or 0
-            data_entrada = lote['data_entrada']
+            data_saida_prevista = lote.get('data_saida_prevista')
             
-            if data_entrada and dias_tecnicos > 0:
+            if data_saida_prevista:
                 try:
-                    entrada_dt = datetime.fromisoformat(data_entrada.replace('Z', '+00:00').replace('+00:00', ''))
-                    dias_passados = (data_teste_now() - entrada_dt).days
+                    saida_dt = datetime.fromisoformat(data_saida_prevista.replace('Z', '+00:00').replace('+00:00', ''))
                     
-                    # Alertar se dias_passados >= dias_tecnicos
-                    if dias_passados >= dias_tecnicos:
+                    # Alertar se data de teste já passou da data de saída prevista
+                    if data_teste_now() >= saida_dt:
                         cursor.execute('''
                             INSERT INTO alertas (usuario_id, fazenda_id, piquete_id, tipo, titulo, mensagem, created_at)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
                         ''', (1, fazenda_id, piquete_id, 'ocupacao_tecnica', 
-                              f'Tempo técnico de ocupação atingido',
-                              f'O lote {lote["nome"]} no piquete {p["nome"]} está há {dias_passados} dias (técnico: {dias_tecnicos} dias)',
+                              'Tempo técnico de ocupação atingido',
+                              f'O lote {lote["nome"]} no piquete {p["nome"]} atingiu a data de saída prevista ({data_saida_prevista})',
                               datetime.now().isoformat()))
                         alertas_criados.append(f"Alerta criado para {p['nome']}: tempo técnico atingido")
                 except Exception as e:
