@@ -703,11 +703,9 @@
                             // AVISO URGENTE para piquetes ocupados que ultrapassaram limite
                             if (animaisNoPiquete) {
                                 alertaUrgente = `
-                                    <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 10px; margin-top: 8px; text-align: center;">
-                                        <strong style="color: #dc3545;">🚨 AVISO URGENTE</strong><br>
-                                        <small style="color: #721c24;">O piquete ultrapassou o tempo tecnico!</small><br>
-                                        <small style="color: #721c24;">${diasOcupados}/${diasTecnicos} dias</small><br>
-                                        <button class="btn btn-danger btn-sm" style="margin-top: 8px;" onclick="removerAnimaisPiquete(${p.id}, '${p.nome}')">🐄 Remover Animais Agora</button>
+                                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; margin-top: 8px; text-align: center;">
+                                        <strong style="color: #856404;">⚠️ Tempo tecnico! ${diasOcupados}/${diasTecnicos} dias</strong><br>
+                                        <a href="/fazenda/${fazendaId}/lotes" class="btn btn-warning btn-sm" style="margin-top: 5px; font-size: 0.8rem;">🔄 Ir para Lotes</a>
                                     </div>
                                 `;
                             }
@@ -737,12 +735,9 @@
                         // AVISO URGENTE se houver animais em piquete em recuperação
                         if (animaisNoPiquete) {
                             alertaUrgente = `
-                                <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 10px; margin-top: 8px; text-align: center;">
-                                    <strong style="color: #dc3545;">🚨 AVISO URGENTE</strong><br>
-                                    <small style="color: #721c24;">Há ${p.animais_no_piquete} animal(is) neste piquete!</small><br>
-                                    <small style="color: #721c24;">Remova urgentemente!</small>
-                                    <br>
-                                    <button class="btn btn-danger btn-sm" style="margin-top: 8px;" onclick="removerAnimaisPiquete(${p.id}, '${p.nome}')">🐄 Remover Animais</button>
+                                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; margin-top: 8px; text-align: center;">
+                                    <strong style="color: #856404;">⚠️ ${p.animais_no_piquete} animal(is) em recuperação!</strong><br>
+                                    <a href="/fazenda/${fazendaId}/lotes" class="btn btn-warning btn-sm" style="margin-top: 5px; font-size: 0.8rem;">🔄 Ir para Lotes</a>
                                 </div>
                             `;
                         }
@@ -1121,51 +1116,6 @@
                     } else {
                         alert('Erro ao excluir!');
                     }
-                });
-        }
-        
-        // Remove todos os animais de um piquete (seta piquete_atual_id = NULL)
-        function removerAnimaisPiquete(piqueteId, piqueteNome) {
-            if (!confirm(`Tem certeza que deseja remover TODOS os animais do piquete "${piqueteNome}"? Os animais ficarão sem piquete.`)) {
-                return;
-            }
-            
-            // Buscar todos os lotes neste piquete
-            fetch('/api/lotes?fazenda_id=' + fazendaId)
-                .then(r => r.json())
-                .then(lotes => {
-                    const lotesNoPiquete = lotes.filter(l => l.piquete_atual_id == piqueteId);
-                    
-                    if (lotesNoPiquete.length === 0) {
-                        alert('Nenhum animal encontrado neste piquete.');
-                        return;
-                    }
-                    
-                    // Remover cada lote do piquete
-                    let removidos = 0;
-                    lotesNoPiquete.forEach(lote => {
-                        fetch('/api/lotes/' + lote.id + '/sair', { method: 'POST' })
-                            .then(r => r.json())
-                            .then(data => {
-                                removidos++;
-                                if (removidos === lotesNoPiquete.length) {
-                                    alert('Todos os animais foram removidos do piquete!');
-                                    loadAll();
-                                }
-                            })
-                            .catch(err => {
-                                console.error('Erro ao remover lote:', err);
-                                removidos++;
-                                if (removidos === lotesNoPiquete.length) {
-                                    alert('Alguns animais podem não ter sido removidos. Verifique.');
-                                    loadAll();
-                                }
-                            });
-                    });
-                })
-                .catch(err => {
-                    console.error('Erro ao buscar lotes:', err);
-                    alert('Erro ao buscar lotes do piquete.');
                 });
         }
         
