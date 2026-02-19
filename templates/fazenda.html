@@ -461,6 +461,13 @@
         function drawAllPiquetesOnMap() {
             if (!map) return;
             
+            // Limpar polígonos E labels dos piquetes
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Polygon || (layer instanceof L.Marker && layer.options?.icon?.options?.className === 'piquete-label')) {
+                    map.removeLayer(layer);
+                }
+            });
+            
             piquetes.forEach(p => {
                 if (p.geometria) {
                     try {
@@ -1148,6 +1155,13 @@
         
         function drawAllPiquetes() {
             if (!mapPiquetes) return;
+            
+            // Limpar polígonos E labels dos piquetes
+            mapPiquetes.eachLayer(function(layer) {
+                if (layer instanceof L.Polygon || (layer instanceof L.Marker && layer.options?.icon?.options?.className === 'piquete-label')) {
+                    mapPiquetes.removeLayer(layer);
+                }
+            });
             
             piquetes.forEach(p => {
                 if (p.geometria) {
