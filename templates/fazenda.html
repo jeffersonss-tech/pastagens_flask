@@ -407,7 +407,7 @@
             if (id === 'piquetes') {
                 setTimeout(() => {
                     if (!mapPiquetes) {
-                        mapPiquetes = L.map('map-piquetes').setView([mapaLat, mapaLng], 15);
+                        mapPiquetes = L.map('map-piquetes', {maxZoom: 17}).setView([mapaLat, mapaLng], 15);
                         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                     }
                     mapPiquetes.invalidateSize();
@@ -440,7 +440,7 @@
         function initMapPiquetes() {
             // Inicializar mapa da aba Piquetes centralizado na sede da fazenda
             if (!mapPiquetes) {
-                mapPiquetes = L.map('map-piquetes').setView([mapaLat, mapaLng], 15);
+                mapPiquetes = L.map('map-piquetes', {maxZoom: 17}).setView([mapaLat, mapaLng], 15);
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                 
                 // Adicionar marcador da sede da fazenda se tiver coordenadas
@@ -1330,7 +1330,7 @@
             // Inicializar mapa da aba Piquetes
             setTimeout(() => {
                 if (!mapPiquetes) {
-                    mapPiquetes = L.map('map-piquetes').setView([mapaLat, mapaLng], 15);
+                    mapPiquetes = L.map('map-piquetes', {maxZoom: 17}).setView([mapaLat, mapaLng], 15);
                     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                 }
                 mapPiquetes.invalidateSize();
@@ -1517,7 +1517,7 @@
                         
                         // Garantir que o mapa existe
                         if (!mapPiquetes) {
-                            mapPiquetes = L.map('map-piquetes').setView([lat, lon], 15);
+                            mapPiquetes = L.map('map-piquetes', {maxZoom: 17}).setView([lat, lon], 15);
                             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                         } else {
                             mapPiquetes.setView([lat, lon], 15);
@@ -1552,7 +1552,7 @@
                         
                         // Garantir que o mapa existe
                         if (!mapPiquetes) {
-                            mapPiquetes = L.map('map-piquetes').setView([lat, lng], 16);
+                            mapPiquetes = L.map('map-piquetes', {maxZoom: 17}).setView([lat, lng], 16);
                             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                         } else {
                             mapPiquetes.setView([lat, lng], 16);
