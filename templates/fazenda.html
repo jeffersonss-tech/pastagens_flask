@@ -419,7 +419,7 @@
         // Maps
         function initMap() {
             // Mapa do dashboard - centralizado na sede da fazenda
-            map = L.map('map').setView([mapaLat, mapaLng], 14);
+            map = L.map('map', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 14);
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(map);
             
             // Adicionar marcador da sede da fazenda se tiver coordenadas
