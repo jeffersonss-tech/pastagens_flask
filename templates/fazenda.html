@@ -613,6 +613,10 @@
         
         function atualizarDesenho() {
             layerGroup.clearLayers();
+            
+            // Redesenhar piquetes existentes para não sumirem
+            drawPiquetesExistentes();
+            
             pontos.forEach((p, i) => {
                 L.circleMarker([p[0], p[1]], {color: 'red', fillColor: 'red', fillOpacity: 1, radius: 6}).addTo(layerGroup);
             });
