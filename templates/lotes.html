@@ -8,230 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, sans-serif; background: #f0f2f5; }
-        
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { font-size: 1.4rem; }
-        .header a { color: #00d9ff; text-decoration: none; }
-        
-        /* Content */
-        .content { padding: 25px; }
-        
-        /* Stats Cards */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .stat-card strong { display: block; font-size: 2rem; margin-bottom: 5px; }
-        .stat-card.animais strong { color: #007bff; }
-        .stat-card.ocupacao strong { color: #fd7e14; }
-        .stat-card.saida strong { color: #dc3545; }
-        .stat-card.disponivel strong { color: #28a745; }
-        .stat-card span { color: #666; font-size: 0.85rem; }
-        
-        /* Filters */
-        .filters {
-            background: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .filters label { font-size: 0.85rem; color: #666; }
-        .filters select {
-            padding: 8px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-        .filters button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .btn-primary { background: #00d9ff; color: #1a1a2e; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-warning { background: #ffc107; color: #333; }
-        .btn-danger { background: #dc3545; color: white; }
-        
-        /* Tabela */
-        .table-container {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .table-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .table-header h2 { font-size: 1.1rem; color: #1a1a2e; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-size: 0.85rem; color: #666; font-weight: 500; }
-        tr:hover { background: #f8f9fa; }
-        
-        /* Status Badges */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .status-badge.ok { background: #d4edda; color: #155724; }
-        .status-badge.atencao { background: #fff3cd; color: #856404; }
-        .status-badge.retirar { background: #f8d7da; color: #721c24; }
-        .status-badge.bloqueado { background: #e2d5f1; color: #4a2c7a; }
-        .status-badge.sem-piquete { background: #e9ecef; color: #666; }
-        .status-badge.aguardando { background: #cce5ff; color: #004085; }
-        .status-badge.ocupacao { background: #d1ecf1; color: #0c5460; border: 1px solid #17a2b8; }
-        
-        /* Dias */
-        .dias-info { font-size: 0.9rem; }
-        .dias-info .atual { font-weight: bold; }
-        .dias-info .limite { color: #999; }
-        .dias-info .atual.over { color: #dc3545; }
-        .dias-info .atual.near { color: #fd7e14; }
-        
-        /* Actions */
-        .actions { display: flex; gap: 8px; }
-        .actions button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-        .btn-mover { background: #007bff; color: white; }
-        .btn-sair { background: #fd7e14; color: white; }
-        .btn-ver { background: #6c757d; color: white; }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            width: 500px;
-            max-width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-header h3 { color: #1a1a2e; }
-        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-        .modal-body { padding: 20px; }
-        
-        /* Lot name clickable */
-        td[style*="cursor: pointer"]:hover {
-            background-color: #f0f7ff;
-        }
-        td[style*="cursor: pointer"] strong {
-            text-decoration: underline;
-        }
-        
-        /* Form */
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; color: #666; font-size: 0.85rem; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.95rem;
-        }
-        
-        /* Sugestões de Piquete */
-        .sugestao-item {
-            padding: 12px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .sugestao-item:hover { border-color: #00d9ff; background: #f8f9fa; }
-        .sugestao-item.apto { border-left: 4px solid #28a745; }
-        .sugestao-item.quase { border-left: 4px solid #ffc107; }
-        .sugestao-item.selecionado { border-color: #007bff; background: #e7f3ff; }
-        
-        .sugestao-header { display: flex; justify-content: space-between; align-items: center; }
-        .sugestao-nome { font-weight: 600; color: #1a1a2e; }
-        .sugestao-info { font-size: 0.85rem; color: #666; margin-top: 5px; }
-        .sugestao-badge {
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-        .badge-apto { background: #d4edda; color: #155724; }
-        .badge-quase { background: #fff3cd; color: #856404; }
-        
-        /* Buttons */
-        .btn-edit {
-            padding: 6px 12px;
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .btn-edit:hover { background: #5a6268; }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        .empty-state h3 { margin-bottom: 10px; color: #1a1a2e; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lotes.css') }}">
 </head>
 <body>
     <!-- Header -->
@@ -316,7 +93,7 @@
         </div>
     </div>
     
-    <!-- Modal Parâmetros Personalizado (z-index maior para ficar por cima) -->
+    <!-- Modal Parâmetros Personalizado -->
     <div class="modal" id="modal-personalizado" style="z-index: 2000;">
         <div class="modal-content" style="width: 400px; z-index: 2001;">
             <div class="modal-header">
@@ -494,12 +271,6 @@
                 const agora = dataTeste || new Date();
                 const diffTime = Math.abs(agora - entrada);
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                console.log('Debug diasPassados:', {
-                    entrada: dataEntrada,
-                    dataTeste: dataTeste,
-                    agora: agora,
-                    diffDays: diffDays
-                });
                 return diffDays;
             } catch (e) {
                 console.error('Erro ao calcular dias:', e);
@@ -595,11 +366,6 @@
             fecharModal('modal-personalizado');
         }
         
-        // Função específica para mostrar/ocultar campos de Personalizado
-        function togglePersonalizado(prefixo) {
-            // Não usado mais - agora usa modal separado
-        }
-        
         // Função para atualizar peso médio baseado na categoria (CRIAÇÃO)
         function atualizarPesoMedio() {
             const categoriaSelect = document.getElementById('lote-categoria');
@@ -638,11 +404,8 @@
             fetch('/api/data-teste')
                 .then(r => r.json())
                 .then(data => {
-                    console.log('API data-teste:', data);
                     if (data.modo === 'teste' && data.data) {
-                        // Criar data no meio-dia para evitar problemas de fuso horário
                         dataTeste = new Date(data.data + 'T12:00:00');
-                        console.log('Data teste definida:', dataTeste);
                     }
                 })
                 .catch((err) => {
@@ -650,38 +413,25 @@
                     dataTeste = null;
                 })
                 .finally(() => {
-                    // Só carregar os lotes depois de ter a data de teste
                     carregarLotesComDataTeste();
-                    
-                    // Auto-refresh a cada 30 segundos para manter status atualizado
-                    setInterval(() => {
-                        carregarLotesComDataTeste();
-                    }, 30000);
-                    
-                    // Atualizar ao ganhar foco
+                    setInterval(() => carregarLotesComDataTeste(), 30000);
                     document.addEventListener('visibilitychange', () => {
-                        if (!document.hidden) {
-                            carregarLotesComDataTeste();
-                        }
+                        if (!document.hidden) carregarLotesComDataTeste();
                     });
                 });
         };
         
         function carregarLotesComDataTeste() {
-            // Primeiro buscar data de teste atualizada
             fetch('/api/data-teste')
                 .then(r => r.json())
                 .then(data => {
                     if (data.modo === 'teste' && data.data) {
                         dataTeste = new Date(data.data + 'T12:00:00');
-                        console.log('Data teste atualizada:', dataTeste);
                     } else {
                         dataTeste = null;
                     }
                 })
-                .catch(() => {
-                    dataTeste = null;
-                })
+                .catch(() => { dataTeste = null; })
                 .finally(() => {
                     carregarLotes();
                     carregarPiquetesSelect();
@@ -703,202 +453,84 @@
         
         function atualizarStats() {
             document.getElementById('stat-total').textContent = lotes.length;
-            
             const emOcupacao = lotes.filter(l => l.piquete_atual_id).length;
             document.getElementById('stat-ocupacao').textContent = emOcupacao;
-            
-            // CORREÇÃO: Usar status_info (calculado) em vez de status_calculado (cache)
             const precisaSair = lotes.filter(l => l.piquete_atual_id && (l.status_info?.status === 'RETIRAR')).length;
             document.getElementById('stat-saida').textContent = precisaSair;
-            
             const totalAnimais = lotes.reduce((sum, l) => sum + (l.quantidade || 0), 0);
             document.getElementById('stat-animais').textContent = totalAnimais;
         }
         
         function renderizarTabela() {
             const tbody = document.getElementById('lista-lotes');
-            
             if (lotes.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            <h3>😕 Nenhum lote encontrado</h3>
-                            <p>Cadastre o primeiro lote ou ajuste os filtros.</p>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><h3>😕 Nenhum lote encontrado</h3><p>Cadastre o primeiro lote ou ajuste os filtros.</p></td></tr>`;
                 return;
             }
-            
-            // Buscar sugestoes para cada lote com fazenda_id
-            Promise.all(lotes.map(l => 
-                fetch(`/api/lotes/${l.id}/sugerir-piquetes?fazenda_id=${fazendaId}`).then(r => r.json())
-            )).then(sugestoesArrays => {
+            Promise.all(lotes.map(l => fetch(`/api/lotes/${l.id}/sugerir-piquetes?fazenda_id=${fazendaId}`).then(r => r.json())))
+            .then(sugestoesArrays => {
                 const sugestoesMap = {};
-                lotes.forEach((l, i) => {
-                    sugestoesMap[l.id] = sugestoesArrays[i];
-                });
+                lotes.forEach((l, i) => sugestoesMap[l.id] = sugestoesArrays[i]);
                 
                 tbody.innerHTML = lotes.map((lote, idx) => {
                     const sugestoes = sugestoesMap[lote.id] || [];
                     const temPiquete = !!lote.piquete_atual_id;
-                    const diasTecnicos = lote.dias_tecnicos || 0;
-                    
-                    // CORREÇÃO 1: Status - Aguardando Alocação se sem piquete
-                    let statusBadge = '';
-                    // Usar status_info (calculado dinamicamente) em vez de status_calculado (cache)
                     const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
                     
-                    if (!temPiquete) {
-                        statusBadge = '<span class="status-badge aguardando">🔵 Aguardando Alocação</span>';
-                    } else {
-                        switch(statusCalc) {
-                            case 'RETIRAR':
-                                statusBadge = '<span class="status-badge retirar">🔴 Retirar</span>';
-                                break;
-                            case 'ATENCAO':
-                                statusBadge = '<span class="status-badge atencao">🟠 Atenção</span>';
-                                break;
-                            default:
-                                // Lote em ocupacao e OK - Status diferenciado
-                                statusBadge = '<span class="status-badge ocupacao">🔵 Em Ocupação</span>';
-                        }
-                    }
+                    let statusBadge = !temPiquete ? '<span class="status-badge aguardando">🔵 Aguardando Alocação</span>' : 
+                        (statusCalc === 'RETIRAR' ? '<span class="status-badge retirar">🔴 Retirar</span>' : 
+                        (statusCalc === 'ATENCAO' ? '<span class="status-badge atencao">🟠 Atenção</span>' : 
+                        '<span class="status-badge ocupacao">🔵 Em Ocupação</span>'));
                     
-                    // CORREÇÃO 2: Dias - "—" se sem piquete
-                    let diasHtml = '';
-                    if (!temPiquete) {
-                        diasHtml = '<span style="color: #999;">—</span>';
-                    } else {
+                    let diasHtml = !temPiquete ? '<span style="color: #999;">—</span>' : (function(){
                         const diasPassados = calcularDiasPassados(lote.data_entrada);
                         const dataFormatada = formatarData(lote.data_entrada);
-                        const diasRestantes = Math.max(0, diasTecnicos - diasPassados);
-                        
-                        diasHtml = `
-                            <div class="dias-info">
-                                <span class="atual">${diasTecnicos}</span> dias técnicos
-                                ${dataFormatada ? `<br><small style="color: #666;">📅 Entrada: ${dataFormatada}</small>` : ''}
-                                ${diasPassados !== null ? `<br><small style="color: #007bff;">⏱️ ${diasPassados} dia(s)</small>` : ''}
-                                ${diasRestantes > 0 ? `<br><small style="color: #28a745;">📊 ${diasRestantes} dias restantes</small>` : ''}
-                            </div>
-                        `;
-                    }
+                        const diasRestantes = Math.max(0, (lote.dias_tecnicos || 0) - diasPassados);
+                        return `<div class="dias-info"><span class="atual">${lote.dias_tecnicos || 0}</span> dias técnicos${dataFormatada ? `<br><small>📅 Entrada: ${dataFormatada}</small>` : ''}${diasPassados !== null ? `<br><small style="color: #007bff;">⏱️ ${diasPassados} dia(s)</small>` : ''}${diasRestantes > 0 ? `<br><small style="color: #28a745;">📊 ${diasRestantes} dias restantes</small>` : ''}</div>`;
+                    })();
                     
-                    // Piquete atual - mostrar estimada
-                    let piqueteInfo = temPiquete 
-                        ? `${lote.piquete_nome}<br><small style="color: #28a745;">📏 ${lote.altura_estimada || '?'}cm</small>`
-                        : '<span style="color: #999;">Sem piquete</span>';
+                    let piqueteInfo = temPiquete ? `${lote.piquete_nome}<br><small style="color: #28a745;">📏 ${lote.altura_estimada || '?'}cm</small>` : '<span style="color: #999;">Sem piquete</span>';
                     
-                    // CORREÇÃO 5: Próximo piquete - botão para ver todos
-                    let proximoHtml = '';
-                    if (sugestoes.length > 0) {
-                        // Contar aptos e em recuperação
+                    let proximoHtml = sugestoes.length > 0 ? (function(){
                         const aptos = sugestoes.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA').length;
                         const emRecup = sugestoes.filter(p => p.status === 'RECUPERANDO').length;
-                        
-                        proximoHtml = `
-                            <button class="btn btn-sm" style="background: #6c757d; color: white;" 
-                                    onclick="abrirModalTodosPiquetes(${lote.id})">
-                                📋 Ver ${sugestoes.length} opções
-                            </button>
-                            <br><small style="color: #28a745;">🟢 ${aptos} aptos</small>
-                            ${emRecup > 0 ? `<br><small style="color: #856404;">🟡 ${emRecup} em recup.</small>` : ''}
-                        `;
-                    } else {
-                        proximoHtml = `
-                            <span style="font-size: 0.85rem; color: #999;">⚠️ Nenhum disponível</span>
-                        `;
-                    }
+                        return `<button class="btn btn-sm" style="background: #6c757d; color: white;" onclick="abrirModalTodosPiquetes(${lote.id})">📋 Ver ${sugestoes.length} opções</button><br><small style="color: #28a745;">🟢 ${aptos} aptos</small>${emRecup > 0 ? `<br><small style="color: #856404;">🟡 ${emRecup} em recup.</small>` : ''}`;
+                    })() : '<span style="font-size: 0.85rem; color: #999;">⚠️ Nenhum disponível</span>';
                     
-                    // CORREÇÃO 4: Botões - orientação clara do que fazer
-                    let actions = '';
-                    const aptos = sugestoes.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA');
-                    const emRecuperando = sugestoes.filter(p => p.status === 'RECUPERANDO');
+                    let actions = (function(){
+                        const aptos = sugestoes.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA');
+                        const emRecuperando = sugestoes.filter(p => p.status === 'RECUPERANDO');
+                        if (temPiquete) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Mover</button><button class="btn-sair" onclick="registrarSaida(${lote.id})">📤 Sair</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
+                        if (aptos.length > 0) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Alocar</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
+                        return `<button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
+                    })();
                     
-                    if (temPiquete && aptos.length > 0) {
-                        actions = `
-                            <button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Mover</button>
-                            <button class="btn-sair" onclick="registrarSaida(${lote.id})">📤 Sair</button>
-                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
-                        `;
-                    } else if (temPiquete) {
-                        actions = `
-                            <button class="btn-sair" onclick="registrarSaida(${lote.id})">📤 Sair</button>
-                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
-                        `;
-                    } else if (aptos.length > 0) {
-                        actions = `
-                            <button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Alocar</button>
-                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
-                        `;
-                    } else if (emRecuperando.length > 0) {
-                        actions = `
-                            <button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>
-                            <span style="font-size: 0.75rem; color: #856404;">📏 RECUPERANDO</span>
-                        `;
-                    } else {
-                        actions = `
-                            <div style="text-align: center;">
-                                <span style="font-size: 0.8rem; color: #666;">Nenhum piquete</span>
-                                <br><button class="btn-edit" onclick="abrirModalEditar(${lote.id})" style="margin-top: 5px;">✏️ Editar</button>
-                            </div>
-                        `;
-                    }
-                    
-                    return `
-                        <tr>
-                            <td style="cursor: pointer;" onclick="abrirModalDetalhes(${lote.id})">
-                                <strong style="color: #007bff;">${lote.nome}</strong><br>
-                                <small style="color: #666;">${lote.categoria || '-'} • ${lote.quantidade || 0} animai(s)</small>
-                            </td>
-                            <td>${piqueteInfo}</td>
-                            <td>${diasHtml}</td>
-                            <td>${statusBadge}</td>
-                            <td>${proximoHtml}</td>
-                            <td>${actions}</td>
-                        </tr>
-                    `;
+                    return `<tr><td style="cursor: pointer;" onclick="abrirModalDetalhes(${lote.id})"><strong style="color: #007bff;">${lote.nome}</strong><br><small style="color: #666;">${lote.categoria || '-'} • ${lote.quantidade || 0} animai(s)</small></td><td>${piqueteInfo}</td><td>${diasHtml}</td><td>${statusBadge}</td><td>${proximoHtml}</td><td>${actions}</td></tr>`;
                 }).join('');
-                
-                // Atualizar stat - usar status_info (calculado)
-                const precisaSair = lotes.filter(l => l.piquete_atual_id && (l.status_info?.status === 'RETIRAR')).length;
-                document.getElementById('stat-saida').textContent = precisaSair;
             });
         }
         
         function carregarPiquetesSelect() {
-            // Usar API de piquetes disponíveis (sem animais)
             fetch('/api/piquetes/disponiveis?fazenda_id=' + fazendaId)
                 .then(r => r.json())
                 .then(data => {
                     const select = document.getElementById('lote-piquete');
-                    // Mostrar piquetes disponíveis com dias de descanso
                     select.innerHTML = '<option value="">Nenhum (lote sem piquete)</option>' +
                         data.map(p => {
-                            // Usar altura_real_medida ou altura_estimada
                             const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
                             const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
-                            const fonte = temReal ? 'MEDIDA' : 'ESTIMADA';
-                            const diasDescanso = p.dias_descanso || 0;
-                            const diasIdeais = p.dias_ideais || 30;
-                            
                             const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
-                            const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
-                            return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} [${fonte}] • ${diasDescanso}/${diasIdeais} dias</option>`;
+                            return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO')} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
                         }).join('');
                 });
         }
         
         function abrirModalNovoLote() {
-            // Limpar parâmetros do Personalizado anterior
             window.personalizadoParams = null;
             document.getElementById('lote-nome').value = '';
             document.getElementById('lote-quantidade').value = '1';
-            
-            // Resetar categoria para primeira opção e preencher peso automaticamente
             document.getElementById('lote-categoria').selectedIndex = 0;
-            document.getElementById('lote-peso').value = 200; // Bezerro = 200kg
-            
+            document.getElementById('lote-peso').value = 200;
             document.getElementById('modal-lote').classList.add('active');
             carregarPiquetesSelect();
         }
@@ -906,75 +538,45 @@
         function salvarLote() {
             const nome = document.getElementById('lote-nome').value;
             if (!nome) return alert('Digite o nome do lote!');
-            
             const categoria = document.getElementById('lote-categoria').value;
             let peso_medio = parseFloat(document.getElementById('lote-peso').value) || 0;
-            
-            // Se personalizado, usar parâmetros do modal
-            let consumo_base = null;
-            if (categoria === 'Personalizado') {
-                if (!window.personalizadoParams) {
-                    return alert('Por favor, configure os parâmetros técnicos do Personalizado!');
-                }
-                peso_medio = window.personalizadoParams.peso_medio;
-                consumo_base = window.personalizadoParams.consumo_base;
-            }
-            
-            const payload = {
-                nome: nome,
-                categoria: categoria,
+            let payload = {
+                nome, categoria,
                 quantidade: parseInt(document.getElementById('lote-quantidade').value) || 1,
-                peso_medio: peso_medio,
+                peso_medio,
                 piquete_id: document.getElementById('lote-piquete').value || null
             };
-            
-            // Adicionar consumo_base se personalizado
-            if (consumo_base !== null) {
-                payload.consumo_base = consumo_base;
+            if (categoria === 'Personalizado') {
+                if (!window.personalizadoParams) return alert('Configure os parâmetros técnicos do Personalizado!');
+                payload.peso_medio = window.personalizadoParams.peso_medio;
+                payload.consumo_base = window.personalizadoParams.consumo_base;
             }
-            
             fetch('/api/lotes', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
-            }).then(r => r.json())
-              .then(data => {
-                  if (data.status === 'ok') {
-                      fecharModal('modal-novo-lote');
-                      carregarLotes();
-                      alert('Lote criado com sucesso!');
-                  }
-              });
+            }).then(r => r.json()).then(data => {
+                if (data.status === 'ok') { fecharModal('modal-lote'); carregarLotes(); alert('Lote criado com sucesso!'); }
+            });
         }
         
         function abrirModalMover(loteId, nome) {
             document.getElementById('mover-lote-id').value = loteId;
             document.getElementById('mover-lote-nome').textContent = nome;
             document.getElementById('modal-mover').classList.add('active');
-            
-            // Carregar sugestões com fazenda_id
             fetch(`/api/lotes/${loteId}/sugerir-piquetes?fazenda_id=${fazendaId}`)
-                .then(r => r.json())
-                .then(data => {
+                .then(r => r.json()).then(data => {
                     const container = document.getElementById('sugestoes-piquetes');
-                    const semAptos = document.getElementById('sem-piquetes-aptos');
-                    
                     const aptos = data.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA');
-                    
                     if (aptos.length === 0) {
                         container.innerHTML = '';
-                        semAptos.style.display = 'block';
+                        document.getElementById('sem-piquetes-aptos').style.display = 'block';
                     } else {
-                        semAptos.style.display = 'none';
-                        container.innerHTML = aptos.map((p, i) => `
+                        document.getElementById('sem-piquetes-aptos').style.display = 'none';
+                        container.innerHTML = aptos.map(p => `
                             <div class="sugestao-item apto" onclick="selecionarPiquete(${p.id}, this)">
-                                <div class="sugestao-header">
-                                    <span class="sugestao-nome">${p.nome}</span>
-                                    <span class="sugestao-badge badge-apto">🟢 APTO</span>
-                                </div>
-                                <div class="sugestao-info">
-                                    ${p.capim} • ${p.area} ha • ${p.dias_descanso} dias de descanso
-                                </div>
+                                <div class="sugestao-header"><span class="sugestao-nome">${p.nome}</span><span class="sugestao-badge badge-apto">🟢 APTO</span></div>
+                                <div class="sugestao-info">${p.capim} • ${p.area} ha • ${p.dias_descanso} dias descanso</div>
                             </div>
                         `).join('');
                     }
@@ -990,472 +592,125 @@
         
         function confirmarMovimentacao() {
             if (!piqueteSelecionado) return alert('Selecione um piquete!');
-            
             fetch(`/api/lotes/${document.getElementById('mover-lote-id').value}/mover?fazenda_id=${fazendaId}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    piquete_destino_id: piqueteSelecionado
-                })
-            }).then(r => r.json())
-              .then(data => {
-                  if (data.status === 'ok') {
-                      fecharModal('modal-mover');
-                      carregarLotes();
-                      alert('Lote movido com sucesso!');
-                      piqueteSelecionado = null;
-                  }
-              });
+                body: JSON.stringify({ piquete_destino_id: piqueteSelecionado })
+            }).then(r => r.json()).then(data => {
+                if (data.status === 'ok') { fecharModal('modal-mover'); carregarLotes(); alert('Lote movido!'); piqueteSelecionado = null; }
+            });
         }
         
         function registrarSaida(loteId) {
-            if (!confirm('Registrar saída do lote? Ele ficará sem piquete.')) return;
-            
+            if (!confirm('Registrar saída do lote?')) return;
             fetch(`/api/lotes/${loteId}/sair?fazenda_id=${fazendaId}`, {method: 'POST'})
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        carregarLotes();
-                    }
-                });
-        }
-        
-        function verDetalhes(loteId) {
-            // TODO: Implementar modal de detalhes
-            alert('Detalhes do lote: ' + loteId);
+                .then(r => r.json()).then(data => { if (data.status === 'ok') carregarLotes(); });
         }
         
         function abrirModalEditar(loteId) {
             const lote = lotes.find(l => l.id === loteId);
             if (!lote) return;
-            
             document.getElementById('edit-lote-id').value = lote.id;
             document.getElementById('edit-lote-nome').value = lote.nome;
             document.getElementById('edit-lote-categoria').value = lote.categoria || '';
             document.getElementById('edit-lote-quantidade').value = lote.quantidade || 1;
             document.getElementById('edit-lote-peso').value = lote.peso_medio || 0;
-            
-            // Tratar campos de Personalizado
-            const isPersonalizado = lote.categoria === 'Personalizado';
-            const camposPersonalizado = document.getElementById('edit-campos-personalizado');
-            if (camposPersonalizado) {
-                camposPersonalizado.style.display = isPersonalizado ? 'block' : 'none';
-            }
-            // Preencher campos de personalizado
-            if (isPersonalizado) {
-                document.getElementById('edit-peso-personalizado').value = lote.peso_medio || '';
-                document.getElementById('edit-consumo-base').value = lote.consumo_base || 0.8;
-            }
-            
-            // Esconder aviso inicialmente
             document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
+            window.personalizadoParamsEdit = lote.categoria === 'Personalizado' ? { peso_medio: lote.peso_medio, consumo_base: lote.consumo_base } : null;
             
-            // Limpar parâmetros do Personalizado anterior
-            window.personalizadoParamsEdit = null;
-            
-            // Se Personalizado, configurar parâmetros existentes
-            if (lote.categoria === 'Personalizado') {
-                window.personalizadoParamsEdit = {
-                    peso_medio: lote.peso_medio || 0,
-                    consumo_base: lote.consumo_base || 0.8
-                };
-            }
-            
-            // Carregar piquetes disponíveis
             fetch('/api/piquetes/disponiveis?fazenda_id=' + fazendaId)
-                .then(r => r.json())
-                .then(data => {
+                .then(r => r.json()).then(data => {
                     const select = document.getElementById('edit-lote-piquete');
-                    // Opção "Sem piquete" primeiro
                     let html = '<option value="">🚫 Sem piquete</option>';
-                    
-                    // Mostrar piquetes disponíveis com dias de descanso
                     data.forEach(p => {
-                        const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
-                        const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
-                        const fonte = temReal ? '[MEDIDA]' : '[ESTIMADA]';
-                        const diasDescanso = p.dias_descanso || 0;
-                        const diasIdeais = p.dias_ideais || 30;
-                        
-                        const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
-                        const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
+                        const alturaUsada = p.altura_real_medida !== null ? p.altura_real_medida : p.altura_estimada;
                         const isRecuperando = !p.bloqueado && alturaUsada < p.altura_entrada;
-                        const selected = lote.piquete_atual_id === p.id ? 'selected' : '';
-                        const dangerClass = isRecuperando ? 'background:#f8d7da;' : '';
-                        html += `<option value="${p.id}" ${selected} style="${dangerClass}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} ${fonte} • ${diasDescanso}/${diasIdeais} dias</option>`;
+                        html += `<option value="${p.id}" ${lote.piquete_atual_id === p.id ? 'selected' : ''} style="${isRecuperando ? 'background:#f8d7da;' : ''}">${p.nome} (${p.capim || 'N/I'}) ${p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡')} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
                     });
-                    
-                    // Se o lote já tem um piquete (mesmo que ocupado), adicionar como opção
-                    if (lote.piquete_atual_id && !data.find(p => p.id == lote.piquete_atual_id)) {
-                        // Buscar info do piquete atual
-                        fetch('/api/piquetes/' + lote.piquete_atual_id)
-                            .then(r => r.json())
-                            .then(p => {
-                                const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
-                                const alturaUsada = temReal ? p.altura_real_medida : p.altura_estimada;
-                                const fonte = temReal ? '[MEDIDA]' : '[ESTIMADA]';
-                                
-                                const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
-                                const status = p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO');
-                                const isRecuperando = !p.bloqueado && alturaUsada < p.altura_entrada;
-                                const dangerClass = isRecuperando ? 'background:#f8d7da;' : '';
-                                html += `<option value="${p.id}" selected style="${dangerClass}">⚠️ ${p.nome} (${p.capim || 'N/I'}) ${emoji} ${status} ${fonte} (ATUAL)</option>`;
-                                select.innerHTML = html;
-                                
-                                // Mostrar aviso se está em recuperação
-                                if (isRecuperando) {
-                                    document.getElementById('aviso-piquete-recuperacao').style.display = 'block';
-                                }
-                            });
-                    } else {
-                        select.innerHTML = html;
-                    }
-                    
-                    // Verificar se o piquete atual está em recuperação
-                    if (lote.piquete_atual_id && data.find(p => p.id == lote.piquete_atual_id)) {
-                        const piqueteAtual = data.find(p => p.id == lote.piquete_atual_id);
-                        const temReal = piqueteAtual.altura_real_medida !== null && piqueteAtual.altura_real_medida !== undefined;
-                        const alturaUsada = temReal ? piqueteAtual.altura_real_medida : piqueteAtual.altura_estimada;
-                        if (alturaUsada && alturaUsada < piqueteAtual.altura_entrada) {
-                            document.getElementById('aviso-piquete-recuperacao').style.display = 'block';
-                        }
-                    }
+                    select.innerHTML = html;
                 });
-            
             document.getElementById('modal-editar').classList.add('active');
         }
         
         function verificarPiqueteRecuperacao() {
-            const select = document.getElementById('edit-lote-piquete');
-            const piqueteId = select.value;
-            
-            if (!piqueteId) {
-                document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
-                return;
-            }
-            
-            // Buscar info do piquete
-            fetch('/api/piquetes/' + piqueteId)
-                .then(r => r.json())
-                .then(p => {
-                    const emRecuperacao = p.altura_atual && p.altura_atual < p.altura_entrada && !p.bloqueado;
-                    document.getElementById('aviso-piquete-recuperacao').style.display = emRecuperacao ? 'block' : 'none';
-                });
+            const id = document.getElementById('edit-lote-piquete').value;
+            if (!id) { document.getElementById('aviso-piquete-recuperacao').style.display = 'none'; return; }
+            fetch('/api/piquetes/' + id).then(r => r.json()).then(p => {
+                const emRecup = p.altura_atual && p.altura_atual < p.altura_entrada && !p.bloqueado;
+                document.getElementById('aviso-piquete-recuperacao').style.display = emRecup ? 'block' : 'none';
+            });
         }
         
-        function limparPiqueteEdicao() {
-            document.getElementById('edit-lote-piquete').value = '';
-            document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
-        }
+        function limparPiqueteEdicao() { document.getElementById('edit-lote-piquete').value = ''; document.getElementById('aviso-piquete-recuperacao').style.display = 'none'; }
         
         function abrirModalDetalhes(loteId) {
             const lote = lotes.find(l => l.id === loteId);
             if (!lote) return;
-            
-            // Calcular peso total
             const pesoTotal = (lote.quantidade || 0) * (lote.peso_medio || 0);
-            const ua = pesoTotal / 450; // 1 UA = 450kg
-            
-            // Calcular consumo estimado
-            let consumoEstimado = '-';
-            let consumoInfo = '';
-            if (lote.quantidade && lote.peso_medio && lote.piquete_area) {
-                const uaHa = ua / (lote.piquete_area || 1);
-                const fatorCategoria = {
-                    'Bezerro(a)': 0.6,
-                    'Garrote / Novilho(a)': 0.8,
-                    'Boi Magro / Engorda': 1.0,
-                    'Vaca': 1.0,
-                    'Touro': 1.3,
-                    'Personalizado': null
-                };
-                
-                // Usar consumo_base do lote se personalizado
-                const consumoBase = lote.consumo_base || 0.8; // padrão
-                const fator = fatorCategoria[lote.categoria] || 1.0;
-                const fatorUsado = (lote.categoria === 'Personalizado') ? 1.0 : fator;
-                const consumoCmDia = consumoBase * (uaHa / 2) * fatorUsado;
-                
-                consumoEstimado = consumoCmDia.toFixed(2) + ' cm/dia';
-                consumoInfo = `
-                    <div style="background: #e8f5e9; padding: 8px; border-radius: 6px; margin-top: 8px; font-size: 0.8rem;">
-                        <strong style="color: #2e7d32;">📊 Detalhamento Técnico</strong><br>
-                        UA/ha: ${uaHa.toFixed(2)}<br>
-                        ${lote.categoria === 'Personalizado' 
-                            ? `Consumo base customizado: ${consumoBase} cm/dia`
-                            : `Fator categoria: ${(fator * 100).toFixed(0)}%`}
-                    </div>
-                `;
-            }
-            
-            // Status do lote - usar status_info (calculado) em vez de status_calculado (cache)
-            let statusTexto = '';
-            let statusCor = '';
+            const ua = pesoTotal / 450;
             const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
+            const diasPassados = calcularDiasPassados(lote.data_entrada);
+            const dataFormatada = formatarData(lote.data_entrada);
             
-            if (!lote.piquete_atual_id) {
-                statusTexto = '🔵 Aguardando Alocação';
-                statusCor = '#004085';
-            } else {
-                switch(statusCalc) {
-                    case 'RETIRAR':
-                        statusTexto = '🔴 Precisa Sair';
-                        statusCor = '#721c24';
-                        break;
-                    case 'ATENCAO':
-                        statusTexto = '🟠 Atenção';
-                        statusCor = '#856404';
-                        break;
-                    default:
-                        statusTexto = '🟢 OK';
-                        statusCor = '#155724';
-                }
-            }
-            
-            // Dias Técnicos
-            let diasInfo = '';
-            if (lote.piquete_atual_id && lote.dias_tecnicos) {
-                const diasPassados = calcularDiasPassados(lote.data_entrada);
-                const dataFormatada = formatarData(lote.data_entrada);
-                const diasRestantes = Math.max(0, (lote.dias_tecnicos || 0) - diasPassados);
-                
-                diasInfo = `
-                    <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                        <strong style="color: #495057;">📅 Dias Técnicos</strong>
-                        <div style="font-size: 1.5rem; color: #28a745;">
-                            ${lote.dias_tecnicos} dias
-                        </div>
-                        ${dataFormatada 
-                            ? `<div style="margin-top: 8px; padding: 8px; background: #e3f2fd; border-radius: 6px;">
-                                <strong style="color: #0d6efd;">📌 Data de Entrada:</strong> ${dataFormatada}
-                               </div>`
-                            : ''}
-                        ${diasPassados !== null 
-                            ? `<div style="margin-top: 8px; padding: 8px; background: #fff3cd; border-radius: 6px;">
-                                <strong style="color: #856404;">⏱️ Decorridos:</strong> ${diasPassados} dia(s)
-                               </div>`
-                            : ''}
-                        ${lote.data_saida_prevista 
-                            ? `<div style="margin-top: 8px; padding: 8px; background: #d4edda; border-radius: 6px;">
-                                <strong style="color: #155724;">📅 Saída Prevista:</strong> ${lote.data_saida_prevista}
-                               </div>`
-                            : ''}
-                        ${diasRestantes > 0 
-                            ? `<div style="margin-top: 8px; padding: 8px; background: #d1ecf1; border-radius: 6px;">
-                                <strong style="color: #0c5460;">📊 Restantes:</strong> ${diasRestantes} dias
-                               </div>`
-                            : ''}
-                    </div>
-                `;
-            }
-            
-            const html = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: #007bff; margin-bottom: 5px;">${lote.nome}</h2>
-                    <span style="background: ${statusCor}; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;">
-                        ${statusTexto}
-                    </span>
+            let html = `<div style="text-align:center;margin-bottom:20px;"><h2 style="color:#007bff;">${lote.nome}</h2><span class="status-badge ${statusCalc.toLowerCase()}">${statusCalc}</span></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+                    <div style="background:#e3f2fd;padding:15px;border-radius:10px;text-align:center;"><strong>${lote.quantidade || 0}</strong><br><small>Animais</small></div>
+                    <div style="background:#fff3cd;padding:15px;border-radius:10px;text-align:center;"><strong>${ua.toFixed(2)}</strong><br><small>UA Total</small></div>
+                    <div style="background:#28a745;color:white;padding:15px;border-radius:10px;text-align:center;"><strong>${(lote.peso_medio || 0).toFixed(0)}</strong><br><small>Peso Médio</small></div>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.6rem; color: #007bff; font-weight: bold;">${lote.quantidade || 0}</div>
-                        <small style="color: #495057;">🐄 Animais</small>
-                    </div>
-                    <div style="background: #fff3cd; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.6rem; color: #856404; font-weight: bold;">${ua.toFixed(2)}</div>
-                        <small style="color: #495057;">📏 UA Total</small>
-                    </div>
-                    <div style="background: #28a745; color: white; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.6rem; font-weight: bold;">${consumoEstimado}</div>
-                        <small style="color: rgba(255,255,255,0.9);">📉 Consumo Est.</small>
-                    </div>
+                <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:15px;">
+                    <strong>📍 Piquete:</strong> ${lote.piquete_nome || 'Sem piquete'}<br>
+                    <strong>📅 Entrada:</strong> ${dataFormatada || '-'}<br>
+                    <strong>⏱️ Dias no Piquete:</strong> ${diasPassados !== null ? diasPassados : '-'}<br>
+                    <strong>📋 Categoria:</strong> ${lote.categoria || '-'}
                 </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.4rem; color: #495057; font-weight: bold;">${(lote.peso_medio || 0).toFixed(0)} kg</div>
-                        <small style="color: #6c757d;">⚖️ Peso Médio</small>
-                    </div>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
-                        <div style="font-size: 1.4rem; color: #495057; font-weight: bold;">${pesoTotal.toFixed(0)} kg</div>
-                        <small style="color: #6c757d;">🏋️ Peso Total</small>
-                        <div style="font-size: 0.7rem; color: #999; margin-top: 5px;">📊 Estimado (média × qtd)</div>
-                    </div>
-                </div>
-                
-                ${consumoInfo}
-                
-                ${diasInfo}
-                
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <strong style="color: #495057;">📁 Categoria:</strong> ${lote.categoria || 'Não informada'}<br>
-                    ${lote.consumo_base ? `<strong style="color: #495057;">⚙️ Consumo Base:</strong> ${lote.consumo_base} cm/dia<br>` : ''}
-                    <strong style="color: #495057;">📍 Piquete Atual:</strong> ${lote.piquete_nome || 'Sem piquete'}<br>
-                    ${lote.capim ? `<strong style="color: #495057;">🌿 Capim:</strong> ${lote.capim}<br>` : ''}
-                    ${lote.piquete_area ? `<strong style="color: #495057;">📐 Área do Piquete:</strong> ${lote.piquete_area} ha` : ''}
-                </div>
-                
-                ${lote.created_at ? `
-                    <div style="text-align: center; font-size: 0.85rem; color: #6c757d;">
-                        📅 Criado em: ${new Date(lote.created_at).toLocaleDateString('pt-BR')}
-                    </div>
-                ` : ''}
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="fecharModal('modal-detalhes'); abrirModalEditar(${lote.id});">✏️ Editar Lote</button>
-                    ${lote.piquete_atual_id ? `<button class="btn btn-warning" onclick="fecharModal('modal-detalhes'); registrarSaida(${lote.id});">📤 Registrar Saída</button>` : `<button class="btn btn-success" onclick="fecharModal('modal-detalhes'); abrirModalMover(${lote.id}, '${lote.nome}');">➡️ Mover para Piquete</button>`}
-                </div>
-            `;
-            
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <button class="btn btn-primary" onclick="fecharModal('modal-detalhes'); abrirModalEditar(${lote.id});">✏️ Editar</button>
+                    <button class="btn btn-warning" onclick="fecharModal('modal-detalhes'); registrarSaida(${lote.id});">📤 Sair</button>
+                </div>`;
             document.getElementById('detalhes-lote-conteudo').innerHTML = html;
             document.getElementById('modal-detalhes').classList.add('active');
         }
         
         function salvarEdicaoLote() {
             const id = document.getElementById('edit-lote-id').value;
-            const nome = document.getElementById('edit-lote-nome').value;
-            const piqueteId = document.getElementById('edit-lote-piquete').value || null;
-            
-            if (!nome) return alert('Digite o nome do lote!');
-            
-            const categoria = document.getElementById('edit-lote-categoria').value;
-            let peso_medio = parseFloat(document.getElementById('edit-lote-peso').value) || 0;
-            
-            // Se personalizado, usar parâmetros do modal
-            let consumo_base = null;
-            if (categoria === 'Personalizado') {
-                if (!window.personalizadoParamsEdit) {
-                    return alert('Por favor, configure os parâmetros técnicos do Personalizado!');
-                }
-                peso_medio = window.personalizadoParamsEdit.peso_medio;
-                consumo_base = window.personalizadoParamsEdit.consumo_base;
-            }
-            
             const payload = {
-                nome: nome,
-                categoria: categoria,
+                nome: document.getElementById('edit-lote-nome').value,
+                categoria: document.getElementById('edit-lote-categoria').value,
                 quantidade: parseInt(document.getElementById('edit-lote-quantidade').value) || 1,
-                peso_medio: peso_medio,
-                piquete_atual_id: piqueteId
+                peso_medio: parseFloat(document.getElementById('edit-lote-peso').value) || 0,
+                piquete_atual_id: document.getElementById('edit-lote-piquete').value || null
             };
-            
-            // Adicionar consumo_base se personalizado
-            if (consumo_base !== null) {
-                payload.consumo_base = consumo_base;
-            }
-            
-            fetch(`/api/lotes/${id}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            }).then(r => r.json())
-              .then(data => {
-                  if (data.status === 'ok') {
-                      fecharModal('modal-editar');
-                      carregarLotes();
-                      alert('Lote atualizado!');
-                  }
-              });
+            fetch(`/api/lotes/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
+                .then(r => r.json()).then(data => { if (data.status === 'ok') { fecharModal('modal-editar'); carregarLotes(); alert('Lote atualizado!'); } });
         }
         
         function excluirLote() {
             const id = document.getElementById('edit-lote-id').value;
-            const nome = document.getElementById('edit-lote-nome').value;
-            
-            if (!confirm(`Tem certeza que deseja excluir o lote "${nome}"?`)) return;
-            
-            fetch(`/api/lotes/${id}`, {method: 'DELETE'})
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        fecharModal('modal-editar');
-                        carregarLotes();
-                        alert('Lote excluído!');
-                    }
-                });
+            if (!confirm(`Excluir lote?`)) return;
+            fetch(`/api/lotes/${id}`, {method: 'DELETE'}).then(r => r.json()).then(data => { if (data.status === 'ok') { fecharModal('modal-editar'); carregarLotes(); } });
         }
         
         function atualizarStatus() {
-            fetch(`/api/lotes/atualizar-status?fazenda_id=${fazendaId}`, {method: 'POST'})
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        carregarLotes();
-                        alert('Status atualizados!');
-                    }
-                });
+            fetch(`/api/lotes/atualizar-status?fazenda_id=${fazendaId}`, {method: 'POST'}).then(r => r.json()).then(data => { if (data.status === 'ok') carregarLotes(); });
         }
         
         function abrirModalTodosPiquetes(loteId) {
-            const lote = lotes.find(l => l.id === loteId);
-            if (!lote) return;
-            
-            document.getElementById('mover-lote-id').value = lote.id;
-            document.getElementById('mover-lote-nome').textContent = lote.nome;
             document.getElementById('modal-todos-piquetes').classList.add('active');
-            
-            // Carregar todos os piquetes disponíveis
             fetch(`/api/lotes/${loteId}/sugerir-piquetes?fazenda_id=${fazendaId}`)
-                .then(r => r.json())
-                .then(data => {
+                .then(r => r.json()).then(data => {
                     const container = document.getElementById('lista-todos-piquetes');
-                    
-                    if (data.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; color: #999;">Nenhum piquete disponível</p>';
-                        return;
-                    }
-                    
-                    container.innerHTML = data.map((p, i) => {
-                        const isApto = p.status === 'APTO' || p.status === 'APTO_ALCANCADA';
-                        const emoji = isApto ? '🟢' : '🟡';
-                        const statusText = isApto ? 'APTO' : 'RECUPERANDO';
-                        const diasDescanso = p.dias_descanso || 0;
-                        const diasIdeais = p.dias_ideais || 30;
-                        
-                        if (isApto) {
-                            // Piquete apto - pronto para receber
-                            return `
-                                <div class="sugestao-item apto" onclick="selecionarPiquete(${p.id}, this)">
-                                    <div class="sugestao-header">
-                                        <span class="sugestao-nome">${p.nome}</span>
-                                        <span class="sugestao-badge badge-apto">🟢 APTO</span>
-                                    </div>
-                                    <div class="sugestao-info">
-                                        🌿 ${p.capim || 'N/I'} • 📐 ${p.area || 0} ha
-                                        <br>⏱️ ${diasDescanso}/${diasIdeais} dias descansando
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            // Piquete em recuperação
-                            const alturaAtual = p.altura_atual || 0;
-                            const alturaMin = p.altura_entrada || 25;
-                            return `
-                                <div class="sugestao-item quase" onclick="selecionarPiquete(${p.id}, this)">
-                                    <div class="sugestao-header">
-                                        <span class="sugestao-nome">${p.nome}</span>
-                                        <span class="sugestao-badge badge-quase">🟡 RECUPERANDO</span>
-                                    </div>
-                                    <div class="sugestao-info">
-                                        🌿 ${p.capim || 'N/I'} • 📐 ${p.area || 0} ha
-                                        <br>📏 ${alturaAtual}/${alturaMin} cm
-                                        <br>⏱️ ${diasDescanso}/${diasIdeais} dias descansando
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }).join('');
+                    container.innerHTML = data.map(p => `
+                        <div class="sugestao-item ${p.status === 'APTO' ? 'apto' : 'quase'}" onclick="selecionarPiquete(${p.id}, this)">
+                            <div class="sugestao-header"><span class="sugestao-nome">${p.nome}</span><span class="sugestao-badge ${p.status === 'APTO' ? 'badge-apto' : 'badge-quase'}">${p.status}</span></div>
+                            <div class="sugestao-info">${p.capim} • ${p.area} ha • ${p.dias_descanso} dias descanso</div>
+                        </div>
+                    `).join('');
                 });
         }
         
-        function fecharModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-        
-        function fecharModalLote() {
-            fecharModal('modal-lote');
-        }
+        function fecharModal(id) { document.getElementById(id).classList.remove('active'); }
+        function fecharModalLote() { fecharModal('modal-lote'); }
     </script>
 </body>
 </html>

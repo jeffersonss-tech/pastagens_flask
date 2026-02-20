@@ -1,0 +1,222 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; background: #f0f2f5; }
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header h1 { font-size: 1.4rem; }
+.header a { color: #00d9ff; text-decoration: none; }
+
+/* Content */
+.content { padding: 25px; }
+
+/* Stats Cards */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.stat-card strong { display: block; font-size: 2rem; margin-bottom: 5px; }
+.stat-card.animais strong { color: #007bff; }
+.stat-card.ocupacao strong { color: #fd7e14; }
+.stat-card.saida strong { color: #dc3545; }
+.stat-card.disponivel strong { color: #28a745; }
+.stat-card span { color: #666; font-size: 0.85rem; }
+
+/* Filters */
+.filters {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.filters label { font-size: 0.85rem; color: #666; }
+.filters select {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+.filters button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.btn-primary { background: #00d9ff; color: #1a1a2e; }
+.btn-success { background: #28a745; color: white; }
+.btn-warning { background: #ffc107; color: #333; }
+.btn-danger { background: #dc3545; color: white; }
+
+/* Tabela */
+.table-container {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.table-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.table-header h2 { font-size: 1.1rem; color: #1a1a2e; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #f8f9fa; font-size: 0.85rem; color: #666; font-weight: 500; }
+tr:hover { background: #f8f9fa; }
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.status-badge.ok { background: #d4edda; color: #155724; }
+.status-badge.atencao { background: #fff3cd; color: #856404; }
+.status-badge.retirar { background: #f8d7da; color: #721c24; }
+.status-badge.bloqueado { background: #e2d5f1; color: #4a2c7a; }
+.status-badge.sem-piquete { background: #e9ecef; color: #666; }
+.status-badge.aguardando { background: #cce5ff; color: #004085; }
+.status-badge.ocupacao { background: #d1ecf1; color: #0c5460; border: 1px solid #17a2b8; }
+
+/* Dias */
+.dias-info { font-size: 0.9rem; }
+.dias-info .atual { font-weight: bold; }
+.dias-info .limite { color: #999; }
+.dias-info .atual.over { color: #dc3545; }
+.dias-info .atual.near { color: #fd7e14; }
+
+/* Actions */
+.actions { display: flex; gap: 8px; }
+.actions button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.btn-mover { background: #007bff; color: white; }
+.btn-sair { background: #fd7e14; color: white; }
+.btn-ver { background: #6c757d; color: white; }
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal.active { display: flex; }
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 500px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.modal-header h3 { color: #1a1a2e; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+.modal-body { padding: 20px; }
+
+/* Lot name clickable */
+td[style*="cursor: pointer"]:hover {
+    background-color: #f0f7ff;
+}
+td[style*="cursor: pointer"] strong {
+    text-decoration: underline;
+}
+
+/* Form */
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; color: #666; font-size: 0.85rem; margin-bottom: 5px; }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+/* Sugestões de Piquete */
+.sugestao-item {
+    padding: 12px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.sugestao-item:hover { border-color: #00d9ff; background: #f8f9fa; }
+.sugestao-item.apto { border-left: 4px solid #28a745; }
+.sugestao-item.quase { border-left: 4px solid #ffc107; }
+.sugestao-item.selecionado { border-color: #007bff; background: #e7f3ff; }
+
+.sugestao-header { display: flex; justify-content: space-between; align-items: center; }
+.sugestao-nome { font-weight: 600; color: #1a1a2e; }
+.sugestao-info { font-size: 0.85rem; color: #666; margin-top: 5px; }
+.sugestao-badge {
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+.badge-apto { background: #d4edda; color: #155724; }
+.badge-quase { background: #fff3cd; color: #856404; }
+
+/* Buttons */
+.btn-edit {
+    padding: 6px 12px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.btn-edit:hover { background: #5a6268; }
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+.empty-state h3 { margin-bottom: 10px; color: #1a1a2e; }
