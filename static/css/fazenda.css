@@ -98,40 +98,9 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
 /* Grid for dashboard */
 .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-/* Piquetes Section */
-#piquetes-section { display: none; }
-#piquetes-section.active { display: block; }
-
-/* Map Container */
+/* Map Container Dashboard */
 #map-container { height: 450px; border-radius: 10px; overflow: hidden; }
 #map { height: 100%; }
-
-/* Piquetes List */
-.piquetes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 20px; }
-.piquete-card {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 15px;
-    border-left: 4px solid #6c757d; /* Neutro por padrão */
-}
-.piquete-card.ocupado { border-left-color: #dc3545; background: #fff5f5; }
-.piquete-card.recuperando { border-left-color: #fd7e14; background: #fff8f0; }
-.piquete-card.disponivel { border-left-color: #28a745; background: #f0fff4; }
-.piquete-card.sem-altura { border-left-color: #ffc107; background: #fffdf0; }
-.piquete-card h4 { color: #1a1a2e; margin-bottom: 8px; }
-.piquete-card p { color: #666; font-size: 0.85rem; margin-bottom: 5px; }
-.badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    font-weight: bold;
-}
-.badge-green { background: #d4edda; color: #155724; }
-.badge-red { background: #f8d7da; color: #721c24; }
-.badge-yellow { background: #fff3cd; color: #856404; }
-.badge-orange { background: #ffe5d0; color: #c45a00; } /* RECUPERANDO */
-.badge-blue { background: #cce5ff; color: #004085; }
 
 /* Buttons */
 .btn {
