@@ -1,5 +1,7 @@
 // PastoFlow - Lógica específica da seção de Piquetes
 
+var mapPiquetes = null;
+
 // Maps e Desenho
 function initMapPiquetes() {
     if (!mapPiquetes) {
