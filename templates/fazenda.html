@@ -1,174 +1,116 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ fazenda.nome }} - PastoFlow</title>
-    <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fazenda.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/piquetes.css') }}">
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="width: 120px; margin-bottom: 10px;">
-            <span>{{ fazenda.nome }}</span>
-            <div id="data-teste-display" class="data-teste modo-real">
-                <div class="data-teste-label">Data do Sistema</div>
-                <div class="data-teste-valor" id="data-teste-valor">Carregando...</div>
+{% extends 'base.html' %}
+
+{% block title %}{{ fazenda.nome }}{% endblock %}
+{% block header_title %}🏠 {{ fazenda.nome }}{% endblock %}
+
+{% block content %}
+    <!-- DASHBOARD -->
+    <div id="dashboard-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total de Piquetes</h4>
+                <strong>{{ stats.piquetes or 0 }}</strong>
+                <p>piquetes cadastrados</p>
             </div>
-        </div>
-        <ul class="menu">
-            <li class="menu-item active" onclick="showSection('dashboard')">
-                <span>📊</span> Dashboard
-            </li>
-            <li class="menu-item" onclick="showSection('piquetes')">
-                <span>📍</span> Piquetes
-            </li>
-            <li class="menu-item" onclick="window.location.href='/fazenda/' + fazendaId + '/lotes'">
-                <span>📋</span> Lotes
-            </li>
-            <li class="menu-item" onclick="showSection('movimentacao')">
-                <span>🔄</span> Movimentação
-            </li>
-            <li class="menu-item" onclick="window.location.href='/fazenda/' + fazendaId + '/rotacao'">
-                <span>🧠</span> IA Rotação
-            </li>
-            <li class="menu-item" onclick="showSection('relatorios')">
-                <span>📈</span> Relatórios
-            </li>
-        </ul>
-    </div>
-    
-    <!-- Main -->
-    <div class="main">
-        <div class="header">
-            <h2>🏠 {{ fazenda.nome }}</h2>
-            <div class="user-info">
-                <button class="btn" style="background: #6c757d; color: white; padding: 8px 15px; margin-right: 10px;" onclick="verificarAlertasManualmente()" title="Verificar alertas">
-                    🔄
-                </button>
-                <button class="btn" style="background: transparent; color: #1a1a2e; padding: 8px 15px; position: relative;" onclick="abrirModalAlertas()" title="Alertas">
-                    🔔
-                    <span id="alerta-badge" style="display: none; position: absolute; top: 0; right: 0; background: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">0</span>
-                </button>
-                <a href="{{ url_for('home') }}" style="margin-left: 15px;">← Voltar</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-danger" style="margin-left: 10px;">Sair</a>
+            <div class="stat-card">
+                <h4>Área Total</h4>
+                <strong>{{ stats.area_total or 0 }}</strong>
+                <p>hectares</p>
+            </div>
+            <div class="stat-card">
+                <h4>Animais</h4>
+                <strong>{{ stats.animais or 0 }}</strong>
+                <p>bois cadastrados</p>
+            </div>
+            <div class="stat-card">
+                <h4>Disponíveis</h4>
+                <strong>{{ stats.disponiveis or 0 }}</strong>
+                <p>piquetes vagos</p>
             </div>
         </div>
         
-        <div class="content">
-            <!-- DASHBOARD -->
-            <div id="dashboard-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h4>Total de Piquetes</h4>
-                        <strong>{{ stats.piquetes or 0 }}</strong>
-                        <p>piquetes cadastrados</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Área Total</h4>
-                        <strong>{{ stats.area_total or 0 }}</strong>
-                        <p>hectares</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Animais</h4>
-                        <strong>{{ stats.animais or 0 }}</strong>
-                        <p>bois cadastrados</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Disponíveis</h4>
-                        <strong>{{ stats.disponiveis or 0 }}</strong>
-                        <p>piquetes vagos</p>
-                    </div>
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>📍 Mapa dos Piquetes</h3>
+                <div id="map-container">
+                    <div id="map"></div>
                 </div>
-                
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <h3>📍 Mapa dos Piquetes</h3>
-                        <div id="map-container">
-                            <div id="map"></div>
-                        </div>
-                        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn btn-primary" onclick="geoLocalizacaoDashboard()">📍 Minha Localização</button>
-                            <div style="flex: 1; display: flex; gap: 5px; min-width: 250px;">
-                                <input type="text" id="endereco-dashboard" placeholder="Buscar endereço (Ex: Aruanã, GO)" style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
-                                <button class="btn btn-success" onclick="buscarEnderecoDashboard()">🔍 Buscar</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>📋 Últimas Movimentações</h3>
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>Animal</th><th>De</th><th>Para</th><th>Data</th></tr>
-                            </thead>
-                            <tbody id="ultimas-mov"></tbody>
-                        </table>
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="geoLocalizacaoDashboard()">📍 Minha Localização</button>
+                    <div style="flex: 1; display: flex; gap: 5px; min-width: 250px;">
+                        <input type="text" id="endereco-dashboard" placeholder="Buscar endereço (Ex: Aruanã, GO)" style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+                        <button class="btn btn-success" onclick="buscarEnderecoDashboard()">🔍 Buscar</button>
                     </div>
                 </div>
             </div>
-            
-            <!-- PIQUETES -->
-            {% include 'piquetes.html' %}
-            
-            <!-- MOVIMENTAÇÃO -->
-            <div id="movimentacao-section" style="display:none;">
-                <div class="card">
-                    <h3>🔄 Nova Movimentação</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                        <div class="form-group">
-                            <label>Animal/Lote</label>
-                            <select id="mov-animal"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Origem (De)</label>
-                            <select id="mov-origem"><option value="">Nenhum</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Destino (Para)</label>
-                            <select id="mov-destino"><option value="">Selecione...</option></select>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="novaMovimentacao()">🔄 Movimentar</button>
-                </div>
-                
-                <div class="card">
-                    <h3>📋 Histórico de Movimentações</h3>
-                    <table class="data-table">
-                        <thead>
-                            <tr><th>Data</th><th>Animal</th><th>Origem</th><th>Destino</th><th>Motivo</th></tr>
-                        </thead>
-                        <tbody id="historico-mov"></tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- RELATÓRIOS -->
-            <div id="relatorios-section" style="display:none;">
-                <div class="card">
-                    <h3>📈 Relatórios da Fazenda</h3>
-                    <p style="color: #666;">Em breve...</p>
-                </div>
+            <div class="card">
+                <h3>📋 Últimas Movimentações</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Animal</th><th>De</th><th>Para</th><th>Data</th></tr>
+                    </thead>
+                    <tbody id="ultimas-mov"></tbody>
+                </table>
             </div>
         </div>
     </div>
     
-    {% include 'modals/lote_novo.html' %}
-    {% include 'modals/alertas.html' %}
+    <!-- PIQUETES -->
+    {% include 'piquetes.html' %}
     
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Configuração dinâmica injetada pelo Flask
-        const fazendaId = {{ fazenda.id }};
-        const fazendaNome = "{{ fazenda.nome }}";
-        const mapaLat = {{ fazenda.latitude_sede if fazenda.latitude_sede else '-15.7942' }};
-        const mapaLng = {{ fazenda.longitude_sede if fazenda.longitude_sede else '-47.8822' }};
-        const temSede = {{ 'true' if fazenda.latitude_sede and fazenda.longitude_sede else 'false' }};
-    </script>
-    <script src="{{ url_for('static', filename='js/fazenda.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/piquetes.js') }}"></script>
-</body>
-</html>
+    <!-- MOVIMENTAÇÃO -->
+    <div id="movimentacao-section" style="display:none;">
+        <div class="card">
+            <h3>🔄 Nova Movimentação</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Animal/Lote</label>
+                    <select id="mov-animal"><option value="">Selecione...</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Origem (De)</label>
+                    <select id="mov-origem"><option value="">Nenhum</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Destino (Para)</label>
+                    <select id="mov-destino"><option value="">Selecione...</option></select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="novaMovimentacao()">🔄 Movimentar</button>
+        </div>
+        
+        <div class="card">
+            <h3>📋 Histórico de Movimentações</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Data</th><th>Animal</th><th>Origem</th><th>Destino</th><th>Motivo</th></tr>
+                </thead>
+                <tbody id="historico-mov"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- RELATÓRIOS -->
+    <div id="relatorios-section" style="display:none;">
+        <div class="card">
+            <h3>📈 Relatórios da Fazenda</h3>
+            <p style="color: #666;">Em breve...</p>
+        </div>
+    </div>
+
+    <!-- Modais específicos desta página -->
+    {% include 'modals/lote_novo.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Se houver um hash na URL (ex: #piquetes), mostrar a seção correta
+    window.addEventListener('load', () => {
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            showSection(hash);
+            // Marcar item do menu como ativo se necessário
+        }
+    });
+</script>
+{% endblock %}

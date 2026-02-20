@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - PastoFlow</title>
+    <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
+    
+    <!-- CSS Globais -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fazenda.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/piquetes.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="width: 120px; margin-bottom: 10px;">
+            <span>{{ fazenda.nome if fazenda else 'PastoFlow' }}</span>
+            <div id="data-teste-display" class="data-teste modo-real">
+                <div class="data-teste-label">Data do Sistema</div>
+                <div class="data-teste-valor" id="data-teste-valor">Carregando...</div>
+            </div>
+        </div>
+        <ul class="menu">
+            {% if fazenda %}
+            <li class="menu-item {% if request.endpoint == 'fazenda' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}'">
+                <span>📊</span> Dashboard
+            </li>
+            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#piquetes'">
+                <span>📍</span> Piquetes
+            </li>
+            <li class="menu-item {% if request.endpoint == 'lotes' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/lotes'">
+                <span>📋</span> Lotes
+            </li>
+            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#movimentacao'">
+                <span>🔄</span> Movimentação
+            </li>
+            <li class="menu-item {% if request.endpoint == 'rotacao' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/rotacao'">
+                <span>🧠</span> IA Rotação
+            </li>
+            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#relatorios'">
+                <span>📈</span> Relatórios
+            </li>
+            {% else %}
+            <li class="menu-item active" onclick="window.location.href='/'">
+                <span>🏠</span> Home
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <!-- Main -->
+    <div class="main">
+        <div class="header">
+            <h2>{% block header_title %}{% endblock %}</h2>
+            <div class="user-info">
+                {% if fazenda %}
+                <button class="btn" style="background: #6c757d; color: white; padding: 8px 15px; margin-right: 10px;" onclick="verificarAlertasManualmente()" title="Verificar alertas">
+                    🔄
+                </button>
+                <button class="btn" style="background: transparent; color: #1a1a2e; padding: 8px 15px; position: relative;" onclick="abrirModalAlertas()" title="Alertas">
+                    🔔
+                    <span id="alerta-badge" style="display: none; position: absolute; top: 0; right: 0; background: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">0</span>
+                </button>
+                {% endif %}
+                <a href="{{ url_for('home') }}" style="margin-left: 15px;">← Início</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger" style="margin-left: 10px;">Sair</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Modais Globais -->
+    {% if fazenda %}
+        {% include 'modals/alertas.html' %}
+    {% endif %}
+
+    <!-- Scripts Globais -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Configuração injetada pelo Flask
+        const fazendaId = {{ fazenda.id if fazenda else 'null' }};
+        const fazendaNome = "{{ fazenda.nome if fazenda else '' }}";
+        const mapaLat = {{ (fazenda.latitude_sede if fazenda.latitude_sede else '-15.7942') if fazenda else '-15.7942' }};
+        const mapaLng = {{ (fazenda.longitude_sede if fazenda.longitude_sede else '-47.8822') if fazenda else '-47.8822' }};
+        const temSede = {{ ('true' if fazenda.latitude_sede and fazenda.longitude_sede else 'false') if fazenda else 'false' }};
+    </script>
+    <script src="{{ url_for('static', filename='js/fazenda.js') }}"></script>
+    {% if fazenda %}
+    <script src="{{ url_for('static', filename='js/piquetes.js') }}"></script>
+    {% endif %}
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

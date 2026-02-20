@@ -1,101 +1,82 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IA Rotação - PastoFlow</title>
-    <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
+{% extends 'base.html' %}
+
+{% block title %}IA Rotação{% endblock %}
+{% block header_title %}🧠 IA Rotação - {{ fazenda.nome }}{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/rotacao.css') }}">
-</head>
-<body>
-    <!-- Header -->
-    <div class="header">
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div>
-                <h1>🧠 IA Rotação</h1>
-                <p style="opacity: 0.8; font-size: 0.9rem;">{{ fazenda.nome }}</p>
-            </div>
-            <div id="data-teste-display" class="data-teste-display modo-real" style="background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.5); border-radius: 6px; padding: 6px 12px; font-size: 0.8rem;">
-                <span style="opacity: 0.7; font-size: 0.75rem;">Data: </span>
-                <span id="data-teste-valor" style="color: #00d9ff; font-weight: bold;">Carregando...</span>
-            </div>
-        </div>
-        <div>
-            <a href="/fazenda/{{ fazenda.id }}">← Voltar para Dashboard</a>
-        </div>
+{% endblock %}
+
+{% block content %}
+    <!-- Resumo Geral da Fazenda -->
+    <div id="resumo-gerais" class="resumo-gerais">
+        <div class="resumo-box lotes"><strong id="total-lotes">0</strong><span>📋 Lotes</span></div>
+        <div class="resumo-box animais"><strong id="total-animais">0</strong><span>🐄 Animais</span></div>
+        <div class="resumo-box ocupada"><strong id="area-ocupada">0</strong><span>🔴 Ha Ocup.</span></div>
+        <div class="resumo-box descanso"><strong id="area-descanso">0</strong><span>🟡 Ha Desc.</span></div>
+        <div class="resumo-box altura"><strong id="media-altura">0</strong><span>📏 Alt. Média</span></div>
+        <div class="resumo-box prontos"><strong id="prontos">0</strong><span>🟢 Prontos</span></div>
+        <div class="resumo-box criticos"><strong id="criticos">0</strong><span>🔴 Críticos</span></div>
     </div>
     
-    <div class="content">
-        <!-- Resumo Geral da Fazenda -->
-        <div id="resumo-gerais" class="resumo-gerais">
-            <div class="resumo-box lotes"><strong id="total-lotes">0</strong><span>📋 Lotes</span></div>
-            <div class="resumo-box animais"><strong id="total-animais">0</strong><span>🐄 Animais</span></div>
-            <div class="resumo-box ocupada"><strong id="area-ocupada">0</strong><span>🔴 Ha Ocup.</span></div>
-            <div class="resumo-box descanso"><strong id="area-descanso">0</strong><span>🟡 Ha Desc.</span></div>
-            <div class="resumo-box altura"><strong id="media-altura">0</strong><span>📏 Alt. Média</span></div>
-            <div class="resumo-box prontos"><strong id="prontos">0</strong><span>🟢 Prontos</span></div>
-            <div class="resumo-box criticos"><strong id="criticos">0</strong><span>🔴 Críticos</span></div>
-        </div>
-        
-        <!-- Stats -->
-        <div class="stats-row">
-            <div class="stat-box apto"><strong id="count-apto">0</strong><span>🟢 Apto</span></div>
-            <div class="stat-box ocupacao"><strong id="count-ocupacao">0</strong><span>🔵 Ocupado</span></div>
-            <div class="stat-box descanso"><strong id="count-descanso">0</strong><span>🟡 Descanso</span></div>
-            <div class="stat-box proximo"><strong id="count-proximo">0</strong><span>🟠 Próximo</span></div>
-            <div class="stat-box saida"><strong id="count-saida">0</strong><span>🔴 Saída</span></div>
-            <div class="stat-box bloqueado"><strong id="count-bloqueado">0</strong><span>🟣 Bloqueado</span></div>
-        </div>
-        
-        <!-- Seções de Listagem -->
-        <div id="section-saida" class="section" style="display:none;">
-            <h2>🔴 SAÍDA IMEDIATA</h2>
-            <p style="color: #dc3545; margin-bottom: 15px;">⚠️ Estes piquetes precisam de ação URGENTE!</p>
-            <div id="lista-saida"></div>
-        </div>
-        <div id="section-proximo" class="section" style="display:none;">
-            <h2>🟠 PRÓXIMO DA SAÍDA</h2>
-            <p style="color: #fd7e14; margin-bottom: 15px;">Planeje a saída em breve.</p>
-            <div id="lista-proximo"></div>
-        </div>
-        <div id="section-ocupacao" class="section" style="display:none;">
-            <h2>🔵 EM OCUPAÇÃO</h2>
-            <p style="color: #007bff; margin-bottom: 15px;">Animais em pastejo.</p>
-            <div id="lista-ocupacao"></div>
-        </div>
-        <div id="section-apto" class="section" style="display:none;">
-            <h2>🟢 APTOS PARA ENTRADA</h2>
-            <p style="color: #28a745; margin-bottom: 15px;">✅ Prontos para receber animais!</p>
-            <div id="lista-apto"></div>
-        </div>
-        <div id="section-descanso" class="section" style="display:none;">
-            <h2>🟡 EM DESCANSO</h2>
-            <p style="color: #ffc107; margin-bottom: 15px;">Em recuperação.</p>
-            <div id="lista-descanso"></div>
-        </div>
-        <div id="section-bloqueado" class="section" style="display:none;">
-            <h2>🟣 BLOQUEADOS</h2>
-            <p style="color: #6f42c1; margin-bottom: 15px;">Indisponíveis temporariamente.</p>
-            <div id="lista-bloqueado"></div>
-        </div>
-        
-        <!-- Legend -->
-        <div class="legend">
-            <div class="legend-item"><div class="legend-dot" style="background: #dc3545;"></div>🔴 Saída Imediata</div>
-            <div class="legend-item"><div class="legend-dot" style="background: #fd7e14;"></div>🟠 Próximo da Saída</div>
-            <div class="legend-item"><div class="legend-dot" style="background: #007bff;"></div>🔵 Em Ocupação</div>
-            <div class="legend-item"><div class="legend-dot" style="background: #28a745;"></div>🟢 Apto para Entrada</div>
-            <div class="legend-item"><div class="legend-dot" style="background: #ffc107;"></div>🟡 Em Descanso</div>
-            <div class="legend-item"><div class="legend-dot" style="background: #6f42c1;"></div>🟣 Bloqueado</div>
-        </div>
-        
-        <div class="actions-row">
-            <button class="btn btn-primary" onclick="atualizar()">🔄 Atualizar</button>
-            <button class="btn btn-warning" onclick="verificarPassouPonto()">⚠️ Verificar Passou Ponto</button>
-        </div>
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-box apto"><strong id="count-apto">0</strong><span>🟢 Apto</span></div>
+        <div class="stat-box ocupacao"><strong id="count-ocupacao">0</strong><span>🔵 Ocupado</span></div>
+        <div class="stat-box descanso"><strong id="count-descanso">0</strong><span>🟡 Descanso</span></div>
+        <div class="stat-box proximo"><strong id="count-proximo">0</strong><span>🟠 Próximo</span></div>
+        <div class="stat-box saida"><strong id="count-saida">0</strong><span>🔴 Saída</span></div>
+        <div class="stat-box bloqueado"><strong id="count-bloqueado">0</strong><span>🟣 Bloqueado</span></div>
     </div>
     
-    <script>const fazendaId = {{ fazenda.id }};</script>
+    <!-- Seções de Listagem -->
+    <div id="section-saida" class="section" style="display:none;">
+        <h2>🔴 SAÍDA IMEDIATA</h2>
+        <p style="color: #dc3545; margin-bottom: 15px;">⚠️ Estes piquetes precisam de ação URGENTE!</p>
+        <div id="lista-saida"></div>
+    </div>
+    <div id="section-proximo" class="section" style="display:none;">
+        <h2>🟠 PRÓXIMO DA SAÍDA</h2>
+        <p style="color: #fd7e14; margin-bottom: 15px;">Planeje a saída em breve.</p>
+        <div id="lista-proximo"></div>
+    </div>
+    <div id="section-ocupacao" class="section" style="display:none;">
+        <h2>🔵 EM OCUPAÇÃO</h2>
+        <p style="color: #007bff; margin-bottom: 15px;">Animais em pastejo.</p>
+        <div id="lista-ocupacao"></div>
+    </div>
+    <div id="section-apto" class="section" style="display:none;">
+        <h2>🟢 APTOS PARA ENTRADA</h2>
+        <p style="color: #28a745; margin-bottom: 15px;">✅ Prontos para receber animais!</p>
+        <div id="lista-apto"></div>
+    </div>
+    <div id="section-descanso" class="section" style="display:none;">
+        <h2>🟡 EM DESCANSO</h2>
+        <p style="color: #ffc107; margin-bottom: 15px;">Em recuperação.</p>
+        <div id="lista-descanso"></div>
+    </div>
+    <div id="section-bloqueado" class="section" style="display:none;">
+        <h2>🟣 BLOQUEADOS</h2>
+        <p style="color: #6f42c1; margin-bottom: 15px;">Indisponíveis temporariamente.</p>
+        <div id="lista-bloqueado"></div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background: #dc3545;"></div>🔴 Saída Imediata</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #fd7e14;"></div>🟠 Próximo da Saída</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #007bff;"></div>🔵 Em Ocupação</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #28a745;"></div>🟢 Apto para Entrada</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #ffc107;"></div>🟡 Em Descanso</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #6f42c1;"></div>🟣 Bloqueado</div>
+    </div>
+    
+    <div class="actions-row">
+        <button class="btn btn-primary" onclick="atualizar()">🔄 Atualizar</button>
+        <button class="btn btn-warning" onclick="verificarPassouPonto()">⚠️ Verificar Passou Ponto</button>
+    </div>
+{% endblock %}
+
+{% block scripts %}
     <script src="{{ url_for('static', filename='js/rotacao.js') }}"></script>
-</body>
-</html>
+{% endblock %}
