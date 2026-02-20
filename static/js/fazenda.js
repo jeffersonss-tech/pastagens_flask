@@ -12,12 +12,24 @@ let mapDesenhoInit = false;
 
 function showSection(id) {
     document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-    if (event && event.target) {
-        event.target.closest('.menu-item').classList.add('active');
+    
+    // Tentar ativar o item de menu baseado no ID da seção ou no evento
+    if (typeof event !== 'undefined' && event && event.target && event.target.closest) {
+        const menuItem = event.target.closest('.menu-item');
+        if (menuItem) menuItem.classList.add('active');
+    } else {
+        // Fallback: busca pelo ícone se não houver evento (ex: carregamento via URL)
+        const sectionIcons = { 'dashboard': '📊', 'piquetes': '📍', 'movimentacao': '🔄', 'relatorios': '📈' };
+        if (sectionIcons[id]) {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.textContent.includes(sectionIcons[id])) item.classList.add('active');
+            });
+        }
     }
     
     document.querySelectorAll('[id$="-section"]').forEach(s => s.style.display = 'none');
-    document.getElementById(id + '-section').style.display = 'block';
+    const targetSection = document.getElementById(id + '-section');
+    if (targetSection) targetSection.style.display = 'block';
     
     if (id === 'piquetes') {
         setTimeout(() => {
