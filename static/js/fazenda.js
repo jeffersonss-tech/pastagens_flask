@@ -47,6 +47,9 @@ function showSection(id) {
         return;
     }
 
+    // Atualizar a URL sem recarregar a página
+    history.pushState(null, null, '#' + id);
+
     document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
     
     // Tentar ativar o item de menu baseado no ID da seção ou no evento
