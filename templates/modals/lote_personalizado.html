@@ -1,0 +1,25 @@
+<div class="modal" id="modal-personalizado" style="z-index: 2000;">
+    <div class="modal-content" style="width: 400px; z-index: 2001;">
+        <div class="modal-header">
+            <h3>⚙️ Parâmetros Técnicos</h3>
+            <button class="modal-close" onclick="fecharModal('modal-personalizado')">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+                Informe os parâmetros técnicos para categoria <strong>Personalizado</strong>:
+            </p>
+            <div class="form-group">
+                <label>Peso Médio (kg) *</label>
+                <input type="number" id="param-peso-medio" placeholder="Ex: 350" step="0.1" min="50" max="1200">
+            </div>
+            <div class="form-group">
+                <label>Consumo Base (cm/dia em 2 UA/ha)</label>
+                <input type="number" id="param-consumo-base" value="0.8" step="0.05" min="0.1" max="3.0">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <button class="btn" style="background: #6c757d; color: white;" onclick="fecharModal('modal-personalizado')">Cancelar</button>
+                <button class="btn btn-success" onclick="confirmarPersonalizado()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>

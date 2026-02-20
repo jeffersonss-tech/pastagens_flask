@@ -1,0 +1,48 @@
+<div class="modal" id="modal-editar">
+    <div class="modal-content" style="width: 450px;">
+        <div class="modal-header">
+            <h3>✏️ Editar Lote</h3>
+            <button class="modal-close" onclick="fecharModal('modal-editar')">×</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-lote-id">
+            <div class="form-group">
+                <label>Nome do Lote *</label>
+                <input type="text" id="edit-lote-nome" required>
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="edit-lote-categoria" onchange="verificarPersonalizadoEdit(); atualizarPesoMedioEdit();">
+                    <option value="">Selecione...</option>
+                    <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
+                    <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
+                    <option value="Boi Magro / Engorda">Boi Magro / Engorda - 475kg</option>
+                    <option value="Vaca">Vaca - 500kg</option>
+                    <option value="Touro">Touro - 850kg</option>
+                    <option value="Personalizado">⭐ Personalizado</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Quantidade de Animais</label>
+                <input type="number" id="edit-lote-quantidade" value="1" min="1">
+            </div>
+            <div class="form-group">
+                <label>Peso Médio (kg)</label>
+                <input type="number" id="edit-lote-peso" value="0" step="0.1">
+            </div>
+            <div class="form-group">
+                <label>Piquete Atual (opcional)</label>
+                <select id="edit-lote-piquete" onchange="verificarPiqueteRecuperacao()"></select>
+            </div>
+            <div id="aviso-piquete-recuperacao" style="display: none; background: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 12px; margin-bottom: 15px; text-align: center;">
+                <strong style="color: #dc3545;">🚨 AVISO!</strong><br>
+                <small style="color: #721c24;">Este piquete está em RECUPERAÇÃO!</small>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="salvarEdicaoLote()">💾 Salvar</button>
+                <button class="btn btn-warning" onclick="limparPiqueteEdicao()">🚫 Sem Piquete</button>
+                <button class="btn btn-danger" onclick="excluirLote()">🗑️ Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>

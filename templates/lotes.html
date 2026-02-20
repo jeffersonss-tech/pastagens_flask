@@ -94,97 +94,12 @@
     </div>
     
     <!-- Modais -->
-    <div class="modal" id="modal-personalizado" style="z-index: 2000;">
-        <div class="modal-content" style="width: 400px; z-index: 2001;">
-            <div class="modal-header">
-                <h3>⚙️ Parâmetros Técnicos</h3>
-                <button class="modal-close" onclick="fecharModal('modal-personalizado')">×</button>
-            </div>
-            <div class="modal-body">
-                <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
-                    Informe os parâmetros técnicos para categoria <strong>Personalizado</strong>:
-                </p>
-                <div class="form-group">
-                    <label>Peso Médio (kg) *</label>
-                    <input type="number" id="param-peso-medio" placeholder="Ex: 350" step="0.1" min="50" max="1200">
-                </div>
-                <div class="form-group">
-                    <label>Consumo Base (cm/dia em 2 UA/ha)</label>
-                    <input type="number" id="param-consumo-base" value="0.8" step="0.05" min="0.1" max="3.0">
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                    <button class="btn" style="background: #6c757d; color: white;" onclick="fecharModal('modal-personalizado')">Cancelar</button>
-                    <button class="btn btn-success" onclick="confirmarPersonalizado()">Confirmar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+    {% include 'modals/lote_personalizado.html' %}
     {% include 'modals/lote_novo.html' %}
-    
-    <div class="modal" id="modal-editar">
-        <div class="modal-content" style="width: 450px;">
-            <div class="modal-header">
-                <h3>✏️ Editar Lote</h3>
-                <button class="modal-close" onclick="fecharModal('modal-editar')">×</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="edit-lote-id">
-                <div class="form-group"><label>Nome do Lote *</label><input type="text" id="edit-lote-nome" required></div>
-                <div class="form-group">
-                    <label>Categoria</label>
-                    <select id="edit-lote-categoria" onchange="verificarPersonalizadoEdit(); atualizarPesoMedioEdit();">
-                        <option value="">Selecione...</option>
-                        <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
-                        <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
-                        <option value="Boi Magro / Engorda">Boi Magro / Engorda - 475kg</option>
-                        <option value="Vaca">Vaca - 500kg</option>
-                        <option value="Touro">Touro - 850kg</option>
-                        <option value="Personalizado">⭐ Personalizado</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Quantidade de Animais</label><input type="number" id="edit-lote-quantidade" value="1" min="1"></div>
-                <div class="form-group"><label>Peso Médio (kg)</label><input type="number" id="edit-lote-peso" value="0" step="0.1"></div>
-                <div class="form-group"><label>Piquete Atual (opcional)</label><select id="edit-lote-piquete" onchange="verificarPiqueteRecuperacao()"></select></div>
-                <div id="aviso-piquete-recuperacao" style="display: none; background: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 12px; margin-bottom: 15px; text-align: center;">
-                    <strong style="color: #dc3545;">🚨 AVISO!</strong><br><small style="color: #721c24;">Este piquete está em RECUPERAÇÃO!</small>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="salvarEdicaoLote()">💾 Salvar</button>
-                    <button class="btn btn-warning" onclick="limparPiqueteEdicao()">🚫 Sem Piquete</button>
-                    <button class="btn btn-danger" onclick="excluirLote()">🗑️ Excluir</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal" id="modal-mover">
-        <div class="modal-content">
-            <div class="modal-header"><h3>➡️ Mover Lote</h3><button class="modal-close" onclick="fecharModal('modal-mover')">×</button></div>
-            <div class="modal-body">
-                <input type="hidden" id="mover-lote-id">
-                <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;"><strong>Lote:</strong> <span id="mover-lote-nome"></span></div>
-                <h4 style="margin-bottom: 15px;">Selecione o piquete de destino:</h4>
-                <div id="sugestoes-piquetes" style="margin-bottom: 15px;"></div>
-                <div id="sem-piquetes-aptos" style="display: none; text-align: center; padding: 20px; color: #dc3545;">⚠️ Nenhum piquete disponível!</div>
-                <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="confirmarMovimentacao()">✅ Confirmar</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="modal" id="modal-todos-piquetes">
-        <div class="modal-content" style="width: 500px;">
-            <div class="modal-header"><h3>📋 Piquetes Disponíveis</h3><button class="modal-close" onclick="fecharModal('modal-todos-piquetes')">×</button></div>
-            <div class="modal-body"><div id="lista-todos-piquetes" style="max-height: 400px; overflow-y: auto;"></div></div>
-        </div>
-    </div>
-    
-    <div class="modal" id="modal-detalhes">
-        <div class="modal-content" style="width: 550px;">
-            <div class="modal-header"><h3>📋 Detalhes do Lote</h3><button class="modal-close" onclick="fecharModal('modal-detalhes')">×</button></div>
-            <div class="modal-body" id="detalhes-lote-conteudo"></div>
-        </div>
-    </div>
+    {% include 'modals/lote_editar.html' %}
+    {% include 'modals/lote_mover.html' %}
+    {% include 'modals/lote_todos_piquetes.html' %}
+    {% include 'modals/lote_detalhes.html' %}
     
     <script>
         const fazendaId = {{ fazenda.id }};

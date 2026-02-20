@@ -1,0 +1,22 @@
+<div class="modal" id="modal-mover">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>➡️ Mover Lote</h3>
+            <button class="modal-close" onclick="fecharModal('modal-mover')">×</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="mover-lote-id">
+            <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                <strong>Lote:</strong> <span id="mover-lote-nome"></span>
+            </div>
+            <h4 style="margin-bottom: 15px;">Selecione o piquete de destino:</h4>
+            <div id="sugestoes-piquetes" style="margin-bottom: 15px;"></div>
+            <div id="sem-piquetes-aptos" style="display: none; text-align: center; padding: 20px; color: #dc3545;">
+                ⚠️ Nenhum piquete disponível!
+            </div>
+            <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="confirmarMovimentacao()">
+                ✅ Confirmar
+            </button>
+        </div>
+    </div>
+</div>
