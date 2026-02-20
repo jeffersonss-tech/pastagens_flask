@@ -1,16 +1,12 @@
-// PastoFlow - Lógica do Dashboard da Fazenda
-
-let map, mapDesenho, layerGroup;
-let pontos = [];
-let piquetes = [];
-let animais = [];
-let mapPiquetes = null;
-let mapDesenhoInit = false;
-
-// Variáveis globais esperadas (injetadas via HTML):
-// fazendaId, mapaLat, mapaLng, fazendaNome, temSede
-
 function showSection(id) {
+    // Verificar se estamos na página da fazenda (onde as seções existem)
+    const targetSection = document.getElementById(id + '-section');
+    if (!targetSection) {
+        // Se a seção não existe nesta página (ex: estamos na página de Lotes), redireciona
+        window.location.href = '/fazenda/' + fazendaId + '#' + id;
+        return;
+    }
+
     document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
     
     // Tentar ativar o item de menu baseado no ID da seção ou no evento
@@ -28,8 +24,7 @@ function showSection(id) {
     }
     
     document.querySelectorAll('[id$="-section"]').forEach(s => s.style.display = 'none');
-    const targetSection = document.getElementById(id + '-section');
-    if (targetSection) targetSection.style.display = 'block';
+    targetSection.style.display = 'block';
     
     if (id === 'piquetes') {
         setTimeout(() => {

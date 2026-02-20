@@ -26,22 +26,22 @@
         </div>
         <ul class="menu">
             {% if fazenda %}
-            <li class="menu-item {% if request.endpoint == 'fazenda' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}'">
+            <li class="menu-item {% if request.endpoint == 'fazenda' %}active{% endif %}" onclick="showSection('dashboard')">
                 <span>📊</span> Dashboard
             </li>
-            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#piquetes'">
+            <li class="menu-item" onclick="showSection('piquetes')">
                 <span>📍</span> Piquetes
             </li>
             <li class="menu-item {% if request.endpoint == 'lotes' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/lotes'">
                 <span>📋</span> Lotes
             </li>
-            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#movimentacao'">
+            <li class="menu-item" onclick="showSection('movimentacao')">
                 <span>🔄</span> Movimentação
             </li>
             <li class="menu-item {% if request.endpoint == 'rotacao' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/rotacao'">
                 <span>🧠</span> IA Rotação
             </li>
-            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#relatorios'">
+            <li class="menu-item" onclick="showSection('relatorios')">
                 <span>📈</span> Relatórios
             </li>
             {% else %}
