@@ -19,7 +19,7 @@
         <div class="resumo-box criticos"><strong id="criticos">0</strong><span>🔴 Críticos</span></div>
     </div>
     
-    <!-- Stats -->
+    <!-- Stats por Status -->
     <div class="stats-row">
         <div class="stat-box apto"><strong id="count-apto">0</strong><span>🟢 Apto</span></div>
         <div class="stat-box ocupacao"><strong id="count-ocupacao">0</strong><span>🔵 Ocupado</span></div>
@@ -29,39 +29,44 @@
         <div class="stat-box bloqueado"><strong id="count-bloqueado">0</strong><span>🟣 Bloqueado</span></div>
     </div>
     
-    <!-- Seções de Listagem -->
+    <!-- Seções de Listagem de Piquetes -->
     <div id="section-saida" class="section" style="display:none;">
-        <h2 style="color: #1a1a2e; margin-bottom: 15px;">🔴 SAÍDA IMEDIATA</h2>
+        <h2>🔴 SAÍDA IMEDIATA</h2>
         <p style="color: #dc3545; margin-bottom: 15px;">⚠️ Estes piquetes precisam de ação URGENTE!</p>
         <div id="lista-saida"></div>
     </div>
+
     <div id="section-proximo" class="section" style="display:none;">
-        <h2 style="color: #1a1a2e; margin-bottom: 15px;">🟠 PRÓXIMO DA SAÍDA</h2>
+        <h2>🟠 PRÓXIMO DA SAÍDA</h2>
         <p style="color: #fd7e14; margin-bottom: 15px;">Planeje a saída em breve.</p>
         <div id="lista-proximo"></div>
     </div>
+
     <div id="section-ocupacao" class="section" style="display:none;">
-        <h2 style="color: #1a1a2e; margin-bottom: 15px;">🔵 EM OCUPAÇÃO</h2>
+        <h2>🔵 EM OCUPAÇÃO</h2>
         <p style="color: #007bff; margin-bottom: 15px;">Animais em pastejo.</p>
         <div id="lista-ocupacao"></div>
     </div>
+
     <div id="section-apto" class="section" style="display:none;">
-        <h2 style="color: #1a1a2e; margin-bottom: 15px;">🟢 APTOS PARA ENTRADA</h2>
+        <h2>🟢 APTOS PARA ENTRADA</h2>
         <p style="color: #28a745; margin-bottom: 15px;">✅ Prontos para receber animais!</p>
         <div id="lista-apto"></div>
     </div>
+
     <div id="section-descanso" class="section" style="display:none;">
-        <h2 style="color: #1a1a2e; margin-bottom: 15px;">🟡 EM DESCANSO</h2>
+        <h2>🟡 EM DESCANSO</h2>
         <p style="color: #ffc107; margin-bottom: 15px;">Em recuperação.</p>
         <div id="lista-descanso"></div>
     </div>
+
     <div id="section-bloqueado" class="section" style="display:none;">
-        <h2 style="color: #1a1a2e; margin-bottom: 15px;">🟣 BLOQUEADOS</h2>
+        <h2>🟣 BLOQUEADOS</h2>
         <p style="color: #6f42c1; margin-bottom: 15px;">Indisponíveis temporariamente.</p>
         <div id="lista-bloqueado"></div>
     </div>
     
-    <!-- Legend -->
+    <!-- Legenda de Cores -->
     <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background: #dc3545;"></div>🔴 Saída Imediata</div>
         <div class="legend-item"><div class="legend-dot" style="background: #fd7e14;"></div>🟠 Próximo da Saída</div>
@@ -71,9 +76,10 @@
         <div class="legend-item"><div class="legend-dot" style="background: #6f42c1;"></div>🟣 Bloqueado</div>
     </div>
     
-    <div class="actions-row">
-        <button class="btn btn-primary" onclick="atualizar()">🔄 Atualizar</button>
-        <button class="btn btn-warning" onclick="verificarPassouPonto()">⚠️ Verificar Passou Ponto</button>
+    <!-- Ações Inferiores -->
+    <div class="actions-row" style="margin-top: 20px; display: flex; gap: 10px;">
+        <button class="btn-rotacao btn-rotacao-primary" onclick="atualizar()">🔄 Atualizar Dados</button>
+        <button class="btn-rotacao btn-rotacao-warning" onclick="verificarPassouPonto()">⚠️ Verificar Passou Ponto</button>
     </div>
 {% endblock %}
 
