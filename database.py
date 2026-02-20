@@ -292,25 +292,33 @@ def relatorio_estatisticas(fazenda_id=None):
     cursor = conn.cursor()
     
     if fazenda_id:
-        cursor.execute('SELECT COUNT(*) as total FROM fazendas WHERE id = ?', (fazenda_id,))
+        cursor.execute('SELECT COUNT(*) as total FROM fazendas WHERE id = ? AND ativo = 1', (fazenda_id,))
     else:
-        cursor.execute('SELECT COUNT(*) as total FROM fazendas')
+        cursor.execute('SELECT COUNT(*) as total FROM fazendas WHERE ativo = 1')
     total_fazendas = cursor.fetchone()['total']
     
     if fazenda_id:
-        cursor.execute('SELECT COUNT(*) as total, SUM(area) as area_total FROM piquetes WHERE fazenda_id = ?', (fazenda_id,))
+        cursor.execute('SELECT COUNT(*) as total, SUM(area) as area_total FROM piquetes WHERE fazenda_id = ? AND ativo = 1', (fazenda_id,))
     else:
-        cursor.execute('SELECT COUNT(*) as total, SUM(area) as area_total FROM piquetes')
+        cursor.execute('SELECT COUNT(*) as total, SUM(area) as area_total FROM piquetes WHERE ativo = 1')
     res = cursor.fetchone()
     total_piquetes = res['total']
     area_total = res['area_total'] or 0
+
+    # Contagem de animais (lotes)
+    if fazenda_id:
+        cursor.execute('SELECT SUM(quantidade) as total FROM lotes WHERE fazenda_id = ? AND ativo = 1', (fazenda_id,))
+    else:
+        cursor.execute('SELECT SUM(quantidade) as total FROM lotes WHERE ativo = 1')
+    total_animais = cursor.fetchone()['total'] or 0
     
     conn.close()
     
     return {
         'fazendas': total_fazendas,
         'piquetes': total_piquetes,
-        'area_total': area_total
+        'area_total': area_total,
+        'animais': total_animais
     }
 
 # ============ LOTACAO ============
