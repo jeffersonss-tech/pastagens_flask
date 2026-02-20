@@ -15,7 +15,10 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()" title="Recolher/Expandir">
+            <span id="toggle-icon">◀</span>
+        </div>
         <div class="sidebar-header">
             <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="width: 120px; margin-bottom: 10px;">
             <span>{{ fazenda.nome if fazenda else 'PastoFlow' }}</span>
@@ -27,26 +30,26 @@
         <ul class="menu">
             {% if fazenda %}
             <li class="menu-item {% if request.endpoint == 'fazenda' %}active{% endif %}" onclick="showSection('dashboard')">
-                <span>📊</span> Dashboard
+                <span>📊</span> <span>Dashboard</span>
             </li>
             <li class="menu-item" onclick="showSection('piquetes')">
-                <span>📍</span> Piquetes
+                <span>📍</span> <span>Piquetes</span>
             </li>
             <li class="menu-item {% if request.endpoint == 'lotes' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/lotes'">
-                <span>📋</span> Lotes
+                <span>📋</span> <span>Lotes</span>
             </li>
             <li class="menu-item" onclick="showSection('movimentacao')">
-                <span>🔄</span> Movimentação
+                <span>🔄</span> <span>Movimentação</span>
             </li>
             <li class="menu-item {% if request.endpoint == 'rotacao' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/rotacao'">
-                <span>🧠</span> IA Rotação
+                <span>🧠</span> <span>IA Rotação</span>
             </li>
             <li class="menu-item" onclick="showSection('relatorios')">
-                <span>📈</span> Relatórios
+                <span>📈</span> <span>Relatórios</span>
             </li>
             {% else %}
             <li class="menu-item active" onclick="window.location.href='/'">
-                <span>🏠</span> Home
+                <span>🏠</span> <span>Home</span>
             </li>
             {% endif %}
         </ul>

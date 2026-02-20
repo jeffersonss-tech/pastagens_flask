@@ -9,6 +9,35 @@ let mapDesenhoInit = false;
 // Variáveis globais esperadas (injetadas via HTML):
 // fazendaId, mapaLat, mapaLng, fazendaNome, temSede
 
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const icon = document.getElementById('toggle-icon');
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    
+    // Salvar preferência
+    localStorage.setItem('sidebarCollapsed', isCollapsed);
+    
+    // Atualizar ícone
+    icon.textContent = isCollapsed ? '▶' : '◀';
+    
+    // Forçar redimensionamento dos mapas se existirem
+    setTimeout(() => {
+        if (typeof map !== 'undefined' && map) map.invalidateSize();
+        if (typeof mapPiquetes !== 'undefined' && mapPiquetes) mapPiquetes.invalidateSize();
+    }, 300);
+}
+
+// Aplicar preferência ao carregar
+document.addEventListener('DOMContentLoaded', () => {
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (isCollapsed) {
+        const sidebar = document.getElementById('sidebar');
+        const icon = document.getElementById('toggle-icon');
+        if (sidebar) sidebar.classList.add('collapsed');
+        if (icon) icon.textContent = '▶';
+    }
+});
+
 function showSection(id) {
     // Verificar se estamos na página da fazenda (onde as seções existem)
     const targetSection = document.getElementById(id + '-section');

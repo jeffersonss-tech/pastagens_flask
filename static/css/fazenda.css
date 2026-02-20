@@ -8,30 +8,51 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
     color: white;
     padding: 20px 0;
     flex-shrink: 0;
+    transition: width 0.3s ease;
+    position: relative;
+    overflow-x: hidden;
 }
+
+/* Estado contraído da sidebar */
+.sidebar.collapsed {
+    width: 70px;
+}
+
 .sidebar-header {
-    padding: 0 20px 20px;
+    padding: 0 10px 20px;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     margin-bottom: 20px;
     text-align: center;
+    white-space: nowrap;
 }
-.sidebar-header img { display: block; margin: 0 auto 10px; }
-.sidebar-header span { font-size: 0.9rem; opacity: 0.9; font-weight: 500; display: block; margin-top: 5px; }
+
+.sidebar.collapsed .sidebar-header span,
+.sidebar.collapsed .sidebar-header img {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-header::after {
+    content: 'PF';
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #00d9ff;
+}
+
 .data-teste {
-    background: rgba(255, 193, 7, 0.2);
-    border: 1px solid rgba(255, 193, 7, 0.5);
+    background: rgba(40, 167, 69, 0.2);
+    border: 1px solid rgba(40, 167, 69, 0.5);
     border-radius: 6px;
     padding: 8px 12px;
     margin: 10px 15px 0;
     font-size: 0.8rem;
+    transition: opacity 0.2s;
 }
-.data-teste.modo-real {
-    background: rgba(40, 167, 69, 0.2);
-    border-color: rgba(40, 167, 69, 0.5);
+
+.sidebar.collapsed .data-teste {
+    opacity: 0;
+    pointer-events: none;
 }
-.data-teste-label { opacity: 0.7; font-size: 0.75rem; }
-.data-teste-valor { color: #00d9ff; font-weight: bold; font-size: 0.9rem; }
-.data-teste.modo-real .data-teste-valor { color: #28a745; }
+
 .menu { list-style: none; }
 .menu-item {
     padding: 15px 20px;
@@ -41,7 +62,41 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
     gap: 12px;
     transition: all 0.3s;
     border-left: 3px solid transparent;
+    white-space: nowrap;
 }
+
+.sidebar.collapsed .menu-item {
+    padding: 15px 25px;
+}
+
+.sidebar.collapsed .menu-item span:last-child {
+    display: none;
+}
+
+/* Botão de Toggle */
+.sidebar-toggle {
+    position: absolute;
+    top: 10px;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background: #00d9ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    color: #1a1a2e;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: right 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    right: 20px;
+    top: 60px; /* Ajuste para não sobrepor o PF */
+}
+
 .menu-item:hover { background: rgba(255,255,255,0.05); }
 .menu-item.active {
     background: rgba(0, 217, 255, 0.1);
