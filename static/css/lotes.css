@@ -1,18 +1,6 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: system-ui, sans-serif; background: #f0f2f5; }
 
-/* Header */
-.header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: white;
-    padding: 20px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.header h1 { font-size: 1.4rem; }
-.header a { color: #00d9ff; text-decoration: none; }
-
 /* Content */
 .content { padding: 25px; }
 
@@ -23,19 +11,19 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
     gap: 15px;
     margin-bottom: 25px;
 }
-.stat-card {
+.stat-card-lotes {
     background: white;
     padding: 20px;
     border-radius: 12px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.stat-card strong { display: block; font-size: 2rem; margin-bottom: 5px; }
-.stat-card.animais strong { color: #007bff; }
-.stat-card.ocupacao strong { color: #fd7e14; }
-.stat-card.saida strong { color: #dc3545; }
-.stat-card.disponivel strong { color: #28a745; }
-.stat-card span { color: #666; font-size: 0.85rem; }
+.stat-card-lotes strong { display: block; font-size: 2rem; margin-bottom: 5px; }
+.stat-card-lotes.animais strong { color: #007bff; }
+.stat-card-lotes.ocupacao strong { color: #fd7e14; }
+.stat-card-lotes.saida strong { color: #dc3545; }
+.stat-card-lotes.disponivel strong { color: #28a745; }
+.stat-card-lotes span { color: #666; font-size: 0.85rem; }
 
 /* Filters */
 .filters {
@@ -62,10 +50,10 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
     cursor: pointer;
     font-size: 0.85rem;
 }
-.btn-primary { background: #00d9ff; color: #1a1a2e; }
-.btn-success { background: #28a745; color: white; }
-.btn-warning { background: #ffc107; color: #333; }
-.btn-danger { background: #dc3545; color: white; }
+.btn-primary-lotes { background: #00d9ff; color: #1a1a2e; }
+.btn-success-lotes { background: #28a745; color: white; }
+.btn-warning-lotes { background: #ffc107; color: #333; }
+.btn-danger-lotes { background: #dc3545; color: white; }
 
 /* Tabela */
 .table-container {
@@ -126,53 +114,12 @@ tr:hover { background: #f8f9fa; }
 .btn-sair { background: #fd7e14; color: white; }
 .btn-ver { background: #6c757d; color: white; }
 
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-.modal.active { display: flex; }
-.modal-content {
-    background: white;
-    border-radius: 15px;
-    width: 500px;
-    max-width: 95%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-.modal-header {
-    padding: 20px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.modal-header h3 { color: #1a1a2e; }
-.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-.modal-body { padding: 20px; }
-
 /* Lot name clickable */
 td[style*="cursor: pointer"]:hover {
     background-color: #f0f7ff;
 }
 td[style*="cursor: pointer"] strong {
     text-decoration: underline;
-}
-
-/* Form */
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; color: #666; font-size: 0.85rem; margin-bottom: 5px; }
-.form-group input, .form-group select, .form-group textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 0.95rem;
 }
 
 /* Sugestões de Piquete */
@@ -200,18 +147,6 @@ td[style*="cursor: pointer"] strong {
 }
 .badge-apto { background: #d4edda; color: #155724; }
 .badge-quase { background: #fff3cd; color: #856404; }
-
-/* Buttons */
-.btn-edit {
-    padding: 6px 12px;
-    background: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-}
-.btn-edit:hover { background: #5a6268; }
 
 /* Empty State */
 .empty-state {

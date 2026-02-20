@@ -10,19 +10,19 @@
 {% block content %}
     <!-- Stats -->
     <div class="stats-row">
-        <div class="stat-card animais">
+        <div class="stat-card-lotes animais">
             <strong id="stat-total">0</strong>
             <span>🐄 Total de Lotes</span>
         </div>
-        <div class="stat-card ocupacao">
+        <div class="stat-card-lotes ocupacao">
             <strong id="stat-ocupacao">0</strong>
             <span>📍 Em Ocupação</span>
         </div>
-        <div class="stat-card saida">
+        <div class="stat-card-lotes saida">
             <strong id="stat-saida">0</strong>
             <span>⚠️ Precisa Sair</span>
         </div>
-        <div class="stat-card disponivel">
+        <div class="stat-card-lotes disponivel">
             <strong id="stat-animais">0</strong>
             <span>🐃 Total Animais</span>
         </div>
@@ -49,14 +49,14 @@
             <option value="Touro">Touro</option>
         </select>
         
-        <button class="btn btn-warning" onclick="atualizarStatus()">🔄 Atualizar Status</button>
-        <button class="btn btn-primary" onclick="abrirModalNovoLote()">➕ Novo Lote</button>
+        <button class="btn-warning-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;" onclick="atualizarStatus()">🔄 Atualizar Status</button>
+        <button class="btn-primary-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;" onclick="abrirModalNovoLote()">➕ Novo Lote</button>
     </div>
     
     <!-- Tabela -->
     <div class="table-container">
         <div class="table-header">
-            <h2>📋 Lotes Ativos</h2>
+            <h2 style="color: #1a1a2e;">📋 Lotes Ativos</h2>
         </div>
         <table>
             <thead>

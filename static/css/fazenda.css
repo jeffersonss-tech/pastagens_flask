@@ -15,14 +15,14 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
     margin-bottom: 20px;
     text-align: center;
 }
-.sidebar-header h1 { font-size: 1.2rem; margin-bottom: 5px; }
+.sidebar-header img { display: block; margin: 0 auto 10px; }
 .sidebar-header span { font-size: 0.9rem; opacity: 0.9; font-weight: 500; display: block; margin-top: 5px; }
 .data-teste {
     background: rgba(255, 193, 7, 0.2);
     border: 1px solid rgba(255, 193, 7, 0.5);
     border-radius: 6px;
     padding: 8px 12px;
-    margin-top: 10px;
+    margin: 10px 15px 0;
     font-size: 0.8rem;
 }
 .data-teste.modo-real {
@@ -50,9 +50,9 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
 .menu-item span { font-size: 1.1rem; }
 
 /* Main Content */
-.main { flex: 1; display: flex; flex-direction: column; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-/* Header */
+/* Header - Barra Superior */
 .header {
     background: white;
     padding: 15px 30px;
@@ -60,10 +60,12 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    z-index: 10;
 }
-.header h2 { color: #1a1a2e; font-size: 1.3rem; }
+.header h2 { color: #1a1a2e !important; font-size: 1.3rem; margin: 0; }
 .user-info { display: flex; align-items: center; gap: 15px; }
-.user-info a { color: #00d9ff; text-decoration: none; }
+.user-info a { color: #007bff; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+.user-info a:hover { text-decoration: underline; }
 
 /* Content */
 .content { padding: 25px; flex: 1; overflow-y: auto; }
