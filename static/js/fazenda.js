@@ -21,12 +21,8 @@ function showSection(id) {
     
     if (id === 'piquetes') {
         setTimeout(() => {
-            if (!mapPiquetes) {
-                initMapPiquetes();
-            } else {
-                mapPiquetes.invalidateSize();
-                drawAllPiquetes();
-            }
+            initMapPiquetes();
+            drawAllPiquetes();
         }, 200);
     }
 }

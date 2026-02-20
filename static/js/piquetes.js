@@ -16,8 +16,11 @@ function initMapPiquetes() {
                 })
             }).addTo(mapPiquetes).bindPopup(`<strong>${fazendaNome}</strong><br>Sede da fazenda`);
         }
+    } else {
+        // Se já existe, garantir que o mapa esteja focado e limpo para novos desenhos
+        mapPiquetes.setView([mapaLat, mapaLng], 15);
     }
-    mapPiquetes.invalidateSize();
+    setTimeout(() => mapPiquetes.invalidateSize(), 100);
 }
 
 function initMapDesenho() {
