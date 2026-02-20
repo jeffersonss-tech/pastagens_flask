@@ -1094,7 +1094,8 @@ def listar_piquetes(fazenda_id=None):
     # Buscar contagem de animais e dados do lote por piquete
     cursor.execute('''
         SELECT l.piquete_atual_id, COUNT(*) as total_lotes, SUM(l.quantidade) as total_animais,
-               l.id as lote_id, l.data_entrada, l.dias_tecnicos, l.data_saida_prevista
+               l.id as lote_id, l.data_entrada, l.dias_tecnicos, l.data_saida_prevista,
+               l.categoria, l.peso_medio, l.consumo_base
         FROM lotes l
         WHERE l.ativo = 1 AND l.piquete_atual_id IS NOT NULL
         GROUP BY l.piquete_atual_id
@@ -1146,7 +1147,17 @@ def listar_piquetes(fazenda_id=None):
             row_dict['dias_descanso'] = 0
         
         # Calcular altura_estimada e determinar fonte
-        altura_estimada, fonte = calcular_altura_estimada(row_dict)
+        if piquete_id in lotes_por_piquete:
+            lote_info = lotes_por_piquete[piquete_id]
+            altura_estimada, fonte = calcular_altura_estimada(
+                row_dict, 
+                categoria=lote_info['categoria'],
+                peso_medio=lote_info['peso_medio'],
+                consumo_base=lote_info['consumo_base']
+            )
+        else:
+            altura_estimada, fonte = calcular_altura_estimada(row_dict)
+            
         row_dict['altura_estimada'] = altura_estimada
         row_dict['fonte_altura'] = fonte  # 'real' ou 'estimada'
         
