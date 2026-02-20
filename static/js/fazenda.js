@@ -166,7 +166,8 @@ function drawAllPiquetesOnMap() {
             } catch (e) {
                 console.log('Erro ao desenhar poligono', p.id);
             }
-        });
+        }
+    });
 }
 
 function initMapDesenho() {
@@ -804,7 +805,7 @@ function drawAllPiquetes() {
             } catch (e) {
                 console.log('Erro ao desenhar poligono no mapa de piquetes', p.id);
             }
-        });
+        }
     });
 }
 
