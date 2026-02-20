@@ -442,7 +442,13 @@ function abrirModalPiquete() {
     setTimeout(() => initMapDesenho(), 100); 
 }
 function fecharModalPiquete() { document.getElementById('modal-piquete').classList.remove('active'); }
-function abrirModalLote() { document.getElementById('modal-lote').classList.add('active'); }
+function abrirModalLote() {
+    document.getElementById('modal-lote').classList.add('active');
+    // Carregar piquetes para o select se a função existir (evitar erro)
+    if (typeof carregarPiquetesSelect === 'function') {
+        carregarPiquetesSelect();
+    }
+}
 function fecharModalLote() { document.getElementById('modal-lote').classList.remove('active'); }
 function abrirModalVerPiquete() { document.getElementById('modal-ver-piquete').classList.add('active'); }
 function fecharModalVerPiquete() { document.getElementById('modal-ver-piquete').classList.remove('active'); }

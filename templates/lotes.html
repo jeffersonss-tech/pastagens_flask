@@ -348,46 +348,7 @@
     </div>
     
     <!-- Modal Novo Lote -->
-    <div class="modal" id="modal-novo-lote">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>➕ Novo Lote</h3>
-                <button class="modal-close" onclick="fecharModal('modal-novo-lote')">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Nome do Lote *</label>
-                    <input type="text" id="lote-nome" placeholder="Ex: Lote A, Recria 2024">
-                </div>
-                <div class="form-group">
-                    <label>Categoria</label>
-                    <select id="lote-categoria" onchange="verificarPersonalizado()">
-                        <option value="Bezerro(a)">Bezerro(a) - 200kg</option>
-                        <option value="Garrote / Novilho(a)">Garrote / Novilho(a) - 325kg</option>
-                        <option value="Boi Magro / Engorda">Boi Magro / Engorda - 475kg</option>
-                        <option value="Vaca">Vaca - 500kg</option>
-                        <option value="Touro">Touro - 850kg</option>
-                        <option value="Personalizado">⭐ Personalizado</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Quantidade de Animais</label>
-                    <input type="number" id="lote-quantidade" value="1" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Peso Médio (kg)</label>
-                    <input type="number" id="lote-peso" value="0" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label>Piquete de Entrada (opcional)</label>
-                    <select id="lote-piquete">
-                        <option value="">Nenhum (lote sem piquete)</option>
-                    </select>
-                </div>
-                <button class="btn btn-success" style="width: 100%;" onclick="salvarLote()">💾 Criar Lote</button>
-            </div>
-        </div>
-    </div>
+    {% include 'modals/lote_novo.html' %}
     
     <!-- Modal Editar Lote -->
     <div class="modal" id="modal-editar">
@@ -938,7 +899,7 @@
             document.getElementById('lote-categoria').selectedIndex = 0;
             document.getElementById('lote-peso').value = 200; // Bezerro = 200kg
             
-            document.getElementById('modal-novo-lote').classList.add('active');
+            document.getElementById('modal-lote').classList.add('active');
             carregarPiquetesSelect();
         }
         
