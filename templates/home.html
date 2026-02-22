@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minhas Fazendas - PastoFlow</title>
     <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
+    <script src="https://kit.fontawesome.com/4e87c7f296.js" crossorigin="anonymous"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -232,15 +233,15 @@
         </div>
         
         <div class="card">
-            <h2>📍 Minhas Fazendas</h2>
+            <h2><i class="fa-solid fa-map-pin"></i> Minhas Fazendas</h2>
             
             <!-- Seção do Gerente: Gerenciar Operadores -->
             {% if usuario.role == 'gerente' %}
             <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
-                <h3 style="margin: 0 0 10px 0;">👥 Gerenciamento de Operadores</h3>
+                <h3 style="margin: 0 0 10px 0;"><i class="fa-solid fa-users"></i> Gerenciamento de Operadores</h3>
                 <p style="margin: 0 0 15px 0; opacity: 0.9;">Crie e gerencie operadores que terão acesso às suas fazendas.</p>
                 <a href="{{ url_for('gerenciar_operadores') }}" class="btn" style="background: white; color: #667eea; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block;">
-                    ➕ Gerenciar Operadores
+                    <i class="fa-solid fa-user-plus"></i> Gerenciar Operadores
                 </a>
             </div>
             {% endif %}
@@ -250,16 +251,16 @@
                 {% for f in fazendas %}
                 <div class="fazenda-card">
                     <h3>{{ f.nome }}</h3>
-                    <div class="clima-chip" id="clima-fazenda-{{ f.id }}" data-fazenda-id="{{ f.id }}">🌦️ Clima: Carregando...</div>
+                    <div class="clima-chip" id="clima-fazenda-{{ f.id }}" data-fazenda-id="{{ f.id }}"><i class="fa-solid fa-cloud-sun"></i> Clima: Carregando...</div>
                     <p>{{ f.area or 0 }} hectares{% if f.localizacao %}<br>{{ f.localizacao }}{% endif %}</p>
                     {% if f.latitude_sede and f.longitude_sede %}
-                    <p style="font-size: 12px; color: #999;">📍 {{ f.latitude_sede }}, {{ f.longitude_sede }}</p>
+                    <p style="font-size: 12px; color: #999;"><i class="fa-solid fa-location-dot"></i> {{ f.latitude_sede }}, {{ f.longitude_sede }}</p>
                     {% endif %}
                     <a href="{{ url_for('fazenda', id=f.id) }}" class="fazenda-link">Abrir →</a>
                     {% if usuario.role in ['admin', 'gerente'] %}
                     <div class="fazenda-actions">
-                        <button class="btn btn-warning btn-sm" onclick="abrirModalEditar({{ f.id }})">✏️ Editar</button>
-                        <button class="btn btn-danger btn-sm" onclick="abrirModalExcluir({{ f.id }}, '{{ f.nome }}')">🗑️ Excluir</button>
+                        <button class="btn btn-warning btn-sm" onclick="abrirModalEditar({{ f.id }})"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick='abrirModalExcluir({{ f.id }}, {{ f.nome|tojson }})'><i class="fa-solid fa-trash"></i> Excluir</button>
                     </div>
                     {% endif %}
                 </div>
@@ -277,7 +278,7 @@
             <div style="text-align: center; padding: 40px;">
                 <p style="color: #666; margin-bottom: 20px;">Você ainda não tem nenhuma fazenda.</p>
                 <button class="btn btn-primary" onclick="abrirModalCriar()" style="padding: 15px 30px; font-size: 16px;">
-                    ➕ Criar Primeira Fazenda
+                    <i class="fa-solid fa-plus"></i> Criar Primeira Fazenda
                 </button>
             </div>
             {% else %}
@@ -293,7 +294,7 @@
     <!-- Modal Nova Fazenda -->
     <div class="modal" id="modalCriar">
         <div class="modal-content">
-            <h3>🏠 Nova Fazenda</h3>
+            <h3><i class="fa-solid fa-house"></i> Nova Fazenda</h3>
             <div class="form-group">
                 <label>Nome da Fazenda</label>
                 <input type="text" id="nomeFazenda" placeholder="Ex: Fazenda Sta. Rita">
@@ -313,7 +314,7 @@
                 <input type="text" id="descricaoFazenda" placeholder="Observações">
             </div>
             <div class="coordenadas-info">
-                <strong>📍 Coordenadas da Sede (opcional)</strong><br>
+                <strong><i class="fa-solid fa-location-crosshairs"></i> Coordenadas da Sede (opcional)</strong><br>
                 Permite ver a localização no mapa. Você pode informar depois ou deixar vazio.
             </div>
             <div class="form-row">
@@ -327,7 +328,7 @@
                 </div>
             </div>
             <div class="coordenadas-info">
-                <strong>🌦️ Condição Climática (teste)</strong><br>
+                <strong><i class="fa-solid fa-cloud-sun"></i> Condição Climática (teste)</strong><br>
                 Automático usa API/cache. Manual força condição para simulações.
             </div>
             <div class="form-row">
@@ -357,7 +358,7 @@
     <!-- Modal Editar Fazenda -->
     <div class="modal" id="modalEditar">
         <div class="modal-content">
-            <h3>✏️ Editar Fazenda</h3>
+            <h3><i class="fa-solid fa-pen"></i> Editar Fazenda</h3>
             <input type="hidden" id="editarFazendaId">
             <div class="form-group">
                 <label>Nome da Fazenda</label>
@@ -378,7 +379,7 @@
                 <input type="text" id="editarDescricaoFazenda" placeholder="Observações">
             </div>
             <div class="coordenadas-info">
-                <strong>📍 Coordenadas da Sede (opcional)</strong>
+                <strong><i class="fa-solid fa-location-crosshairs"></i> Coordenadas da Sede (opcional)</strong>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -391,7 +392,7 @@
                 </div>
             </div>
             <div class="coordenadas-info">
-                <strong>🌦️ Condição Climática (teste)</strong>
+                <strong><i class="fa-solid fa-cloud-sun"></i> Condição Climática (teste)</strong>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -420,10 +421,10 @@
     <!-- Modal Excluir Fazenda -->
     <div class="modal" id="modalExcluir">
         <div class="modal-content">
-            <h3>🗑️ Excluir Fazenda</h3>
+            <h3><i class="fa-solid fa-trash"></i> Excluir Fazenda</h3>
             <input type="hidden" id="excluirFazendaId">
             <p class="warning-text">
-                <strong>⚠️ Tem certeza?</strong>
+                <strong><i class="fa-solid fa-triangle-exclamation"></i> Tem certeza?</strong>
                 Esta ação não pode ser desfeita.<br>
                 Todos os piquetes, lotes e animais desta fazenda serão excluídos.<br>
                 <span id="excluirFazendaNome" style="font-weight: bold; color: #1a1a2e;"></span>
@@ -602,10 +603,10 @@
                         const cond = (data.condicao || 'normal').toUpperCase();
                         const fator = data.fator !== undefined ? data.fator : 1.0;
                         const fonte = data.fonte || 'api';
-                        chip.textContent = `🌦️ Clima: ${cond} • fator ${fator} • ${fonte}`;
+                        chip.innerHTML = `<i class="fa-solid fa-cloud-sun"></i> Clima: ${cond} • fator ${fator} • ${fonte}`;
                     })
                     .catch(() => {
-                        chip.textContent = '🌦️ Clima: indisponível';
+                        chip.innerHTML = '<i class="fa-solid fa-cloud-sun"></i> Clima: indisponível';
                     });
             });
         }
