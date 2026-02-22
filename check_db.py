@@ -1,19 +1,12 @@
 import sqlite3
 c = sqlite3.connect('pastagens.db')
 cur = c.cursor()
-
-# Ver estrutura das tabelas
-cur.execute("PRAGMA table_info(usuarios)")
-print("=== usuarios ===")
+cur.execute("PRAGMA table_info(fazendas)")
+print("=== fazendas ===")
 for col in cur.fetchall():
     print(col)
 
-print("\n=== user_farm_permissions ===")
-cur.execute("PRAGMA table_info(user_farm_permissions)")
-for col in cur.fetchall():
-    print(col)
-
-print("\n=== permissões atuais ===")
-cur.execute("SELECT * FROM user_farm_permissions LIMIT 10")
+print("\n=== sample fazendas ===")
+cur.execute("SELECT id, nome, usuario_id FROM fazendas LIMIT 5")
 for row in cur.fetchall():
     print(row)

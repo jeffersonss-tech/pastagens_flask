@@ -55,7 +55,19 @@ def admin_dashboard():
         
     conn = database.get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT id, username, nome, role, ativo, email FROM usuarios')
+    
+    # Busca usuários e adiciona info de vinculado a (para operadores)
+    cursor.execute('''
+        SELECT u.id, u.username, u.nome, u.role, u.ativo, u.email,
+               GROUP_CONCAT(DISTINCT g.username) as gerentes_vinculados,
+               GROUP_CONCAT(DISTINCT g.id) as gerentes_ids
+        FROM usuarios u
+        LEFT JOIN user_farm_permissions p ON u.id = p.user_id
+        LEFT JOIN fazendas f ON p.farm_id = f.id
+        LEFT JOIN usuarios g ON f.usuario_id = g.id AND g.role IN ('gerente', 'admin')
+        GROUP BY u.id
+        ORDER BY u.role, u.username
+    ''')
     usuarios = [dict(r) for r in cursor.fetchall()]
     conn.close()
     return render_template('admin/dashboard.html', usuarios=usuarios, fazenda=None)

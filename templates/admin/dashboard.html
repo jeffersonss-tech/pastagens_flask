@@ -63,6 +63,7 @@
                             <th class="px-4 py-3">ID</th>
                             <th>Acesso / Nome</th>
                             <th>Role</th>
+                            <th>Vínculo</th>
                             <th>Status</th>
                             <th class="text-end px-4">Ações</th>
                         </tr>
@@ -86,6 +87,19 @@
                                 <span class="badge rounded-pill {% if u.role == 'admin' %}bg-danger{% elif u.role == 'gerente' %}bg-primary{% else %}bg-secondary{% endif %}">
                                     {{ u.role | upper }}
                                 </span>
+                            </td>
+                            <td style="text-align: center;">
+                                {% if u.role == 'operador' and u.gerentes_vinculados %}
+                                <span style="background: #e3f2fd; color: #0d47a1; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; display: inline-block;">
+                                    <i class="fas fa-link me-1"></i>Vinculado a: <strong>{{ u.gerentes_vinculados }}</strong> (#{{ u.gerentes_ids }})
+                                </span>
+                                {% elif u.role == 'gerente' %}
+                                <span class="text-muted small">-</span>
+                                {% elif u.role == 'admin' %}
+                                <span class="badge bg-danger">Admin Sistema</span>
+                                {% else %}
+                                <span class="text-muted small">-</span>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if u.ativo %}
