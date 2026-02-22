@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Operadores - PastoFlow</title>
     <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
+    <script src="https://kit.fontawesome.com/4e87c7f296.js" crossorigin="anonymous"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -156,9 +157,9 @@
         
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>👥 Gerenciamento de Operadores</h2>
+                <h2><i class="fa-solid fa-users"></i> Gerenciamento de Operadores</h2>
                 <button class="btn btn-primary" onclick="abrirModalNovo()">
-                    ➕ Novo Operador
+                    <i class="fa-solid fa-user-plus"></i> Novo Operador
                 </button>
             </div>
             
@@ -200,18 +201,18 @@
                         </td>
                         <td>
                             <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick="editarOperador({{ op.id }}, '{{ op.username }}', '{{ op.nome or '' }}', '{{ op.email or '' }}', '{{ op.fazendas_ids or '' }}', {{ op.ativo }})">
-                                ✏️ Editar
+                                <i class="fa-solid fa-pen"></i> Editar
                             </button>
                             <a href="{{ url_for('gerente_toggle_operador', user_id=op.id) }}" 
                                class="btn btn-sm {{ 'btn-danger' if op.ativo else 'btn-success' }}"
                                style="margin-right: 5px;"
                                onclick="return confirm('{{ 'Desativar' if op.ativo else 'Ativar' }} operador?')">
-                                {{ '⛔' if op.ativo else '✅' }}
+                                <i class="fa-solid {{ 'fa-ban' if op.ativo else 'fa-check' }}"></i>
                             </a>
                             <a href="{{ url_for('gerente_excluir_operador', user_id=op.id) }}" 
                                class="btn btn-danger btn-sm"
                                onclick="return confirm('Excluir operador \'{{ op.username }}\'? Esta ação não pode ser desfeita!')">
-                                🗑️
+                                <i class="fa-solid fa-trash"></i>
                             </a>
                         </td>
                     </tr>
