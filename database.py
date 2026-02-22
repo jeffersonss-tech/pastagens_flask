@@ -23,9 +23,55 @@ def get_db():
 
 from functools import wraps
 from flask import session, redirect, url_for, abort
+import time
+
+# Tempo em segundos entre verificações de ativo
+ATIVO_CHECK_INTERVAL = 60  # 1 minuto
+
+
+def check_user_active():
+    """Verifica se o usuário ainda está ativo (com cache de 1 minuto)."""
+    if 'user_id' not in session:
+        return False
+    
+    # Se já verificou nos últimos 60 segundos, usa o resultado anterior
+    last_check = session.get('ativo_last_check', 0)
+    if time.time() - last_check < ATIVO_CHECK_INTERVAL:
+        return session.get('ativo_verified', False)
+    
+    # Faz a verificação no banco
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT ativo FROM usuarios WHERE id = ?', (session.get('user_id'),))
+    result = cursor.fetchone()
+    conn.close()
+    
+    is_active = result and result['ativo']
+    
+    # Salva resultado e timestamp na sessão
+    session['ativo_verified'] = is_active
+    session['ativo_last_check'] = time.time()
+    
+    return is_active
+
+
+def user_active_required(f):
+    """Decorator para verificar se o usuário continua ativo (com cache de 1 min)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        if not check_user_active():
+            session.clear()
+            return redirect(url_for('login'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 def role_required(roles):
-    """Decorator para exigir roles específicas."""
+    """Decorator para exigir roles específicas e verificar se usuário está ativo."""
     if isinstance(roles, str):
         roles = [roles]
     def decorator(f):
@@ -33,6 +79,11 @@ def role_required(roles):
         def decorated_function(*args, **kwargs):
             if 'user_id' not in session:
                 return redirect(url_for('login'))
+            
+            if not check_user_active():
+                session.clear()
+                return redirect(url_for('login'))
+            
             if session.get('role') not in roles:
                 abort(403)
             return f(*args, **kwargs)
@@ -47,12 +98,18 @@ def farm_permission_required(f):
         if not farm_id:
             return f(*args, **kwargs)
         
-        # Admin tem acesso a tudo
-        if session.get('role') == 'admin':
-            return f(*args, **kwargs)
+        # Verifica se o usuário ainda está ativo (com cache)
+        if not check_user_active():
+            session.clear()
+            return redirect(url_for('login'))
         
         conn = get_db()
         cursor = conn.cursor()
+        
+        # Admin tem acesso a tudo
+        if session.get('role') == 'admin':
+            conn.close()
+            return f(*args, **kwargs)
         
         # Gerente tem acesso às fazendas que são dele (usuario_id)
         if session.get('role') == 'gerente':
@@ -285,10 +342,16 @@ def criar_usuario(username, password, nome=None, role='user', email=None):
 def verificar_usuario(username, password):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM usuarios WHERE username = ? AND ativo = 1', (username,))
+    # Busca usuário independente de ativo (para verificar se existe)
+    cursor.execute('SELECT * FROM usuarios WHERE username = ?', (username,))
     user = cursor.fetchone()
     conn.close()
-    if user and check_password_hash(user['password_hash'], password):
+    
+    if not user:
+        return None  # Usuário não existe
+    
+    # Retorna usuário mesmo se inativo (a verificação de ativo será feita no app)
+    if check_password_hash(user['password_hash'], password):
         return dict(user)
     return None
 

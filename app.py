@@ -32,6 +32,10 @@ def login():
         
         user = database.verificar_usuario(username, password)
         if user:
+            # Verifica se usuário está ativo
+            if not user.get('ativo'):
+                return render_template('login.html', error='Conta desativada, procure o suporte!')
+            
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
@@ -395,10 +399,8 @@ def home_redirect():
 
 # ============ HOME ============
 @app.route('/')
+@database.user_active_required
 def home():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
     # Se for Admin, mostrar o dashboard de admin por padrão ao acessar a raiz
     if session.get('role') == 'admin' and not session.get('impersonando'):
         return redirect(url_for('admin_dashboard'))
