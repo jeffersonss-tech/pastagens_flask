@@ -26,10 +26,19 @@ function calcularDiasPassados(dataEntrada) {
 function formatarData(dataEntrada) {
     if (!dataEntrada) return null;
     try {
-        const date = new Date(dataEntrada);
+        const raw = String(dataEntrada).trim();
+
+        // Já está no formato BR dd/mm/yyyy
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+            return raw;
+        }
+
+        const date = new Date(raw);
+        if (isNaN(date.getTime())) return null;
         const dia = String(date.getDate()).padStart(2, '0');
         const mes = String(date.getMonth() + 1).padStart(2, '0');
         const ano = date.getFullYear();
+        if (!Number.isFinite(ano)) return null;
         return `${dia}/${mes}/${ano}`;
     } catch (e) {
         return null;
@@ -353,28 +362,84 @@ function limparPiqueteEdicao() { document.getElementById('edit-lote-piquete').va
 function abrirModalDetalhes(loteId) {
     const lote = lotes.find(l => l.id === loteId);
     if (!lote) return;
-    const pesoTotal = (lote.quantidade || 0) * (lote.peso_medio || 0);
+
+    const quantidade = lote.quantidade || 0;
+    const pesoMedio = lote.peso_medio || 0;
+    const pesoTotal = quantidade * pesoMedio;
     const ua = pesoTotal / 450;
-    const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
+    const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || 'OK');
+    const statusLabel = String(statusCalc)
+        .replaceAll('_', ' ')
+        .replace('OCUPACAO', 'OCUPAÇÃO');
+    const diasTecnicos = lote.dias_tecnicos || 0;
     const diasPassados = calcularDiasPassados(lote.data_entrada);
-    const dataFormatada = formatarData(lote.data_entrada);
-    
-    let html = `<div style="text-align:center;margin-bottom:20px;"><h2 style="color:#007bff;">${lote.nome}</h2><span class="status-badge ${statusCalc.toLowerCase()}">${statusCalc}</span></div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
-            <div style="background:#e3f2fd;padding:15px;border-radius:10px;text-align:center;"><strong>${lote.quantidade || 0}</strong><br><small>Animais</small></div>
-            <div style="background:#fff3cd;padding:15px;border-radius:10px;text-align:center;"><strong>${ua.toFixed(2)}</strong><br><small>UA Total</small></div>
-            <div style="background:#28a745;color:white;padding:15px;border-radius:10px;text-align:center;"><strong>${(lote.peso_medio || 0).toFixed(0)}</strong><br><small>Peso Médio</small></div>
+    const diasRestantes = diasPassados !== null ? Math.max(0, diasTecnicos - diasPassados) : null;
+
+    const dataEntradaFmt = formatarData(lote.data_entrada) || '-';
+
+    let dataSaidaPrevistaFmt = '-';
+    if (lote.data_saida_prevista) {
+        const saidaFmt = formatarData(lote.data_saida_prevista);
+        dataSaidaPrevistaFmt = saidaFmt || '-';
+    } else if (lote.data_entrada && Number.isFinite(diasTecnicos) && diasTecnicos > 0) {
+        const d = new Date(lote.data_entrada);
+        if (!isNaN(d.getTime())) {
+            d.setDate(d.getDate() + Number(diasTecnicos));
+            const dia = String(d.getDate()).padStart(2, '0');
+            const mes = String(d.getMonth() + 1).padStart(2, '0');
+            const ano = d.getFullYear();
+            if (Number.isFinite(ano)) {
+                dataSaidaPrevistaFmt = `${dia}/${mes}/${ano}`;
+            }
+        }
+    }
+
+    const consumoBase = lote.consumo_base || 0.8;
+    const areaPiquete = lote.piquete_area || lote.area_piquete || lote.area || null;
+    let consumoEstimado = null;
+    if (areaPiquete && areaPiquete > 0) {
+        const uaHa = ua / areaPiquete;
+        consumoEstimado = +(consumoBase * (uaHa / 2)).toFixed(2);
+    }
+
+    const alturaCapim = (lote.altura_estimada !== null && lote.altura_estimada !== undefined)
+        ? `${lote.altura_estimada} cm`
+        : 'N/I';
+
+    const html = `
+        <div style="text-align:center;margin-bottom:20px;">
+            <h2 style="color:#007bff;">${lote.nome}</h2>
+            <span class="status-badge ${String(statusCalc).toLowerCase()}">${statusLabel}</span>
         </div>
-        <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:15px;">
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+            <div style="background:#e3f2fd;padding:12px;border-radius:10px;text-align:center;"><strong>${quantidade}</strong><br><small>Animais</small></div>
+            <div style="background:#fff3cd;padding:12px;border-radius:10px;text-align:center;"><strong>${(pesoMedio).toFixed(0)} kg</strong><br><small>Peso médio</small></div>
+            <div style="background:#d1ecf1;padding:12px;border-radius:10px;text-align:center;"><strong>${(pesoTotal).toFixed(0)} kg</strong><br><small>Peso total estimado</small></div>
+            <div style="background:#e8f5e9;padding:12px;border-radius:10px;text-align:center;"><strong>${ua.toFixed(2)}</strong><br><small>UA total</small></div>
+        </div>
+
+        <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:12px;">
             <strong>📍 Piquete:</strong> ${lote.piquete_nome || 'Sem piquete'}<br>
-            <strong>📅 Entrada:</strong> ${dataFormatada || '-'}<br>
-            <strong>⏱️ Dias no Piquete:</strong> ${diasPassados !== null ? diasPassados : '-'}<br>
-            <strong>📋 Categoria:</strong> ${lote.categoria || '-'}
+            <strong>📏 Altura estimada do capim:</strong> ${alturaCapim}<br>
+            <strong>📋 Categoria:</strong> ${lote.categoria || '-'}<br>
+            <strong>🧪 Consumo base:</strong> ${consumoBase} cm/dia
+            ${consumoEstimado !== null ? `<br><strong>📉 Consumo diário estimado do lote:</strong> ${consumoEstimado} cm/dia` : ''}
         </div>
+
+        <div style="background:#fff8e1;padding:15px;border-radius:10px;margin-bottom:15px;">
+            <strong>📅 Entrada:</strong> ${dataEntradaFmt}<br>
+            <strong>📆 Saída prevista:</strong> ${dataSaidaPrevistaFmt}<br>
+            <strong>📊 Dias técnicos:</strong> ${diasTecnicos}<br>
+            <strong>⏱️ Dias passados:</strong> ${diasPassados !== null ? diasPassados : '-'}<br>
+            <strong>⌛ Dias restantes:</strong> ${diasRestantes !== null ? diasRestantes : '-'}
+        </div>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button class="btn btn-primary" onclick="fecharModal('modal-detalhes'); abrirModalEditar(${lote.id});">✏️ Editar</button>
             <button class="btn btn-warning" onclick="fecharModal('modal-detalhes'); registrarSaida(${lote.id});">📤 Sair</button>
         </div>`;
+
     document.getElementById('detalhes-lote-conteudo').innerHTML = html;
     document.getElementById('modal-detalhes').classList.add('active');
 }
