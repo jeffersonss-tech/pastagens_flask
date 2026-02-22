@@ -57,24 +57,24 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" style="text-align: center; vertical-align: middle;">
                     <thead class="bg-light text-muted small text-uppercase">
                         <tr>
-                            <th class="px-4 py-3">ID</th>
-                            <th>Acesso / Nome</th>
-                            <th>Role</th>
-                            <th>Vínculo</th>
-                            <th>Status</th>
-                            <th class="text-end px-4">Ações</th>
+                            <th class="px-4 py-3" style="text-align: center;">ID</th>
+                            <th style="text-align: center;">Usuário</th>
+                            <th style="text-align: center;">Role</th>
+                            <th style="text-align: center;">Vínculo</th>
+                            <th style="text-align: center;">Status</th>
+                            <th class="px-4" style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for u in usuarios %}
                         <tr>
-                            <td class="px-4 text-muted small">#{{ u.id }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm bg-light rounded-circle p-2 me-3 text-center" style="width: 40px; height: 40px;">
+                            <td class="px-4 text-muted small" style="text-align: center;">#{{ u.id }}</td>
+                            <td style="text-align: left;">
+                                <div class="d-flex align-items-center" style="justify-content: flex-start;">
+                                    <div class="avatar-sm bg-light rounded-circle p-2 me-3 text-center" style="width: 40px; height: 40px; flex-shrink: 0;">
                                         <i class="fas fa-user text-secondary"></i>
                                     </div>
                                     <div>
@@ -83,7 +83,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 <span class="badge rounded-pill {% if u.role == 'admin' %}bg-danger{% elif u.role == 'gerente' %}bg-primary{% else %}bg-secondary{% endif %}">
                                     {{ u.role | upper }}
                                 </span>
@@ -101,18 +101,18 @@
                                 <span class="text-muted small">-</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 {% if u.ativo %}
-                                <span class="text-success small d-flex align-items-center">
+                                <span class="text-success small d-flex align-items-center" style="justify-content: center;">
                                     <span class="p-1 bg-success rounded-circle me-2"></span> Ativo
                                 </span>
                                 {% else %}
-                                <span class="text-danger small d-flex align-items-center">
+                                <span class="text-danger small d-flex align-items-center" style="justify-content: center;">
                                     <span class="p-1 bg-danger rounded-circle me-2"></span> Inativo
                                 </span>
                                 {% endif %}
                             </td>
-                            <td class="text-end px-4">
+                            <td class="text-end px-4" style="text-align: center;">
                                 <div class="btn-group shadow-sm">
                                     {% if u.id != session.get('user_id') %}
                                     <a href="{{ url_for('admin_impersonar', user_id=u.id) }}" class="btn btn-white btn-sm border-end" title="Assumir conta">
