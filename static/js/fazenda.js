@@ -360,7 +360,7 @@ function loadAll() {
         }
     });
     
-    fetch('/api/movimentacoes').then(r => r.json()).then(data => {
+    fetch('/api/movimentacoes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
         const histMov = document.getElementById('historico-mov');
         if (histMov) {
             histMov.innerHTML = data.slice(0, 10).map(m => `

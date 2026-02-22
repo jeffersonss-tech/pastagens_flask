@@ -870,8 +870,11 @@ def api_listar_movimentacoes():
     if 'user_id' not in session:
         return jsonify({'error': 'Não autorizado'}), 401
     
+    # Pega fazenda_id da query string ou da sessão
+    fazenda_id = request.args.get('fazenda_id') or session.get('fazenda_id')
+    
     from database import listar_movimentacoes
-    movimentacoes = listar_movimentacoes()
+    movimentacoes = listar_movimentacoes(fazenda_id)
     return jsonify(movimentacoes)
 
 @app.route('/api/movimentacoes', methods=['POST'])

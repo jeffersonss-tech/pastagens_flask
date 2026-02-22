@@ -1502,9 +1502,10 @@ def listar_movimentacoes(fazenda_id=None):
             LEFT JOIN lotes l ON m.lote_id = l.id
             LEFT JOIN piquetes p1 ON m.piquete_origem_id = p1.id
             LEFT JOIN piquetes p2 ON m.piquete_destino_id = p2.id
+            WHERE l.fazenda_id = ?
             ORDER BY m.data_movimentacao DESC
             LIMIT 100
-        ''')
+        ''', (fazenda_id,))
     else:
         cursor.execute('''
             SELECT m.*, l.nome as lote_nome, p1.nome as origem_nome, p2.nome as destino_nome
