@@ -39,6 +39,17 @@ def api_clima_condicao_atual():
     if not fazenda:
         return jsonify({'error': 'Fazenda não encontrada'}), 404
 
+    clima_modo = (fazenda.get('clima_modo') or 'automatico').lower()
+    cond_manual = (fazenda.get('condicao_climatica_manual') or 'normal').lower()
+    if clima_modo == 'manual':
+        fator_manual = {'seca': 0.6, 'normal': 1.0, 'chuvoso': 1.2}.get(cond_manual, 1.0)
+        return jsonify({
+            'condicao': cond_manual,
+            'descricao': get_descricao_clima(cond_manual),
+            'fator': fator_manual,
+            'fonte': 'manual'
+        })
+
     lat = fazenda.get('latitude_sede')
     lon = fazenda.get('longitude_sede')
 
@@ -502,7 +513,9 @@ def api_criar_fazenda():
         data.get('localizacao'),
         data.get('descricao'),
         data.get('latitude_sede'),
-        data.get('longitude_sede')
+        data.get('longitude_sede'),
+        data.get('clima_modo', 'automatico'),
+        data.get('condicao_climatica_manual', 'normal')
     )
     return jsonify({'id': fazenda_id, 'status': 'ok'})
 

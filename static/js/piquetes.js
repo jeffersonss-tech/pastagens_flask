@@ -200,7 +200,7 @@ function drawAllPiquetes() {
                         diasRestantes = `<br><small style="color: #155724;">✅ Pronto para receber!</small>`;
                     } else {
                         const diasDescanso = p.dias_descanso || 0;
-                        const crescimento = 1.2; 
+                        const crescimento = getCrescimentoCapimReal(p.capim); 
                         const faltaCm = Math.max(0, p.altura_entrada - (p.altura_estimada || 0));
                         const diasNecessarios = Math.round(faltaCm / crescimento);
                         diasRestantes = `<br><small style="color: #856404;">📅 ~${diasNecessarios} dias necessário${diasNecessarios !== 1 ? 's' : ''} ${badgeFonte}</small><br><small style="color: #6c757d;">📈 ${crescimento} cm/dia | Falta: ${faltaCm}cm</small>`;
@@ -330,7 +330,7 @@ function mostrarPiquete(id) {
     } else if (!temAlgumaAltura) {
         diasInfo = `<p><strong>Dias de Descanso:</strong> ${p.dias_descanso || 0}</p>`;
         const diasMin = calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
-        const crescimento = getCrescimentoCapim(p.capim);
+        const crescimento = getCrescimentoCapimReal(p.capim);
         diasInfo += `<p style="color:#6c757d;"><strong>Necessários:</strong> ~${diasMin} dias<br><small>(Crescimento: ${crescimento} cm/dia)</small></p>`;
     } else if (p.altura_estimada >= p.altura_entrada) {
         diasInfo = `<p style="color:#28a745;"><strong>✅ APTO para receber animais!</strong></p>`;
@@ -338,7 +338,7 @@ function mostrarPiquete(id) {
         diasInfo = `<p style="color:#28a745;"><strong>✅ APTO para receber animais!</strong></p>`;
     } else {
         const diasDescanso = p.dias_descanso || 0;
-        const crescimento = getCrescimentoCapim(p.capim);
+        const crescimento = getCrescimentoCapimReal(p.capim);
         const alturaMostrada = Math.max(p.altura_real_medida || 0, p.altura_estimada || 0);
         const faltaCm = Math.max(0, p.altura_entrada - alturaMostrada);
         const diasNecessarios = Math.round(faltaCm / crescimento);
@@ -579,14 +579,21 @@ function preencherSelectCapins(selectId) {
     if (valorAtual) select.value = valorAtual;
 }
 
+let climaAtualFator = 1.0;
+
 function getCrescimentoCapim(capim) {
     if (capim && dadosCapins[capim]) return dadosCapins[capim].crescimentoDiario;
     return 1.2;
 }
 
+function getCrescimentoCapimReal(capim) {
+    const base = getCrescimentoCapim(capim);
+    return +(base * (climaAtualFator || 1.0)).toFixed(2);
+}
+
 function calcularDiasNecessarios(capim, alturaEntrada, alturaSaida) {
     if (!capim || !dadosCapins[capim]) return 30;
-    const crescimento = dadosCapins[capim].crescimentoDiario;
+    const crescimento = getCrescimentoCapimReal(capim);
     const alturaNecessaria = alturaEntrada - alturaSaida;
     if (crescimento <= 0) return 30;
     return Math.max(1, Math.round(alturaNecessaria / crescimento));
@@ -601,6 +608,7 @@ function atualizarClimaAtualUI() {
             const condicao = (data.condicao || 'normal').toUpperCase();
             const fator = data.fator !== undefined ? data.fator : 1.0;
             const fonte = data.fonte || 'api';
+            climaAtualFator = parseFloat(fator) || 1.0;
 
             const textoSidebar = `${condicao} (fator ${fator})`;
             const textoPiquetes = `${condicao} • fator ${fator} • fonte: ${fonte}`;

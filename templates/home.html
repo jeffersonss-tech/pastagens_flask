@@ -77,6 +77,16 @@
         }
         .fazenda-card h3 { color: #1a1a2e; margin-bottom: 10px; }
         .fazenda-card p { color: #666; font-size: 14px; margin-bottom: 15px; }
+        .clima-chip {
+            display: inline-block;
+            margin-bottom: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: #eef6ff;
+            color: #0b5394;
+            border: 1px solid #cfe2ff;
+        }
         .fazenda-link {
             display: inline-block;
             padding: 10px 20px;
@@ -240,6 +250,7 @@
                 {% for f in fazendas %}
                 <div class="fazenda-card">
                     <h3>{{ f.nome }}</h3>
+                    <div class="clima-chip" id="clima-fazenda-{{ f.id }}" data-fazenda-id="{{ f.id }}">🌦️ Clima: Carregando...</div>
                     <p>{{ f.area or 0 }} hectares{% if f.localizacao %}<br>{{ f.localizacao }}{% endif %}</p>
                     {% if f.latitude_sede and f.longitude_sede %}
                     <p style="font-size: 12px; color: #999;">📍 {{ f.latitude_sede }}, {{ f.longitude_sede }}</p>
@@ -315,6 +326,27 @@
                     <input type="number" id="longitudeFazenda" step="0.000001" placeholder="-50.1234">
                 </div>
             </div>
+            <div class="coordenadas-info">
+                <strong>🌦️ Condição Climática (teste)</strong><br>
+                Automático usa API/cache. Manual força condição para simulações.
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Modo do Clima</label>
+                    <select id="climaModoFazenda" onchange="toggleClimaManual('climaModoFazenda','condicaoManualFazenda')" style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px;">
+                        <option value="automatico">Automático</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condição Manual</label>
+                    <select id="condicaoManualFazenda" disabled style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px;">
+                        <option value="normal">Normal</option>
+                        <option value="seca">Seca</option>
+                        <option value="chuvoso">Chuvoso</option>
+                    </select>
+                </div>
+            </div>
             <div class="modal-buttons">
                 <button class="btn btn-primary" onclick="criarFazenda()">Criar Fazenda</button>
                 <button class="btn btn-secondary" onclick="fecharModal('modalCriar')">Cancelar</button>
@@ -358,6 +390,26 @@
                     <input type="number" id="editarLongitudeFazenda" step="0.000001" placeholder="-50.1234">
                 </div>
             </div>
+            <div class="coordenadas-info">
+                <strong>🌦️ Condição Climática (teste)</strong>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Modo do Clima</label>
+                    <select id="editarClimaModoFazenda" onchange="toggleClimaManual('editarClimaModoFazenda','editarCondicaoManualFazenda')" style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px;">
+                        <option value="automatico">Automático</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condição Manual</label>
+                    <select id="editarCondicaoManualFazenda" disabled style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px;">
+                        <option value="normal">Normal</option>
+                        <option value="seca">Seca</option>
+                        <option value="chuvoso">Chuvoso</option>
+                    </select>
+                </div>
+            </div>
             <div class="modal-buttons">
                 <button class="btn btn-warning" onclick="salvarEdicao()">Salvar Alterações</button>
                 <button class="btn btn-secondary" onclick="fecharModal('modalEditar')">Cancelar</button>
@@ -385,7 +437,17 @@
     
     <script>
         function abrirModalCriar() {
+            document.getElementById('climaModoFazenda').value = 'automatico';
+            document.getElementById('condicaoManualFazenda').value = 'normal';
+            toggleClimaManual('climaModoFazenda','condicaoManualFazenda');
             document.getElementById('modalCriar').classList.add('active');
+        }
+
+        function toggleClimaManual(modoId, condicaoId) {
+            const modo = document.getElementById(modoId);
+            const condicao = document.getElementById(condicaoId);
+            if (!modo || !condicao) return;
+            condicao.disabled = modo.value !== 'manual';
         }
         
         function abrirModalEditar(id) {
@@ -400,6 +462,9 @@
                 document.getElementById('editarDescricaoFazenda').value = data.descricao || '';
                 document.getElementById('editarLatitudeFazenda').value = data.latitude_sede || '';
                 document.getElementById('editarLongitudeFazenda').value = data.longitude_sede || '';
+                document.getElementById('editarClimaModoFazenda').value = data.clima_modo || 'automatico';
+                document.getElementById('editarCondicaoManualFazenda').value = data.condicao_climatica_manual || 'normal';
+                toggleClimaManual('editarClimaModoFazenda','editarCondicaoManualFazenda');
                 
                 document.getElementById('modalEditar').classList.add('active');
             });
@@ -431,7 +496,9 @@
                     localizacao: document.getElementById('localizacaoFazenda').value,
                     descricao: document.getElementById('descricaoFazenda').value,
                     latitude_sede: lat ? parseFloat(lat) : null,
-                    longitude_sede: lng ? parseFloat(lng) : null
+                    longitude_sede: lng ? parseFloat(lng) : null,
+                    clima_modo: document.getElementById('climaModoFazenda').value || 'automatico',
+                    condicao_climatica_manual: document.getElementById('condicaoManualFazenda').value || 'normal'
                 })
             })
             .then(r => r.json())
@@ -461,7 +528,9 @@
                     localizacao: document.getElementById('editarLocalizacaoFazenda').value,
                     descricao: document.getElementById('editarDescricaoFazenda').value,
                     latitude_sede: lat ? parseFloat(lat) : null,
-                    longitude_sede: lng ? parseFloat(lng) : null
+                    longitude_sede: lng ? parseFloat(lng) : null,
+                    clima_modo: document.getElementById('editarClimaModoFazenda').value || 'automatico',
+                    condicao_climatica_manual: document.getElementById('editarCondicaoManualFazenda').value || 'normal'
                 })
             })
             .then(r => r.json())
@@ -521,8 +590,29 @@
                 });
         }
         
+        function carregarClimaFazendas() {
+            const chips = document.querySelectorAll('[id^="clima-fazenda-"]');
+            chips.forEach(chip => {
+                const fazendaId = chip.getAttribute('data-fazenda-id');
+                if (!fazendaId) return;
+
+                fetch('/api/clima/condicao-atual?fazenda_id=' + fazendaId)
+                    .then(r => r.json())
+                    .then(data => {
+                        const cond = (data.condicao || 'normal').toUpperCase();
+                        const fator = data.fator !== undefined ? data.fator : 1.0;
+                        const fonte = data.fonte || 'api';
+                        chip.textContent = `🌦️ Clima: ${cond} • fator ${fator} • ${fonte}`;
+                    })
+                    .catch(() => {
+                        chip.textContent = '🌦️ Clima: indisponível';
+                    });
+            });
+        }
+
         // Carregar data ao iniciar
         carregarDataTeste();
+        carregarClimaFazendas();
     </script>
 </body>
 </html>

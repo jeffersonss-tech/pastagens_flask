@@ -162,6 +162,8 @@ def init_db():
             descricao TEXT,
             latitude_sede REAL,
             longitude_sede REAL,
+            clima_modo TEXT DEFAULT 'automatico',
+            condicao_climatica_manual TEXT DEFAULT 'normal',
             ativo INTEGER DEFAULT 1,
             created_at TEXT,
             updated_at TEXT,
@@ -169,6 +171,14 @@ def init_db():
         )
     ''')
     
+    # Migração: colunas de clima por fazenda
+    cursor.execute('PRAGMA table_info(fazendas)')
+    colunas_fazendas = [r['name'] for r in cursor.fetchall()]
+    if 'clima_modo' not in colunas_fazendas:
+        cursor.execute("ALTER TABLE fazendas ADD COLUMN clima_modo TEXT DEFAULT 'automatico'")
+    if 'condicao_climatica_manual' not in colunas_fazendas:
+        cursor.execute("ALTER TABLE fazendas ADD COLUMN condicao_climatica_manual TEXT DEFAULT 'normal'")
+
     # Piquetes
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS piquetes (
@@ -365,26 +375,26 @@ def get_usuario(id):
     return dict(user) if user else None
 
 # ============ FAZENDAS ============
-def criar_fazenda(usuario_id, nome, area=None, localizacao=None, descricao=None, latitude_sede=None, longitude_sede=None):
+def criar_fazenda(usuario_id, nome, area=None, localizacao=None, descricao=None, latitude_sede=None, longitude_sede=None, clima_modo='automatico', condicao_climatica_manual='normal'):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO fazendas (usuario_id, nome, area, localizacao, descricao, latitude_sede, longitude_sede, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (usuario_id, nome, area, localizacao, descricao, latitude_sede, longitude_sede, datetime.now().isoformat(), datetime.now().isoformat()))
+        INSERT INTO fazendas (usuario_id, nome, area, localizacao, descricao, latitude_sede, longitude_sede, clima_modo, condicao_climatica_manual, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (usuario_id, nome, area, localizacao, descricao, latitude_sede, longitude_sede, clima_modo, condicao_climatica_manual, datetime.now().isoformat(), datetime.now().isoformat()))
     conn.commit()
     fazenda_id = cursor.lastrowid
     conn.close()
     return fazenda_id
 
-def atualizar_fazenda(id, nome=None, area=None, localizacao=None, descricao=None, latitude_sede=None, longitude_sede=None):
+def atualizar_fazenda(id, nome=None, area=None, localizacao=None, descricao=None, latitude_sede=None, longitude_sede=None, clima_modo='automatico', condicao_climatica_manual='normal'):
     """Atualiza uma fazenda existente"""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        UPDATE fazendas SET nome=?, area=?, localizacao=?, descricao=?, latitude_sede=?, longitude_sede=?, updated_at=?
+        UPDATE fazendas SET nome=?, area=?, localizacao=?, descricao=?, latitude_sede=?, longitude_sede=?, clima_modo=?, condicao_climatica_manual=?, updated_at=?
         WHERE id=?
-    ''', (nome, area, localizacao, descricao, latitude_sede, longitude_sede, datetime.now().isoformat(), id))
+    ''', (nome, area, localizacao, descricao, latitude_sede, longitude_sede, clima_modo, condicao_climatica_manual, datetime.now().isoformat(), id))
     conn.commit()
     conn.close()
 
@@ -1902,18 +1912,20 @@ def calcular_consumo_diario(capim):
     }
     return consumo.get(capim, 0.8)
 
-def _get_fazenda_coords(fazenda_id):
-    """Retorna (lat, lon) da fazenda ou (None, None)."""
+def _get_fazenda_clima_config(fazenda_id):
+    """Retorna config de clima da fazenda."""
     if not fazenda_id:
-        return None, None
+        return None
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT latitude_sede, longitude_sede FROM fazendas WHERE id = ?', (fazenda_id,))
+    cursor.execute('''
+        SELECT latitude_sede, longitude_sede, clima_modo, condicao_climatica_manual
+        FROM fazendas
+        WHERE id = ?
+    ''', (fazenda_id,))
     row = cursor.fetchone()
     conn.close()
-    if not row:
-        return None, None
-    return row['latitude_sede'], row['longitude_sede']
+    return dict(row) if row else None
 
 
 def _resolver_condicao_climatica_piquete(piquete):
@@ -1931,8 +1943,19 @@ def _resolver_condicao_climatica_piquete(piquete):
     lat = piquete.get('fazenda_latitude')
     lon = piquete.get('fazenda_longitude')
 
-    if (lat is None or lon is None) and fazenda_id:
-        lat, lon = _get_fazenda_coords(fazenda_id)
+    if fazenda_id:
+        cfg = _get_fazenda_clima_config(fazenda_id)
+        if cfg:
+            clima_modo = (cfg.get('clima_modo') or 'automatico').lower()
+            cond_fazenda_manual = (cfg.get('condicao_climatica_manual') or 'normal').lower()
+
+            if clima_modo == 'manual' and cond_fazenda_manual in ('seca', 'normal', 'chuvoso'):
+                return cond_fazenda_manual, 'manual_fazenda'
+
+            if lat is None:
+                lat = cfg.get('latitude_sede')
+            if lon is None:
+                lon = cfg.get('longitude_sede')
 
     if lat is not None and lon is not None:
         try:

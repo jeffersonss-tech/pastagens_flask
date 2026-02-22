@@ -42,7 +42,9 @@ def criar_api_fazendas(app):
             data.get('localizacao'),
             data.get('descricao'),
             data.get('latitude_sede'),
-            data.get('longitude_sede')
+            data.get('longitude_sede'),
+            data.get('clima_modo', 'automatico'),
+            data.get('condicao_climatica_manual', 'normal')
         )
         
         return jsonify({'status': 'ok'})
