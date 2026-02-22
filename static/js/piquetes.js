@@ -2,6 +2,13 @@
 
 var mapPiquetes = null;
 
+function manterMapaPiquetesAlinhado() {
+    if (!mapPiquetes) return;
+    setTimeout(() => mapPiquetes.invalidateSize(), 50);
+    setTimeout(() => mapPiquetes.invalidateSize(), 250);
+    setTimeout(() => mapPiquetes.invalidateSize(), 700);
+}
+
 // Maps e Desenho
 function initMapPiquetes() {
     if (!mapPiquetes) {
@@ -22,7 +29,7 @@ function initMapPiquetes() {
         // Se já existe, garantir que o mapa esteja focado e limpo para novos desenhos
         mapPiquetes.setView([mapaLat, mapaLng], 15);
     }
-    setTimeout(() => mapPiquetes.invalidateSize(), 100);
+    manterMapaPiquetesAlinhado();
 }
 
 function initMapDesenho() {
@@ -32,7 +39,7 @@ function initMapDesenho() {
         setTimeout(() => mapDesenho.invalidateSize(), 200);
         return;
     }
-    mapDesenho = L.map('map-desenho').setView([mapaLat, mapaLng], 15);
+    mapDesenho = L.map('map-desenho', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapDesenho);
     layerGroup = L.layerGroup().addTo(mapDesenho);
     
@@ -886,3 +893,11 @@ function excluirPiquete() {
             }
         });
 }
+
+window.addEventListener('resize', () => {
+    manterMapaPiquetesAlinhado();
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) manterMapaPiquetesAlinhado();
+});
