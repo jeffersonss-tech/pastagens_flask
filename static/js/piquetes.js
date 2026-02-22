@@ -507,6 +507,52 @@ dadosCapins['Capim Aruana'] = dadosCapins['Aruana'];
 dadosCapins['Natalino'] = dadosCapins['Andropogon'];
 dadosCapins['Outro'] = {alturaEntrada: 25, alturaSaida: 15, crescimentoDiario: 1.2, fatorConsumo: 1.0, lotacao: 'N/I'};
 
+
+let capimOutroCustom = { crescimentoDiario: null, fatorConsumo: null, lotacao: null };
+let capimOutroContexto = 'novo';
+
+function abrirModalCapimOutro(contexto = 'novo') {
+    capimOutroContexto = contexto;
+    const modal = document.getElementById('modal-capim-outro');
+    if (!modal) return;
+    document.getElementById('outro-crescimento').value = capimOutroCustom.crescimentoDiario ?? '';
+    document.getElementById('outro-fator-consumo').value = capimOutroCustom.fatorConsumo ?? '';
+    document.getElementById('outro-lotacao').value = capimOutroCustom.lotacao ?? '';
+    modal.classList.add('active');
+}
+
+function fecharModalCapimOutro() {
+    const modal = document.getElementById('modal-capim-outro');
+    if (modal) modal.classList.remove('active');
+}
+
+function salvarCapimOutroCustom() {
+    const crescimento = parseFloat(document.getElementById('outro-crescimento').value);
+    const fator = parseFloat(document.getElementById('outro-fator-consumo').value);
+    const lotacao = parseFloat(document.getElementById('outro-lotacao').value);
+
+    if (!crescimento || crescimento <= 0) return alert('Informe um crescimento válido (> 0).');
+    if (!fator || fator <= 0) return alert('Informe um fator de consumo válido (> 0).');
+    if (!lotacao || lotacao <= 0) return alert('Informe uma lotação válida (> 0).');
+
+    capimOutroCustom = { crescimentoDiario: crescimento, fatorConsumo: fator, lotacao };
+    dadosCapins['Outro'] = {
+        alturaEntrada: dadosCapins['Outro'].alturaEntrada,
+        alturaSaida: dadosCapins['Outro'].alturaSaida,
+        crescimentoDiario: crescimento,
+        fatorConsumo: fator,
+        lotacao: `${lotacao} UA/ha`
+    };
+
+    if (capimOutroContexto === 'editar') {
+        atualizarInfoCapimEdit();
+    } else {
+        atualizarInfoCapim();
+    }
+
+    fecharModalCapimOutro();
+}
+
 function preencherSelectCapins(selectId) {
     const select = document.getElementById(selectId);
     if (!select) return;
@@ -549,6 +595,9 @@ function calcularDiasNecessarios(capim, alturaEntrada, alturaSaida) {
 function atualizarInfoCapim() {
     const capim = document.getElementById('pq-capim').value;
     const infoDiv = document.getElementById('info-capim');
+    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) {
+        abrirModalCapimOutro('novo');
+    }
     if (capim && dadosCapins[capim]) {
         const dados = dadosCapins[capim];
         infoDiv.innerHTML = `<strong>ℹ️ ${capim}</strong><br>• Entrada: ${dados.alturaEntrada} cm<br>• Saída: ${dados.alturaSaida} cm<br>• Crescimento: ~${dados.crescimentoDiario} cm/dia<br>• Fator consumo: ${dados.fatorConsumo}<br>• Lotação sugerida: ${dados.lotacao}`;
@@ -563,6 +612,9 @@ function atualizarInfoCapim() {
 function atualizarInfoCapimEdit() {
     const capim = document.getElementById('edit-pq-capim').value;
     const infoDiv = document.getElementById('edit-info-capim');
+    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) {
+        abrirModalCapimOutro('editar');
+    }
     if (capim && dadosCapins[capim]) {
         const dados = dadosCapins[capim];
         infoDiv.innerHTML = `<strong>ℹ️ ${capim}</strong><br>• Entrada: ${dados.alturaEntrada} cm<br>• Saída: ${dados.alturaSaida} cm<br>• Crescimento: ~${dados.crescimentoDiario} cm/dia<br>• Fator consumo: ${dados.fatorConsumo}<br>• Lotação sugerida: ${dados.lotacao}`;
@@ -663,6 +715,8 @@ function validarSalvarPiquete() {
     const dataMedicao = document.getElementById('pq-data-medicao').value.trim();
     if (!nome) return alert('❌ Informe o nome do piquete!');
     if (!capim) return alert('❌ Selecione o tipo de capim!');
+    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('❌ Configure os parâmetros do capim Outro.');
+    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('❌ Configure os parâmetros do capim Outro.');
     if (area <= 0) return alert('❌ A área deve ser maior que 0!');
     if (alturaEntrada <= 0) return alert('❌ Informe a altura ideal de entrada!');
     if (alturaSaida <= 0) return alert('❌ Informe a altura mínima de saída!');
@@ -679,6 +733,11 @@ function salvarPiquete() {
     const coords = pontos.map(p => [p[1], p[0]]);
     coords.push(coords[0]);
     const dataMedicao = document.getElementById('pq-data-medicao').value || null;
+    let observacaoCustom = document.getElementById('pq-observacoes').value || '';
+    if (document.getElementById('pq-capim').value === 'Outro' && capimOutroCustom.crescimentoDiario) {
+        const customStr = `[CAPIM_OUTRO] crescimento=${capimOutroCustom.crescimentoDiario}; fator_consumo=${capimOutroCustom.fatorConsumo}; lotacao=${capimOutroCustom.lotacao}`;
+        observacaoCustom = observacaoCustom ? `${observacaoCustom}\n${customStr}` : customStr;
+    }
     
     fetch('/api/piquetes', {
         method: 'POST',
@@ -694,7 +753,7 @@ function salvarPiquete() {
             altura_atual: parseFloat(document.getElementById('pq-altura-atual').value) || null,
             data_medicao: dataMedicao,
             irrigado: document.getElementById('pq-irrigado').value || 'nao',
-            observacao: document.getElementById('pq-observacoes').value || null
+            observacao: observacaoCustom || null
         })
     }).then(r => r.json()).then(data => {
         alert('Piquete salvo!');
@@ -727,6 +786,11 @@ function salvarEdicaoPiquete() {
     const valorAltura = document.getElementById('edit-pq-altura-atual').value.trim();
     const dataMedicao = document.getElementById('edit-pq-data-medicao').value.trim();
     const p = piquetes.find(x => x.id == id);
+    let observacaoEdit = document.getElementById('edit-pq-observacoes').value || '';
+    if (document.getElementById('edit-pq-capim').value === 'Outro' && capimOutroCustom.crescimentoDiario) {
+        const customStr = `[CAPIM_OUTRO] crescimento=${capimOutroCustom.crescimentoDiario}; fator_consumo=${capimOutroCustom.fatorConsumo}; lotacao=${capimOutroCustom.lotacao}`;
+        observacaoEdit = observacaoEdit ? `${observacaoEdit}\n${customStr}` : customStr;
+    }
     const alturaAnterior = p.altura_real_medida !== null && p.altura_real_medida !== undefined 
         ? p.altura_real_medida 
         : p.altura_atual;
@@ -739,7 +803,7 @@ function salvarEdicaoPiquete() {
         altura_saida: parseFloat(document.getElementById('edit-pq-altura-saida').value) || 0,
         data_medicao: dataMedicao || null,
         irrigado: document.getElementById('edit-pq-irrigado').value || 'nao',
-        observacao: document.getElementById('edit-pq-observacoes').value || null
+        observacao: observacaoEdit || null
     };
     
     if (valorAltura === '') {

@@ -83,3 +83,29 @@
         <button class="btn btn-success" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="validarSalvarPiquete()">💾 Salvar Piquete</button>
     </div>
 </div>
+
+<!-- Modal para parâmetros de capim personalizado (Outro) -->
+<div class="modal" id="modal-capim-outro">
+    <div class="modal-content" style="width: 420px; max-width: 95%;">
+        <div class="modal-header">
+            <h3>🌿 Configurar capim personalizado</h3>
+            <button class="modal-close" onclick="fecharModalCapimOutro()">×</button>
+        </div>
+        <div class="form-group">
+            <label><strong>Crescimento (cm/dia) *</strong></label>
+            <input type="number" id="outro-crescimento" min="0.1" step="0.1" placeholder="Ex: 1.4">
+        </div>
+        <div class="form-group">
+            <label><strong>Fator consumo *</strong></label>
+            <input type="number" id="outro-fator-consumo" min="0.1" step="0.01" placeholder="Ex: 0.85">
+        </div>
+        <div class="form-group">
+            <label><strong>Lotação sugerida (UA/ha) *</strong></label>
+            <input type="number" id="outro-lotacao" min="0.1" step="0.1" placeholder="Ex: 3.0">
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
+            <button class="btn btn-secondary" onclick="fecharModalCapimOutro()">Cancelar</button>
+            <button class="btn btn-primary" onclick="salvarCapimOutroCustom()">Salvar</button>
+        </div>
+    </div>
+</div>
