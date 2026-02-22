@@ -405,7 +405,8 @@ def home():
     
     from database import listar_fazendas_usuario, relatorio_estatisticas
     fazendas = listar_fazendas_usuario(session['user_id'])
-    stats = relatorio_estatisticas()
+    fazendas_ids = [f['id'] for f in fazendas]
+    stats = relatorio_estatisticas(fazendas_ids=fazendas_ids)
     return render_template('home.html', fazendas=fazendas, stats=stats, usuario=session)
 
 
