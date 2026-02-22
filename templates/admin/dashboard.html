@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block header_title %}🛡️ Administração do Sistema{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <!-- Cards de Estatísticas -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 bg-white">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-shape bg-primary text-white rounded-circle p-3 me-3">
+                        <i class="fas fa-users fa-lg"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Total de Usuários</small>
+                        <strong class="h3 mb-0">{{ usuarios|length }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 bg-white border-start border-success border-4">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-shape bg-success text-white rounded-circle p-3 me-3">
+                        <i class="fas fa-user-tie fa-lg"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Gerentes</small>
+                        <strong class="h3 mb-0">{{ usuarios|selectattr("role", "equalto", "gerente")|list|length }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 bg-white border-start border-info border-4">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-shape bg-info text-white rounded-circle p-3 me-3">
+                        <i class="fas fa-hard-hat fa-lg"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Operadores</small>
+                        <strong class="h3 mb-0">{{ usuarios|selectattr("role", "equalto", "operador")|list|length }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Usuários -->
+    <div class="card shadow-sm border-0 bg-white">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">Gestão de Contas</h5>
+            <button class="btn btn-primary px-3 d-flex align-items-center" onclick="abrirModalUsuario()">
+                <i class="fas fa-plus-circle me-2"></i> Novo Usuário
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="px-4 py-3">ID</th>
+                            <th>Acesso / Nome</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th class="text-end px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td class="px-4 text-muted small">#{{ u.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-light rounded-circle p-2 me-3 text-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ u.username }}</div>
+                                        <div class="small text-muted">{{ u.nome or 'Sem nome' }} • {{ u.email or 'Sem email' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill {% if u.role == 'admin' %}bg-danger{% elif u.role == 'gerente' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ u.role | upper }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if u.ativo %}
+                                <span class="text-success small d-flex align-items-center">
+                                    <span class="p-1 bg-success rounded-circle me-2"></span> Ativo
+                                </span>
+                                {% else %}
+                                <span class="text-danger small d-flex align-items-center">
+                                    <span class="p-1 bg-danger rounded-circle me-2"></span> Inativo
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end px-4">
+                                <div class="btn-group shadow-sm">
+                                    {% if u.id != session.get('user_id') %}
+                                    <a href="{{ url_for('admin_impersonar', user_id=u.id) }}" class="btn btn-white btn-sm border-end" title="Assumir conta">
+                                        <i class="fas fa-user-secret text-dark"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_toggle_usuario', user_id=u.id) }}" class="btn btn-white btn-sm border-end" title="{{ 'Desativar' if u.ativo else 'Ativar' }}">
+                                        <i class="fas fa-power-off {{ 'text-danger' if u.ativo else 'text-success' }}"></i>
+                                    </a>
+                                    {% endif %}
+                                    <button class="btn btn-white btn-sm" title="Editar" 
+                                            onclick='editarUsuario({{ u | tojson }})'>
+                                        <i class="fas fa-edit text-primary"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Simples (CSS Puro) -->
+<div id="modalUsuario" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-titulo">Novo Usuário</h3>
+            <button onclick="fecharModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+        </div>
+        <form action="{{ url_for('admin_salvar_usuario') }}" method="POST">
+            <input type="hidden" name="id" id="user-id">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Username *</label>
+                    <input type="text" name="username" id="user-username" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" name="nome" id="user-nome" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" name="email" id="user-email" class="form-control">
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Papel (Role)</label>
+                        <select name="role" id="user-role" class="form-control">
+                            <option value="user">Usuário</option>
+                            <option value="operador">Operador</option>
+                            <option value="gerente" selected>Gerente</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" id="label-pass">Senha *</label>
+                        <input type="password" name="password" id="user-password" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ativo" id="user-ativo" checked>
+                    <label class="form-check-label">Usuário Ativo</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="btn-excluir" onclick="excluirUsuario()" style="display: none; margin-right: auto;">🗑️ Excluir</button>
+                <button type="button" class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    .modal-box {
+        background: white;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-header h3 { margin: 0; font-size: 1.2rem; }
+    .modal-body { padding: 20px; }
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+    function abrirModalUsuario() {
+        document.getElementById('modal-titulo').textContent = 'Novo Usuário';
+        document.getElementById('user-id').value = '';
+        document.getElementById('user-username').value = '';
+        document.getElementById('user-nome').value = '';
+        document.getElementById('user-email').value = '';
+        document.getElementById('user-role').value = 'gerente';
+        document.getElementById('user-password').value = '';
+        document.getElementById('user-password').required = true;
+        document.getElementById('label-pass').textContent = 'Senha *';
+        document.getElementById('user-ativo').checked = true;
+        document.getElementById('btn-excluir').style.display = 'none';
+        
+        document.getElementById('modalUsuario').style.display = 'flex';
+    }
+
+    function editarUsuario(user) {
+        document.getElementById('modal-titulo').textContent = 'Editar Usuário';
+        document.getElementById('user-id').value = user.id;
+        document.getElementById('user-username').value = user.username;
+        document.getElementById('user-nome').value = user.nome || '';
+        document.getElementById('user-email').value = user.email || '';
+        document.getElementById('user-role').value = user.role;
+        document.getElementById('user-password').value = '';
+        document.getElementById('user-password').required = false;
+        document.getElementById('label-pass').textContent = 'Senha (deixe em branco)';
+        document.getElementById('user-ativo').checked = (user.ativo === 1 || user.ativo === true);
+        
+        // Mostrar botão excluir apenas para edição
+        document.getElementById('btn-excluir').style.display = 'block';
+        
+        document.getElementById('modalUsuario').style.display = 'flex';
+    }
+
+    function excluirUsuario() {
+        const userId = document.getElementById('user-id').value;
+        const username = document.getElementById('user-username').value;
+        
+        if (confirm(`Tem certeza que deseja EXCLUIR o usuário "${username}"? Esta ação não pode ser desfeita!`)) {
+            window.location.href = '/admin/usuario/excluir/' + userId;
+        }
+    }
+
+    function fecharModal() {
+        document.getElementById('modalUsuario').style.display = 'none';
+    }
+
+    // Fechar ao clicar fora
+    document.getElementById('modalUsuario').addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharModal();
+        }
+    });
+</script>
+{% endblock %}

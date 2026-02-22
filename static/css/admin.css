@@ -1,0 +1,68 @@
+/* PastoFlow - Admin Dashboard Styles */
+
+.admin-dashboard .card {
+    border-radius: 12px;
+    transition: transform 0.2s;
+}
+
+.admin-dashboard .card:hover {
+    transform: translateY(-2px);
+}
+
+.icon-shape {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-white {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+}
+
+.btn-white:hover {
+    background-color: #f8f9fa;
+}
+
+.avatar-sm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.x-small {
+    font-size: 0.75rem;
+}
+
+/* Modais Custom */
+.modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.modal-header.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.form-check-switch-custom {
+    background-color: #f8f9fa;
+    padding: 10px 15px 10px 45px;
+    border-radius: 8px;
+}
+
+/* Badges e Status */
+.badge-soft-success {
+    background-color: #e6fcf5;
+    color: #28a745;
+}
+
+.badge-soft-danger {
+    background-color: #fff5f5;
+    color: #dc3545;
+}

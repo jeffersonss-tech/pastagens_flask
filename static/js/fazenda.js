@@ -530,11 +530,16 @@ function injetarLotacaoUI() {
 }
 
 window.onload = function() {
-    initMap();
-    loadAll();
-    injetarLotacaoUI();
-    carregarLotacao();
-    carregarAlertas();
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+        initMap();
+        loadAll();
+        injetarLotacaoUI();
+        carregarLotacao();
+        carregarAlertas();
+    } else {
+        console.log('Elemento #map não encontrado. Ignorando initMap().');
+    }
 };
 
 function carregarAlertas() {

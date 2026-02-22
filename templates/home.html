@@ -181,6 +181,13 @@
 </head>
 <body>
     <div class="header">
+        {% if session.get('impersonando') %}
+        <div style="background: #fff3cd; border: 1px solid #ffeeba; padding: 5px 15px; border-radius: 5px; margin-right: 20px; font-size: 0.8rem; display: flex; align-items: center; position: absolute; top: 10px; right: 200px;">
+            <span style="margin-right: 10px;">👤 Modo Admin: <strong>{{ session.get('username') }}</strong></span>
+            <a href="{{ url_for('admin_voltar') }}" class="btn" style="background: #856404; color: white; padding: 2px 8px; font-size: 0.7rem;">← Voltar ao Admin</a>
+        </div>
+        {% endif %}
+        
         <div style="display: flex; align-items: center;">
             <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="height: 40px; margin-right: 15px;">
             <div id="data-teste-display" class="data-teste-display modo-real">
@@ -216,6 +223,17 @@
         
         <div class="card">
             <h2>📍 Minhas Fazendas</h2>
+            
+            <!-- Seção do Gerente: Gerenciar Operadores -->
+            {% if usuario.role == 'gerente' %}
+            <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+                <h3 style="margin: 0 0 10px 0;">👥 Gerenciamento de Operadores</h3>
+                <p style="margin: 0 0 15px 0; opacity: 0.9;">Crie e gerencie operadores que terão acesso às suas fazendas.</p>
+                <a href="{{ url_for('gerenciar_operadores') }}" class="btn" style="background: white; color: #667eea; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block;">
+                    ➕ Gerenciar Operadores
+                </a>
+            </div>
+            {% endif %}
             
             {% if fazendas %}
             <div class="grid">

@@ -21,6 +21,51 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+from functools import wraps
+from flask import session, redirect, url_for, abort
+
+def role_required(roles):
+    """Decorator para exigir roles específicas."""
+    if isinstance(roles, str):
+        roles = [roles]
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user_id' not in session:
+                return redirect(url_for('login'))
+            if session.get('role') not in roles:
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def farm_permission_required(f):
+    """Decorator para verificar se o usuário tem acesso à fazenda."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        farm_id = kwargs.get('id') or session.get('fazenda_id')
+        if not farm_id:
+            return f(*args, **kwargs)
+        
+        # Admin tem acesso a tudo
+        if session.get('role') == 'admin':
+            return f(*args, **kwargs)
+            
+        # Verificar permissão no banco
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT 1 FROM user_farm_permissions 
+            WHERE user_id = ? AND farm_id = ?
+        ''', (session.get('user_id'), farm_id))
+        has_permission = cursor.fetchone()
+        conn.close()
+        
+        if not has_permission:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
 def init_db():
     """Inicializa todas as tabelas."""
     conn = get_db()
@@ -179,9 +224,19 @@ def init_db():
     if not cursor.fetchone():
         hash = generate_password_hash('admin123')
         cursor.execute('''
-            INSERT INTO usuarios (username, password_hash, nome, role, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', ('admin', hash, 'Administrador', 'admin', datetime.now().isoformat(), datetime.now().isoformat()))
+            INSERT INTO usuarios (username, password_hash, nome, role, email, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', ('admin', hash, 'Administrador', 'admin', 'admin@pastoflow.com', datetime.now().isoformat(), datetime.now().isoformat()))
+    
+    # Usuário gerente padrão (para migração de dados existentes se houver)
+    cursor.execute('SELECT id FROM usuarios WHERE username = ?', ('gerente',))
+    if not cursor.fetchone():
+        hash = generate_password_hash('gerente123')
+        cursor.execute('''
+            INSERT INTO usuarios (username, password_hash, nome, role, email, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', ('gerente', hash, 'Gerente Teste', 'gerente', 'gerente@teste.com', datetime.now().isoformat(), datetime.now().isoformat()))
+
     
     # Capins padrão
     cursor.execute('SELECT id FROM capins')
@@ -202,15 +257,15 @@ def init_db():
     print("Banco inicializado!")
 
 # ============ USUÁRIOS ============
-def criar_usuario(username, password, nome=None, role='user'):
+def criar_usuario(username, password, nome=None, role='user', email=None):
     hash = generate_password_hash(password)
     conn = get_db()
     cursor = conn.cursor()
     try:
         cursor.execute('''
-            INSERT INTO usuarios (username, password_hash, nome, role, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (username, hash, nome, role, datetime.now().isoformat(), datetime.now().isoformat()))
+            INSERT INTO usuarios (username, password_hash, nome, role, email, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (username, hash, nome, role, email, datetime.now().isoformat(), datetime.now().isoformat()))
         conn.commit()
         user_id = cursor.lastrowid
         conn.close()
@@ -232,7 +287,7 @@ def verificar_usuario(username, password):
 def get_usuario(id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT id, username, nome, role, created_at FROM usuarios WHERE id = ?', (id,))
+    cursor.execute('SELECT id, username, nome, role, email, created_at FROM usuarios WHERE id = ?', (id,))
     user = cursor.fetchone()
     conn.close()
     return dict(user) if user else None
@@ -273,7 +328,15 @@ def excluir_fazenda(id):
 def listar_fazendas_usuario(usuario_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM fazendas WHERE usuario_id = ? AND ativo = 1 ORDER BY nome', (usuario_id,))
+    
+    # Busca fazendas onde o usuário tem permissão explicita OU é o dono (usuario_id na fazenda)
+    cursor.execute('''
+        SELECT DISTINCT f.* FROM fazendas f
+        LEFT JOIN user_farm_permissions p ON f.id = p.farm_id
+        WHERE (f.usuario_id = ? OR p.user_id = ?) AND f.ativo = 1 
+        ORDER BY f.nome
+    ''', (usuario_id, usuario_id))
+    
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]

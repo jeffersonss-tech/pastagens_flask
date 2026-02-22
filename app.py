@@ -35,11 +35,291 @@ def login():
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
+            
+            # Redirecionamento baseado em Role
+            if user['role'] == 'admin':
+                return redirect(url_for('admin_dashboard'))
             return redirect(url_for('home'))
         else:
             return render_template('login.html', error='Usuário ou senha inválidos!')
     
     return render_template('login.html')
+
+@app.route('/admin')
+@database.role_required('admin')
+def admin_dashboard():
+    """Painel do Administrador do Sistema"""
+    # Se estiver impersonando E não tiver admin_real_id (algo estranho), redireciona
+    if session.get('impersonando') and not session.get('admin_real_id'):
+        return redirect(url_for('home'))
+        
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, username, nome, role, ativo, email FROM usuarios')
+    usuarios = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return render_template('admin/dashboard.html', usuarios=usuarios, fazenda=None)
+
+
+@app.route('/admin/impersonar/<int:user_id>')
+@database.role_required('admin')
+def admin_impersonar(user_id):
+    """Assume o acesso de outro usuário"""
+    user = database.get_usuario(user_id)
+    if user:
+        session['admin_real_id'] = session['user_id']
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['role'] = user['role']
+        session['impersonando'] = True
+    return redirect(url_for('home'))
+
+@app.route('/admin/usuario/salvar', methods=['POST'])
+@database.role_required('admin')
+def admin_salvar_usuario():
+    """Cria ou edita um usuário via Admin"""
+    data = request.form
+    user_id = data.get('id')
+    username = data.get('username')
+    nome = data.get('nome')
+    email = data.get('email')
+    role = data.get('role')
+    password = data.get('password')
+    ativo = 1 if data.get('ativo') else 0
+
+    conn = database.get_db()
+    cursor = conn.cursor()
+
+    if user_id:
+        # Update
+        if password: # Se informou senha, atualiza ela também
+            from werkzeug.security import generate_password_hash
+            hash_pw = generate_password_hash(password)
+            cursor.execute('''
+                UPDATE usuarios SET username=?, nome=?, email=?, role=?, ativo=?, password_hash=?, updated_at=?
+                WHERE id=?
+            ''', (username, nome, email, role, ativo, hash_pw, database.datetime.now().isoformat(), user_id))
+        else:
+            cursor.execute('''
+                UPDATE usuarios SET username=?, nome=?, email=?, role=?, ativo=?, updated_at=?
+                WHERE id=?
+            ''', (username, nome, email, role, ativo, database.datetime.now().isoformat(), user_id))
+    else:
+        # Insert
+        from werkzeug.security import generate_password_hash
+        hash_pw = generate_password_hash(password or '123456') # Senha padrão se não informar
+        try:
+            cursor.execute('''
+                INSERT INTO usuarios (username, nome, email, role, ativo, password_hash, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (username, nome, email, role, ativo, hash_pw, database.datetime.now().isoformat(), database.datetime.now().isoformat()))
+        except Exception as e:
+            return f"Erro ao criar usuário: {e}", 400
+
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/usuario/toggle/<int:user_id>')
+@database.role_required('admin')
+def admin_toggle_usuario(user_id):
+    """Ativa/Desativa usuário"""
+    conn = database.get_db()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE usuarios SET ativo = NOT ativo WHERE id = ?', (user_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/usuario/excluir/<int:user_id>')
+@database.role_required('admin')
+def admin_excluir_usuario(user_id):
+    """Exclui um usuário"""
+    # Não permite excluir a si mesmo
+    if user_id == session.get('user_id'):
+        return "Não é possível excluir seu próprio usuário", 400
+    
+    conn = database.get_db()
+    cursor = conn.cursor()
+    
+    # Remove permissões primeiro
+    cursor.execute('DELETE FROM user_farm_permissions WHERE user_id = ?', (user_id,))
+    # Remove o usuário
+    cursor.execute('DELETE FROM usuarios WHERE id = ?', (user_id,))
+    
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/voltar')
+def admin_voltar():
+    """Volta para a conta de administrador"""
+    if 'admin_real_id' in session:
+        admin_id = session['admin_real_id']
+        user = database.get_usuario(admin_id)
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['role'] = user['role']
+        session.pop('admin_real_id', None)
+        session.pop('impersonando', None)
+        return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('home'))
+
+
+# ============ GERENTE - GERENCIAR OPERADORES ============
+@app.route('/gerentes/operadores')
+def gerenciar_operadores():
+    """Página para o gerente gerenciar operadores de suas fazendas"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Apenas gerente e admin podem acessar
+    if session.get('role') not in ['gerente', 'admin']:
+        return "Acesso negado", 403
+    
+    # Lista as fazendas do gerente
+    from database import listar_fazendas_usuario
+    fazendas = listar_fazendas_usuario(session['user_id'])
+    
+    # Lista operadores vinculados às fazendas do gerente
+    conn = database.get_db()
+    cursor = conn.cursor()
+    
+    # Busca operadores que têm permissão em alguma das fazendas do gerente
+    fazenda_ids = [f['id'] for f in fazendas]
+    if fazenda_ids:
+        placeholders = ','.join(['?'] * len(fazenda_ids))
+        cursor.execute(f'''
+            SELECT u.*, GROUP_CONCAT(p.farm_id) as fazendas_ids
+            FROM usuarios u
+            LEFT JOIN user_farm_permissions p ON u.id = p.user_id
+            WHERE u.role = 'operador' AND p.farm_id IN ({placeholders})
+            GROUP BY u.id
+        ''', fazenda_ids)
+    else:
+        cursor.execute('''
+            SELECT u.*, '' as fazendas_ids
+            FROM usuarios u
+            WHERE u.role = 'operador' AND 1=0
+        ''')
+    
+    operadores = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return render_template('gerente_operadores.html', operadores=operadores, fazendas=fazendas, usuario=session)
+
+
+@app.route('/gerentes/operador/salvar', methods=['POST'])
+def gerente_salvar_operador():
+    """Cria ou edita um operador vinculado às fazendas do gerente"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+    
+    if session.get('role') not in ['gerente', 'admin']:
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    data = request.form
+    user_id = data.get('id')
+    username = data.get('username')
+    nome = data.get('nome')
+    email = data.get('email')
+    password = data.get('password')
+    fazendas_selecionadas = request.form.getlist('fazendas')
+    ativo = 1 if data.get('ativo') else 0
+    
+    if not username:
+        return "Username é obrigatório", 400
+    
+    if not fazendas_selecionadas:
+        return "Selecione pelo menos uma fazenda", 400
+    
+    conn = database.get_db()
+    cursor = conn.cursor()
+    
+    if user_id:
+        # Update - edita operador existente
+        if password:
+            from werkzeug.security import generate_password_hash
+            hash_pw = generate_password_hash(password)
+            cursor.execute('''
+                UPDATE usuarios SET username=?, nome=?, email=?, ativo=?, password_hash=?, updated_at=?
+                WHERE id=? AND role='operador'
+            ''', (username, nome, email, ativo, hash_pw, database.datetime.now().isoformat(), user_id))
+        else:
+            cursor.execute('''
+                UPDATE usuarios SET username=?, nome=?, email=?, ativo=?, updated_at=?
+                WHERE id=? AND role='operador'
+            ''', (username, nome, email, ativo, database.datetime.now().isoformat(), user_id))
+        
+        # Remove permissões antigas e adiciona as novas
+        cursor.execute('DELETE FROM user_farm_permissions WHERE user_id = ?', (user_id,))
+        for farm_id in fazendas_selecionadas:
+            cursor.execute('INSERT INTO user_farm_permissions (user_id, farm_id, created_at) VALUES (?, ?, ?)',
+                         (user_id, farm_id, database.datetime.now().isoformat()))
+    else:
+        # Insert - cria novo operador
+        from werkzeug.security import generate_password_hash
+        hash_pw = generate_password_hash(password or '123456')
+        
+        try:
+            cursor.execute('''
+                INSERT INTO usuarios (username, nome, email, role, ativo, password_hash, created_at, updated_at)
+                VALUES (?, ?, ?, 'operador', ?, ?, ?, ?)
+            ''', (username, nome, email, ativo, hash_pw, database.datetime.now().isoformat(), database.datetime.now().isoformat()))
+            
+            operador_id = cursor.lastrowid
+            
+            # Adiciona permissões às fazendas
+            for farm_id in fazendas_selecionadas:
+                cursor.execute('INSERT INTO user_farm_permissions (user_id, farm_id, created_at) VALUES (?, ?, ?)',
+                             (operador_id, farm_id, database.datetime.now().isoformat()))
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            return f"Erro ao criar operador: {e}", 400
+    
+    conn.commit()
+    conn.close()
+    return redirect(url_for('gerenciar_operadores'))
+
+
+@app.route('/gerentes/operador/toggle/<int:user_id>')
+def gerente_toggle_operador(user_id):
+    """Ativa ou desativa um operador"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if session.get('role') not in ['gerente', 'admin']:
+        return "Acesso negado", 403
+    
+    conn = database.get_db()
+    cursor = conn.cursor()
+    
+    # Verifica se o operador tem permissão em alguma fazenda do gerente
+    from database import listar_fazendas_usuario
+    fazendas = listar_fazendas_usuario(session['user_id'])
+    fazenda_ids = [f['id'] for f in fazendas]
+    
+    if fazenda_ids:
+        placeholders = ','.join(['?'] * len(fazenda_ids))
+        cursor.execute(f'''
+            SELECT COUNT(*) FROM user_farm_permissions 
+            WHERE user_id = ? AND farm_id IN ({placeholders})
+        ''', [user_id] + fazenda_ids)
+        
+        if cursor.fetchone()[0] == 0:
+            conn.close()
+            return "Operador não encontrado", 403
+    
+    # Toggle ativo
+    cursor.execute('UPDATE usuarios SET ativo = NOT ativo WHERE id = ? AND role = "operador"', (user_id,))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('gerenciar_operadores'))
+
 
 @app.route('/logout')
 def logout():
@@ -53,19 +333,30 @@ def registrar():
         return redirect(url_for('home'))
     return render_template('registrar.html')
 
+@app.route('/home')
+def home_redirect():
+    """Fallback para rota /home"""
+    return redirect(url_for('home'))
+
 # ============ HOME ============
 @app.route('/')
 def home():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
+    # Se for Admin, mostrar o dashboard de admin por padrão ao acessar a raiz
+    if session.get('role') == 'admin' and not session.get('impersonando'):
+        return redirect(url_for('admin_dashboard'))
+    
     from database import listar_fazendas_usuario, relatorio_estatisticas
     fazendas = listar_fazendas_usuario(session['user_id'])
     stats = relatorio_estatisticas()
     return render_template('home.html', fazendas=fazendas, stats=stats, usuario=session)
 
+
 # ============ FAZENDA ============
 @app.route('/fazenda/<int:id>')
+@database.farm_permission_required
 def fazenda(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -112,6 +403,7 @@ def api_criar_fazenda():
     return jsonify({'id': fazenda_id, 'status': 'ok'})
 
 @app.route('/fazenda/<int:id>/lotes')
+@database.farm_permission_required
 def lotes(id):
     """Página de lotes completa"""
     if 'user_id' not in session:
@@ -130,6 +422,7 @@ def lotes(id):
     return render_template('lotes.html', fazenda=fazenda, usuario=session)
 
 @app.route('/fazenda/<int:id>/rotacao')
+@database.farm_permission_required
 def rotacao(id):
     """Página de IA Rotação"""
     if 'user_id' not in session:
