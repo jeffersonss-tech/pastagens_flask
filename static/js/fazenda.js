@@ -5,6 +5,22 @@ let pontos = [];
 let piquetes = [];
 let animais = [];
 let mapDesenhoInit = false;
+window._climaFatorAtual = 1.0;
+
+function getCrescimentoComClima(capim) {
+    const fator = window._climaFatorAtual || 1.0;
+
+    if (typeof getCrescimentoCapimReal === 'function') {
+        return getCrescimentoCapimReal(capim);
+    }
+
+    if (typeof getCrescimentoCapim === 'function') {
+        const base = getCrescimentoCapim(capim);
+        return +(base * fator).toFixed(2);
+    }
+
+    return +(1.2 * fator).toFixed(2);
+}
 
 // Variáveis globais esperadas (injetadas via HTML):
 // fazendaId, mapaLat, mapaLng, fazendaNome, temSede
@@ -284,7 +300,7 @@ function loadAll() {
                     } else {
                         const alturaBase = Math.max(p.altura_real_medida || 0, p.altura_estimada || 0);
                         const diasDescanso = p.dias_descanso || 0;
-                        const crescimento = getCrescimentoCapim(p.capim);
+                        const crescimento = getCrescimentoComClima(p.capim);
                         const faltaCm = Math.max(0, p.altura_entrada - alturaBase);
                         const diasNecessarios = Math.round(faltaCm / crescimento);
                         const limiteMaximo = 30; 
@@ -541,7 +557,13 @@ function atualizarClimaSidebar() {
         .then(data => {
             const cond = (data.condicao || 'normal').toUpperCase();
             const fator = data.fator !== undefined ? data.fator : 1.0;
+            window._climaFatorAtual = parseFloat(fator) || 1.0;
             sidebarEl.textContent = `${cond} (fator ${fator})`;
+
+            // Re-render dos cards para sincronizar com modal quando clima mudar
+            if (document.getElementById('lista-piquetes') && typeof loadAll === 'function') {
+                loadAll();
+            }
         })
         .catch(() => {
             sidebarEl.textContent = 'Indisponível';
