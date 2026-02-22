@@ -588,11 +588,17 @@ function abrirModalPiquete() {
     setTimeout(() => initMapDesenho(), 100); 
 }
 
-function fecharModalPiquete() { document.getElementById('modal-piquete').classList.remove('active'); }
+function fecharModalPiquete() { 
+    document.getElementById('modal-piquete').classList.remove('active');
+}
 
-function abrirModalVerPiquete() { document.getElementById('modal-ver-piquete').classList.add('active'); }
+function abrirModalVerPiquete() { 
+    document.getElementById('modal-ver-piquete').classList.add('active');
+}
 
-function fecharModalVerPiquete() { document.getElementById('modal-ver-piquete').classList.remove('active'); }
+function fecharModalVerPiquete() { 
+    document.getElementById('modal-ver-piquete').classList.remove('active');
+}
 
 function abrirModalEditarPiquete(id) {
     const p = piquetes.find(x => x.id === id);
