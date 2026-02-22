@@ -153,7 +153,7 @@ function carregarDataTeste() {
         });
 }
 
-window.onload = () => {
+window.addEventListener('load', () => {
     atualizar();
     carregarDataTeste();
-};
+});

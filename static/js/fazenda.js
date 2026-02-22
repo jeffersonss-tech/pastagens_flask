@@ -532,6 +532,22 @@ function injetarLotacaoUI() {
     lotacaoHTML.parentNode.insertBefore(ref, lotacaoHTML.nextSibling);
 }
 
+function atualizarClimaSidebar() {
+    const sidebarEl = document.getElementById('clima-sidebar-valor');
+    if (!sidebarEl || typeof fazendaId === 'undefined' || !fazendaId) return;
+
+    fetch('/api/clima/condicao-atual?fazenda_id=' + fazendaId)
+        .then(r => r.json())
+        .then(data => {
+            const cond = (data.condicao || 'normal').toUpperCase();
+            const fator = data.fator !== undefined ? data.fator : 1.0;
+            sidebarEl.textContent = `${cond} (fator ${fator})`;
+        })
+        .catch(() => {
+            sidebarEl.textContent = 'Indisponível';
+        });
+}
+
 window.onload = function() {
     const mapElement = document.getElementById('map');
     if (mapElement) {
@@ -540,11 +556,16 @@ window.onload = function() {
         injetarLotacaoUI();
         carregarLotacao();
         carregarAlertas();
-        if (typeof atualizarClimaAtualUI === 'function') {
-            atualizarClimaAtualUI();
-        }
     } else {
         console.log('Elemento #map não encontrado. Ignorando initMap().');
+    }
+
+    // Sempre atualizar sidebar (independente de tela)
+    atualizarClimaSidebar();
+
+    // Se existir função completa (piquetes), ela também atualiza topo da seção
+    if (typeof atualizarClimaAtualUI === 'function') {
+        atualizarClimaAtualUI();
     }
 };
 

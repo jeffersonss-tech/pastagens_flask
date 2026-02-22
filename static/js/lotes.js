@@ -115,7 +115,7 @@ function atualizarPesoMedioEdit() {
 }
 
 // Inicialização
-window.onload = function() {
+window.addEventListener('load', function() {
     fetch('/api/data-teste')
         .then(r => r.json())
         .then(data => {
@@ -132,7 +132,7 @@ window.onload = function() {
                 if (!document.hidden) carregarLotesComDataTeste();
             });
         });
-};
+});
 
 function carregarLotesComDataTeste() {
     fetch('/api/data-teste')
