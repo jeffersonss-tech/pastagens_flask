@@ -470,77 +470,76 @@ function centralizarLocalizacao() {
     }
 }
 
-// ========== DADOS DOS CAPINS ==========
-const dadosCapins = {
+// ========== DADOS DOS CAPINS (AGRUPADOS POR TIPO) ==========
+const catalogoCapins = {
     'Brachiaria': {
-        alturaEntrada: 30,
-        alturaSaida: 15,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.2,
-        descricao: '• Altura entrada: 25–30 cm<br>• Altura saída: 15 cm<br>• Crescimento: ~1.2 cm/dia'
+        'Marandu': {alturaEntrada: 32, alturaSaida: 17, crescimentoDiario: 1.2, fatorConsumo: 0.85, lotacao: '2.5 UA/ha'},
+        'Piatã': {alturaEntrada: 32, alturaSaida: 17, crescimentoDiario: 1.3, fatorConsumo: 0.90, lotacao: '2.5 UA/ha'},
+        'Xaraés': {alturaEntrada: 38, alturaSaida: 18, crescimentoDiario: 1.6, fatorConsumo: 0.95, lotacao: '3.0 UA/ha'},
+        'Paiaguás': {alturaEntrada: 32, alturaSaida: 17, crescimentoDiario: 1.2, fatorConsumo: 0.85, lotacao: '2.2 UA/ha'},
+        'Decumbens': {alturaEntrada: 27, alturaSaida: 12, crescimentoDiario: 1.0, fatorConsumo: 0.75, lotacao: '1.8 UA/ha'},
+        'Humidicola': {alturaEntrada: 27, alturaSaida: 12, crescimentoDiario: 0.8, fatorConsumo: 0.70, lotacao: '1.5 UA/ha'},
+        'MG-5': {alturaEntrada: 38, alturaSaida: 18, crescimentoDiario: 1.6, fatorConsumo: 0.95, lotacao: '3.0 UA/ha'}
     },
-    'Mombaça': {
-        alturaEntrada: 35,
-        alturaSaida: 20,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.5,
-        descricao: '• Altura entrada: 35–40 cm<br>• Altura saída: 20 cm<br>• Crescimento: ~1.5 cm/dia'
+    'Panicum': {
+        'Mombaça': {alturaEntrada: 80, alturaSaida: 35, crescimentoDiario: 2.5, fatorConsumo: 1.00, lotacao: '4.5 UA/ha'},
+        'Tanzânia': {alturaEntrada: 68, alturaSaida: 35, crescimentoDiario: 2.3, fatorConsumo: 0.95, lotacao: '4.0 UA/ha'},
+        'Zuri': {alturaEntrada: 80, alturaSaida: 35, crescimentoDiario: 2.6, fatorConsumo: 1.05, lotacao: '4.5 UA/ha'},
+        'Massai': {alturaEntrada: 45, alturaSaida: 22, crescimentoDiario: 1.8, fatorConsumo: 0.90, lotacao: '3.0 UA/ha'},
+        'Aruana': {alturaEntrada: 40, alturaSaida: 18, crescimentoDiario: 1.7, fatorConsumo: 0.85, lotacao: '2.8 UA/ha'}
     },
-    'Tifton 85': {
-        alturaEntrada: 20,
-        alturaSaida: 10,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.0,
-        descricao: '• Altura entrada: 20–25 cm<br>• Altura saída: 10 cm<br>• Crescimento: ~1.0 cm/dia'
+    'Cynodon': {
+        'Tifton 85': {alturaEntrada: 30, alturaSaida: 12, crescimentoDiario: 2.0, fatorConsumo: 0.70, lotacao: '4.5 UA/ha'},
+        'Tifton 68': {alturaEntrada: 30, alturaSaida: 12, crescimentoDiario: 2.0, fatorConsumo: 0.70, lotacao: '4.0 UA/ha'},
+        'Coastcross': {alturaEntrada: 25, alturaSaida: 12, crescimentoDiario: 1.6, fatorConsumo: 0.75, lotacao: '3.5 UA/ha'},
+        'Jiggs': {alturaEntrada: 30, alturaSaida: 12, crescimentoDiario: 1.9, fatorConsumo: 0.72, lotacao: '4.5 UA/ha'}
     },
-    'Andropogon': {
-        alturaEntrada: 25,
-        alturaSaida: 12,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.2,
-        descricao: '• Altura entrada: 25–30 cm<br>• Altura saída: 12 cm<br>• Crescimento: ~1.2 cm/dia'
-    },
-    'Capim Aruana': {
-        alturaEntrada: 25,
-        alturaSaida: 15,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.1,
-        descricao: '• Altura entrada: 25 cm<br>• Altura saída: 15 cm<br>• Crescimento: ~1.1 cm/dia'
-    },
-    'Natalino': {
-        alturaEntrada: 30,
-        alturaSaida: 15,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.3,
-        descricao: '• Altura entrada: 30 cm<br>• Altura saída: 15 cm<br>• Crescimento: ~1.3 cm/dia'
-    },
-    'MG-5': {
-        alturaEntrada: 35,
-        alturaSaida: 18,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.4,
-        descricao: '• Altura entrada: 35 cm<br>• Altura saída: 18 cm<br>• Crescimento: ~1.4 cm/dia'
-    },
-    'Outro': {
-        alturaEntrada: 25,
-        alturaSaida: 15,
-        diasOcupacao: 3,
-        crescimentoDiario: 1.2,
-        descricao: '• Defina os valores manualmente<br>• Consulta um agrônomo para orientação'
+    'Outros': {
+        'Andropogon': {alturaEntrada: 70, alturaSaida: 35, crescimentoDiario: 1.8, fatorConsumo: 0.80, lotacao: '2.8 UA/ha'},
+        'Capim Elefante': {alturaEntrada: 110, alturaSaida: 45, crescimentoDiario: 3.5, fatorConsumo: 1.10, lotacao: '6.0 UA/ha'},
+        'Capiaçu': {alturaEntrada: 135, alturaSaida: 55, crescimentoDiario: 4.0, fatorConsumo: 1.15, lotacao: '7.0 UA/ha'}
     }
 };
 
+const dadosCapins = Object.values(catalogoCapins).reduce((acc, grupo) => Object.assign(acc, grupo), {});
+dadosCapins['Brachiaria'] = dadosCapins['Marandu'];
+dadosCapins['Capim Aruana'] = dadosCapins['Aruana'];
+dadosCapins['Natalino'] = dadosCapins['Andropogon'];
+dadosCapins['Outro'] = {alturaEntrada: 25, alturaSaida: 15, crescimentoDiario: 1.2, fatorConsumo: 1.0, lotacao: 'N/I'};
+
+function preencherSelectCapins(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const valorAtual = select.value;
+    select.innerHTML = '<option value="">Selecione...</option>';
+
+    Object.entries(catalogoCapins).forEach(([grupoNome, capins]) => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = grupoNome;
+        Object.keys(capins).forEach((nomeCapim) => {
+            const option = document.createElement('option');
+            option.value = nomeCapim;
+            option.textContent = nomeCapim;
+            optgroup.appendChild(option);
+        });
+        select.appendChild(optgroup);
+    });
+
+    const optOutro = document.createElement('option');
+    optOutro.value = 'Outro';
+    optOutro.textContent = 'Outro (manual)';
+    select.appendChild(optOutro);
+
+    if (valorAtual) select.value = valorAtual;
+}
+
 function getCrescimentoCapim(capim) {
-    if (capim && dadosCapins[capim]) {
-        return dadosCapins[capim].crescimentoDiario;
-    }
-    return 1.2; 
+    if (capim && dadosCapins[capim]) return dadosCapins[capim].crescimentoDiario;
+    return 1.2;
 }
 
 function calcularDiasNecessarios(capim, alturaEntrada, alturaSaida) {
-    if (!capim || !dadosCapins[capim]) {
-        return 30; 
-    }
+    if (!capim || !dadosCapins[capim]) return 30;
     const crescimento = dadosCapins[capim].crescimentoDiario;
     const alturaNecessaria = alturaEntrada - alturaSaida;
     if (crescimento <= 0) return 30;
@@ -552,7 +551,7 @@ function atualizarInfoCapim() {
     const infoDiv = document.getElementById('info-capim');
     if (capim && dadosCapins[capim]) {
         const dados = dadosCapins[capim];
-        infoDiv.innerHTML = `<strong>ℹ️ ${capim}</strong><br>${dados.descricao}`;
+        infoDiv.innerHTML = `<strong>ℹ️ ${capim}</strong><br>• Entrada: ${dados.alturaEntrada} cm<br>• Saída: ${dados.alturaSaida} cm<br>• Crescimento: ~${dados.crescimentoDiario} cm/dia<br>• Fator consumo: ${dados.fatorConsumo}<br>• Lotação sugerida: ${dados.lotacao}`;
         infoDiv.style.display = 'block';
         document.getElementById('pq-altura-entrada').value = dados.alturaEntrada;
         document.getElementById('pq-altura-saida').value = dados.alturaSaida;
@@ -566,7 +565,7 @@ function atualizarInfoCapimEdit() {
     const infoDiv = document.getElementById('edit-info-capim');
     if (capim && dadosCapins[capim]) {
         const dados = dadosCapins[capim];
-        infoDiv.innerHTML = `<strong>ℹ️ ${capim}</strong><br>${dados.descricao}`;
+        infoDiv.innerHTML = `<strong>ℹ️ ${capim}</strong><br>• Entrada: ${dados.alturaEntrada} cm<br>• Saída: ${dados.alturaSaida} cm<br>• Crescimento: ~${dados.crescimentoDiario} cm/dia<br>• Fator consumo: ${dados.fatorConsumo}<br>• Lotação sugerida: ${dados.lotacao}`;
         infoDiv.style.display = 'block';
     } else {
         infoDiv.style.display = 'none';
@@ -574,6 +573,7 @@ function atualizarInfoCapimEdit() {
 }
 
 function abrirModalPiquete() { 
+    preencherSelectCapins('pq-capim');
     pontos = [];
     document.getElementById('pq-nome').value = '';
     document.getElementById('pq-capim').value = '';
@@ -601,6 +601,7 @@ function fecharModalVerPiquete() {
 }
 
 function abrirModalEditarPiquete(id) {
+    preencherSelectCapins('edit-pq-capim');
     const p = piquetes.find(x => x.id === id);
     if (!p) return;
     

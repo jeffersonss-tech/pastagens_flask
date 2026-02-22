@@ -271,13 +271,13 @@ def classificar_lotacao(taxa_animais_ha: float) -> str:
 # ========== CONSUMO BASE POR CAPIM ==========
 # Valores base de consumo (cm/animal/dia) em lotação de 2 UA/ha
 CONSUMO_BASE_CAPIM = {
-    'Tifton 85': 0.7,
-    'Brachiaria': 0.8,
-    'Andropogon': 0.8,
-    'Capim Aruana': 0.75,
-    'Natalino': 0.85,
-    'MG-5': 0.9,
-    'Mombaça': 1.0,
+    'Marandu': 0.85, 'Piatã': 0.90, 'Xaraés': 0.95, 'Paiaguás': 0.85,
+    'Decumbens': 0.75, 'Humidicola': 0.70, 'MG-5': 0.95,
+    'Mombaça': 1.00, 'Tanzânia': 0.95, 'Zuri': 1.05, 'Massai': 0.90, 'Aruana': 0.85,
+    'Tifton 85': 0.70, 'Tifton 68': 0.70, 'Coastcross': 0.75, 'Jiggs': 0.72,
+    'Andropogon': 0.80, 'Capim Elefante': 1.10, 'Capiaçu': 1.15,
+    # compatibilidade
+    'Brachiaria': 0.85, 'Capim Aruana': 0.85, 'Natalino': 0.80,
 }
 
 
@@ -394,13 +394,13 @@ def calcular_crescimento_diario(capim: str) -> float:
         Crescimento base (cm/dia)
     """
     crescimento = {
-        'Brachiaria': 1.2,
-        'Mombaça': 1.5,
-        'Tifton 85': 1.0,
-        'Andropogon': 1.2,
-        'Capim Aruana': 1.1,
-        'Natalino': 1.3,
-        'MG-5': 1.4,
+        'Marandu': 1.2, 'Piatã': 1.3, 'Xaraés': 1.6, 'Paiaguás': 1.2,
+        'Decumbens': 1.0, 'Humidicola': 0.8, 'MG-5': 1.6,
+        'Mombaça': 2.5, 'Tanzânia': 2.3, 'Zuri': 2.6, 'Massai': 1.8, 'Aruana': 1.7,
+        'Tifton 85': 2.0, 'Tifton 68': 2.0, 'Coastcross': 1.6, 'Jiggs': 1.9,
+        'Andropogon': 1.8, 'Capim Elefante': 3.5, 'Capiaçu': 4.0,
+        # compatibilidade
+        'Brachiaria': 1.2, 'Capim Aruana': 1.7, 'Natalino': 1.8,
     }
     return crescimento.get(capim, 1.2)
 

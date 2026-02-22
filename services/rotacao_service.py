@@ -8,13 +8,29 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "..", "pastagens.db")
 
 # Dados técnicos dos capins
 DADOS_CAPINS = {
-    'Tifton 85': {'crescimento_diario': 1.0, 'consumo_diario': 0.7, 'dias_tecnicos': 21},
-    'Brachiaria': {'crescimento_diario': 1.2, 'consumo_diario': 0.8, 'dias_tecnicos': 28},
-    'Andropogon': {'crescimento_diario': 1.2, 'consumo_diario': 0.8, 'dias_tecnicos': 28},
-    'Capim Aruana': {'crescimento_diario': 1.1, 'consumo_diario': 0.75, 'dias_tecnicos': 28},
-    'Natalino': {'crescimento_diario': 1.3, 'consumo_diario': 0.85, 'dias_tecnicos': 30},
-    'MG-5': {'crescimento_diario': 1.4, 'consumo_diario': 0.9, 'dias_tecnicos': 35},
-    'Mombaça': {'crescimento_diario': 1.5, 'consumo_diario': 1.0, 'dias_tecnicos': 35},
+    'Marandu': {'crescimento_diario': 1.2, 'consumo_diario': 0.85, 'dias_tecnicos': 28},
+    'Piatã': {'crescimento_diario': 1.3, 'consumo_diario': 0.90, 'dias_tecnicos': 28},
+    'Xaraés': {'crescimento_diario': 1.6, 'consumo_diario': 0.95, 'dias_tecnicos': 35},
+    'Paiaguás': {'crescimento_diario': 1.2, 'consumo_diario': 0.85, 'dias_tecnicos': 28},
+    'Decumbens': {'crescimento_diario': 1.0, 'consumo_diario': 0.75, 'dias_tecnicos': 24},
+    'Humidicola': {'crescimento_diario': 0.8, 'consumo_diario': 0.70, 'dias_tecnicos': 24},
+    'MG-5': {'crescimento_diario': 1.6, 'consumo_diario': 0.95, 'dias_tecnicos': 35},
+    'Mombaça': {'crescimento_diario': 2.5, 'consumo_diario': 1.00, 'dias_tecnicos': 35},
+    'Tanzânia': {'crescimento_diario': 2.3, 'consumo_diario': 0.95, 'dias_tecnicos': 32},
+    'Zuri': {'crescimento_diario': 2.6, 'consumo_diario': 1.05, 'dias_tecnicos': 35},
+    'Massai': {'crescimento_diario': 1.8, 'consumo_diario': 0.90, 'dias_tecnicos': 28},
+    'Aruana': {'crescimento_diario': 1.7, 'consumo_diario': 0.85, 'dias_tecnicos': 28},
+    'Tifton 85': {'crescimento_diario': 2.0, 'consumo_diario': 0.70, 'dias_tecnicos': 21},
+    'Tifton 68': {'crescimento_diario': 2.0, 'consumo_diario': 0.70, 'dias_tecnicos': 21},
+    'Coastcross': {'crescimento_diario': 1.6, 'consumo_diario': 0.75, 'dias_tecnicos': 24},
+    'Jiggs': {'crescimento_diario': 1.9, 'consumo_diario': 0.72, 'dias_tecnicos': 22},
+    'Andropogon': {'crescimento_diario': 1.8, 'consumo_diario': 0.80, 'dias_tecnicos': 28},
+    'Capim Elefante': {'crescimento_diario': 3.5, 'consumo_diario': 1.10, 'dias_tecnicos': 40},
+    'Capiaçu': {'crescimento_diario': 4.0, 'consumo_diario': 1.15, 'dias_tecnicos': 42},
+    # compatibilidade
+    'Brachiaria': {'crescimento_diario': 1.2, 'consumo_diario': 0.85, 'dias_tecnicos': 28},
+    'Capim Aruana': {'crescimento_diario': 1.7, 'consumo_diario': 0.85, 'dias_tecnicos': 28},
+    'Natalino': {'crescimento_diario': 1.8, 'consumo_diario': 0.80, 'dias_tecnicos': 28},
 }
 
 
