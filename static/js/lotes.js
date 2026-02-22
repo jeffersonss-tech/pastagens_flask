@@ -195,7 +195,7 @@ function renderizarTabela() {
             const temPiquete = !!lote.piquete_atual_id;
             const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
             
-            let statusBadge = !temPiquete ? '<span class="status-badge aguardando">🔵 Aguardando Alocação</span>' : 
+            let statusBadge = !temPiquete ? '<span class="status-badge aguardando">⚪ Aguardando Alocação</span>' : 
                 (statusCalc === 'RETIRAR' ? '<span class="status-badge retirar">🔴 Retirar</span>' : 
                 (statusCalc === 'ATENCAO' ? '<span class="status-badge atencao">🟠 Atenção</span>' : 
                 '<span class="status-badge ocupacao">🔵 Em Ocupação</span>'));

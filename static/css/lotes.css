@@ -91,7 +91,7 @@ tr:hover { background: #f8f9fa; }
 .status-badge.retirar { background: #f8d7da; color: #721c24; }
 .status-badge.bloqueado { background: #e2d5f1; color: #4a2c7a; }
 .status-badge.sem-piquete { background: #e9ecef; color: #666; }
-.status-badge.aguardando { background: #cce5ff; color: #004085; }
+.status-badge.aguardando { background: #ffffff; color: #6c757d; border: 1px solid #dee2e6; }
 .status-badge.ocupacao { background: #d1ecf1; color: #0c5460; border: 1px solid #17a2b8; }
 
 /* Dias */
