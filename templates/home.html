@@ -245,25 +245,36 @@
                     <p style="font-size: 12px; color: #999;">📍 {{ f.latitude_sede }}, {{ f.longitude_sede }}</p>
                     {% endif %}
                     <a href="{{ url_for('fazenda', id=f.id) }}" class="fazenda-link">Abrir →</a>
+                    {% if usuario.role in ['admin', 'gerente'] %}
                     <div class="fazenda-actions">
                         <button class="btn btn-warning btn-sm" onclick="abrirModalEditar({{ f.id }})">✏️ Editar</button>
                         <button class="btn btn-danger btn-sm" onclick="abrirModalExcluir({{ f.id }}, '{{ f.nome }}')">🗑️ Excluir</button>
                     </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
                 
+                {% if usuario.role in ['admin', 'gerente'] %}
                 <div class="fazenda-card nova-fazenda" onclick="abrirModalCriar()">
                     <span>+</span>
                     <strong>Nova Fazenda</strong>
                 </div>
+                {% endif %}
             </div>
             {% else %}
+            {% if usuario.role in ['admin', 'gerente'] %}
             <div style="text-align: center; padding: 40px;">
                 <p style="color: #666; margin-bottom: 20px;">Você ainda não tem nenhuma fazenda.</p>
                 <button class="btn btn-primary" onclick="abrirModalCriar()" style="padding: 15px 30px; font-size: 16px;">
                     ➕ Criar Primeira Fazenda
                 </button>
             </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px;">
+                <p style="color: #666; margin-bottom: 20px;">Você ainda não tem nenhuma fazenda.</p>
+                <p style="color: #999;">Entre em contato com um gerente para criar uma fazenda.</p>
+            </div>
+            {% endif %}
             {% endif %}
         </div>
     </div>

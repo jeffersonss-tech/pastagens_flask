@@ -380,9 +380,9 @@ def fazenda(id):
         return "Fazenda não encontrada", 404
     
     # Verifica se tem acesso (dono ou tem permissão via user_farm_permissions)
+    # O decorator farm_permission_required já faz essa verificação, mas redundante aqui
     if fazenda['usuario_id'] != session['user_id']:
-        # Se não for dono, verifica se tem permissão (já verificado pelo decorator, mas redundante para clareza)
-        if session.get('role') not in ['admin', 'gerente']:
+        if session.get('role') not in ['admin', 'gerente', 'operador']:
             return "Acesso negado", 403
     
     session['fazenda_id'] = id
@@ -404,6 +404,10 @@ def api_criar_fazenda():
     """Cria uma nova fazenda"""
     if 'user_id' not in session:
         return jsonify({'error': 'Não autorizado'}), 401
+    
+    # Apenas admin e gerente podem criar fazendas
+    if session.get('role') not in ['admin', 'gerente']:
+        return jsonify({'error': 'Apenas gerentes podem criar fazendas'}), 403
     
     data = request.json
     fazenda_id = database.criar_fazenda(
@@ -430,9 +434,6 @@ def lotes(id):
     if not fazenda:
         return "Fazenda não encontrada", 404
     
-    if fazenda['usuario_id'] != session['user_id']:
-        return "Acesso negado", 403
-    
     session['fazenda_id'] = id
     return render_template('lotes.html', fazenda=fazenda, usuario=session)
 
@@ -448,9 +449,6 @@ def rotacao(id):
     
     if not fazenda:
         return "Fazenda não encontrada", 404
-    
-    if fazenda['usuario_id'] != session['user_id']:
-        return "Acesso negado", 403
     
     session['fazenda_id'] = id
     return render_template('rotacao.html', fazenda=fazenda)
