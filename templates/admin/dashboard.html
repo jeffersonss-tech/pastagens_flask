@@ -5,42 +5,42 @@
 {% block content %}
 <div class="admin-dashboard">
     <!-- Cards de Estatísticas -->
-    <div class="row g-3 mb-4">
+    <div class="row g-2 mb-3">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 bg-white">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-shape bg-primary text-white rounded-circle p-3 me-3">
-                        <i class="fas fa-users fa-lg"></i>
+            <div class="card border-0 shadow-sm bg-white" style="padding: 15px;">
+                <div class="d-flex align-items-center">
+                    <div class="icon-shape bg-primary text-white rounded-circle p-2 me-2" style="width: 36px; height: 36px;">
+                        <i class="fas fa-users fa-sm"></i>
                     </div>
                     <div>
-                        <small class="text-muted d-block">Total de Usuários</small>
-                        <strong class="h3 mb-0">{{ usuarios|length }}</strong>
+                        <small class="text-muted d-block">Total Usuários</small>
+                        <strong style="font-size: 1.2rem;">{{ usuarios|length }}</strong>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 bg-white border-start border-success border-4">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-shape bg-success text-white rounded-circle p-3 me-3">
-                        <i class="fas fa-user-tie fa-lg"></i>
+            <div class="card border-0 shadow-sm bg-white border-start border-success border-4" style="padding: 15px;">
+                <div class="d-flex align-items-center">
+                    <div class="icon-shape bg-success text-white rounded-circle p-2 me-2" style="width: 36px; height: 36px;">
+                        <i class="fas fa-user-tie fa-sm"></i>
                     </div>
                     <div>
                         <small class="text-muted d-block">Gerentes</small>
-                        <strong class="h3 mb-0">{{ usuarios|selectattr("role", "equalto", "gerente")|list|length }}</strong>
+                        <strong style="font-size: 1.2rem;">{{ usuarios|selectattr("role", "equalto", "gerente")|list|length }}</strong>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 bg-white border-start border-info border-4">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-shape bg-info text-white rounded-circle p-3 me-3">
-                        <i class="fas fa-hard-hat fa-lg"></i>
+            <div class="card border-0 shadow-sm bg-white border-start border-info border-4" style="padding: 15px;">
+                <div class="d-flex align-items-center">
+                    <div class="icon-shape bg-info text-white rounded-circle p-2 me-2" style="width: 36px; height: 36px;">
+                        <i class="fas fa-hard-hat fa-sm"></i>
                     </div>
                     <div>
                         <small class="text-muted d-block">Operadores</small>
-                        <strong class="h3 mb-0">{{ usuarios|selectattr("role", "equalto", "operador")|list|length }}</strong>
+                        <strong style="font-size: 1.2rem;">{{ usuarios|selectattr("role", "equalto", "operador")|list|length }}</strong>
                     </div>
                 </div>
             </div>
