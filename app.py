@@ -333,6 +333,49 @@ def gerente_toggle_operador(user_id):
     return redirect(url_for('gerenciar_operadores'))
 
 
+@app.route('/gerentes/operador/excluir/<int:user_id>')
+def gerente_excluir_operador(user_id):
+    """Exclui um operador"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if session.get('role') not in ['gerente', 'admin']:
+        return "Acesso negado", 403
+    
+    # Não permite excluir a si mesmo
+    if user_id == session.get('user_id'):
+        return "Não é possível excluir seu próprio usuário", 400
+    
+    conn = database.get_db()
+    cursor = conn.cursor()
+    
+    # Verifica se o operador tem permissão em alguma fazenda do gerente
+    from database import listar_fazendas_usuario
+    fazendas = listar_fazendas_usuario(session['user_id'])
+    fazenda_ids = [f['id'] for f in fazendas]
+    
+    if fazenda_ids:
+        placeholders = ','.join(['?'] * len(fazenda_ids))
+        cursor.execute(f'''
+            SELECT COUNT(*) FROM user_farm_permissions 
+            WHERE user_id = ? AND farm_id IN ({placeholders})
+        ''', [user_id] + fazenda_ids)
+        
+        if cursor.fetchone()[0] == 0:
+            conn.close()
+            return "Operador não encontrado", 403
+    
+    # Remove permissões primeiro
+    cursor.execute('DELETE FROM user_farm_permissions WHERE user_id = ?', (user_id,))
+    # Remove o operador
+    cursor.execute('DELETE FROM usuarios WHERE id = ? AND role = "operador"', (user_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('gerenciar_operadores'))
+
+
 @app.route('/logout')
 def logout():
     session.clear()

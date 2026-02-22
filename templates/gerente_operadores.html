@@ -79,17 +79,28 @@
         
         .checkbox-group {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex-direction: column;
+            gap: 8px;
             margin-top: 5px;
+            width: 100%;
         }
         .checkbox-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 10px;
             background: #f8f9fa;
-            padding: 8px 15px;
-            border-radius: 5px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
         }
         
         .modal {
@@ -188,13 +199,19 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="editarOperador({{ op.id }}, '{{ op.username }}', '{{ op.nome or '' }}', '{{ op.email or '' }}', '{{ op.fazendas_ids or '' }}', {{ op.ativo }})">
+                            <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick="editarOperador({{ op.id }}, '{{ op.username }}', '{{ op.nome or '' }}', '{{ op.email or '' }}', '{{ op.fazendas_ids or '' }}', {{ op.ativo }})">
                                 ✏️ Editar
                             </button>
                             <a href="{{ url_for('gerente_toggle_operador', user_id=op.id) }}" 
                                class="btn btn-sm {{ 'btn-danger' if op.ativo else 'btn-success' }}"
+                               style="margin-right: 5px;"
                                onclick="return confirm('{{ 'Desativar' if op.ativo else 'Ativar' }} operador?')">
                                 {{ '⛔' if op.ativo else '✅' }}
+                            </a>
+                            <a href="{{ url_for('gerente_excluir_operador', user_id=op.id) }}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Excluir operador \'{{ op.username }}\'? Esta ação não pode ser desfeita!')">
+                                🗑️
                             </a>
                         </td>
                     </tr>
@@ -241,19 +258,17 @@
                     <label>Fazendas * (selecione pelo menos uma)</label>
                     <div class="checkbox-group">
                         {% for f in fazendas %}
-                        <label class="checkbox-item">
-                            <input type="checkbox" name="fazendas" value="{{ f.id }}" class="op-fazenda-checkbox">
-                            {{ f.nome }}
-                        </label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="fazendas" value="{{ f.id }}" class="op-fazenda-checkbox" id="farm_{{ f.id }}">
+                            <label for="farm_{{ f.id }}">{{ f.nome }}</label>
+                        </div>
                         {% endfor %}
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="ativo" id="op-ativo" checked>
-                        Operador Ativo
-                    </label>
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" name="ativo" id="op-ativo" checked style="width: auto; margin: 0;">
+                    <label for="op-ativo" style="margin: 0; cursor: pointer;">Operador Ativo</label>
                 </div>
                 
                 <div class="modal-buttons">
