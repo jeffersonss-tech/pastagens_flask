@@ -1,70 +1,125 @@
 # PastoFlow - Sistema de Gestão de Pastagens
 
-Sistema web completo para gestão de fazendas, pastagens, piquetes, lotes de animais e rotação inteligente de pastejo.
+Sistema web para gestão de fazendas, piquetes, lotes e rotação inteligente de pastejo.
 
-## 🚀 Novidades da Versão (Refatoração 20/02/2026)
+## 🚀 Novidades (22/02/2026)
 
-O sistema passou por uma grande evolução arquitetural e visual:
-- **Arquitetura Profissional:** Separação total de CSS, JS e Modais em arquivos externos.
-- **Layout Unificado:** Implementação de `base.html` com Sidebar inteligente e navegação fluida entre abas.
-- **Sidebar Contraível:** Barra lateral que expande/recolhe com persistência (lembra sua escolha ao recarregar).
-- **Motor de Cálculo Integrado:** Integração real do motor de manejo com a simulação de data (consumo e crescimento dinâmico).
-- **Navegação Inteligente:** Sincronização automática da URL com a seção ativa (Hash URL).
+### ✅ Refatoração e limpeza
+- CSS do `admin/dashboard.html` externalizado para `static/css/admin.css`.
+- Limpeza de arquivos legados para `_deprecated/` (templates/scripts/ícones não usados).
+- Organização de estrutura e manutenção preventiva sem remoções destrutivas.
+
+### 🌿 Catálogo de capins (novo)
+- Seleção de capim no modal de piquete agora é **agrupada por tipo**:
+  - Brachiaria
+  - Panicum
+  - Cynodon
+  - Outros
+- Catálogo técnico atualizado com parâmetros por cultivar:
+  - altura de entrada/saída
+  - crescimento base (cm/dia)
+  - fator de consumo
+  - lotação sugerida
+- Compatibilidade mantida para nomes legados (`Brachiaria`, `Capim Aruana`, `Natalino`).
+
+### 🌦️ Clima inteligente - Fase 1
+- Implementada integração real com **Open-Meteo** em `services/clima_service.py`.
+- Adicionado **cache local** em SQLite (`clima_cache`) com TTL.
+- Fallback robusto em cascata:
+  1. cache
+  2. API real
+  3. simulação
+  4. condição normal segura
+- Integração no cálculo de altura estimada (recuperação) no backend.
+- Endpoint novo: `GET /api/clima/condicao-atual`.
+
+### 🧪 Clima manual por fazenda (para testes)
+- Nova configuração no cadastro/edição de fazenda:
+  - `clima_modo`: `automatico` ou `manual`
+  - `condicao_climatica_manual`: `seca`, `normal`, `chuvoso`
+- Quando em manual, o sistema força a condição definida na fazenda.
+
+### 🧭 UI de clima no sistema
+- Sidebar mostra condição climática atual (quando há fazenda selecionada).
+- Tela de piquetes mostra condição climática no topo.
+- Tela “Minhas Fazendas” mostra clima por card de fazenda.
+- Correção de carregamento em páginas de **lotes** e **rotação** (conflito de `window.onload`).
+
+### 🗺️ Mapa de piquetes
+- Melhorias de estabilidade de renderização (realinhamento com `invalidateSize`).
+- Limites de zoom padronizados no modal de criação de piquete:
+  - `minZoom: 10`
+  - `maxZoom: 17`
+
+### 📋 Lotes (detalhes e status)
+- Modal de detalhes de lote aprimorado com:
+  - dias técnicos
+  - dias passados
+  - dias restantes
+  - saída prevista
+  - peso total estimado
+  - UA total
+  - consumo base
+  - consumo estimado (quando possível)
+  - altura estimada do capim
+- Correções de formatação de datas (ISO + BR) para evitar `NaN/NaN/NaN`.
+- Normalização visual de status:
+  - `EM_OCUPACAO` exibido como `EM OCUPAÇÃO`
+  - status “Aguardando Alocação” ajustado para visual branco (`⚪`).
+- Filtro de status da tela de lotes atualizado para os status reais do fluxo.
+
+---
 
 ## Funcionalidades
 
 ### 🏠 Gestão de Fazendas
-- CRUD completo com coordenadas da sede (GPS)
-- Múltiplas fazendas por usuário
-- Dashboard consolidado com estatísticas globais corrigidas
+- CRUD completo com coordenadas da sede (GPS).
+- Múltiplas fazendas por usuário.
+- Modo climático por fazenda (automático/manual).
 
-### 🗺️ Piquetes com Inteligência
-- Desenho de polígonos no mapa (Leaflet.js)
-- Cálculo automático de área por GPS
-- Sistema de cores por estado (verde/laranja/vermelho/amarelo/roxo)
-- Barra de progresso de recuperação baseada em altura real
+### 🗺️ Piquetes
+- Desenho de polígonos no mapa (Leaflet).
+- Cálculo automático de área.
+- Parâmetros técnicos por capim.
+- Crescimento/recuperação influenciados por clima.
 
-### 📐 Sistema altura_real vs altura_estimada
-- **altura_real_medida**: Informada manualmente (verdade absoluta)
-- **altura_estimada**: Calculada automaticamente baseada na carga animal (UA/ha)
-
-**Cálculo Automático Dinâmico:**
-- Piquete VAZIO: Crescimento baseado no clima e dias de descanso.
-- Piquete OCUPAÇÃO: Consumo proporcional ao peso do lote e taxa de lotação.
-
-### 🐄 Gestão de Lotes
-- Unificação de modais: Criar lotes da dashboard ou da tela de lotes agora segue o mesmo padrão técnico.
-- Cadastro com validações: Pesos de 50-1200 kg.
-- Sugestão automática de piquetes aptos baseada no tipo de gado.
+### 🐄 Lotes
+- Cadastro com validações de peso.
+- Sugestão de piquetes aptos.
+- Status técnico de ocupação com dias restantes.
+- Modal de detalhes completo para decisão operacional.
 
 ### 🔄 IA de Rotação
-- Recomendações ordenadas por prioridade técnica.
-- Plano de rotação otimizado para evitar degradação.
-- Alertas de "Passou do Ponto" (Saída Imediata).
+- Priorização técnica de piquetes.
+- Alertas de saída imediata.
+- Recomendações para reduzir degradação de pasto.
 
 ## Stack Tecnológica
 
-- **Backend:** Flask (Python 3.10)
+- **Backend:** Flask (Python)
 - **Banco de Dados:** SQLite
-- **Frontend:** HTML5, CSS3, JavaScript ES6
+- **Frontend:** HTML, CSS, JavaScript
 - **Mapas:** Leaflet.js
-- **Simulação:** Sistema de data customizado para testes de manejo
+- **Clima:** Open-Meteo + cache local
 
 ## Estrutura do Projeto
 
-```
+```text
 pastagens_flask/
-├── app.py                    # Flask principal (rotas, auth, páginas)
-├── database.py               # Motor de banco e lógica de altura
+├── app.py
+├── database.py
+├── services/
+│   ├── clima_service.py
+│   ├── manejo_service.py
+│   └── rotacao_service.py
 ├── static/
-│   ├── css/                  # Estilos (fazenda.css, lotes.css, rotacao.css, piquetes.css)
-│   └── js/                   # Lógicas (fazenda.js, lotes.js, rotacao.js, piquetes.js)
+│   ├── css/
+│   └── js/
 ├── templates/
-│   ├── base.html             # Estrutura base (sidebar/header)
-│   ├── modals/               # Modais separados por função
-│   └── (fazenda, lotes, etc) # Páginas específicas
-├── services/                 # Regras de negócio isoladas
-└── simular_data.py           # Ferramenta de simulação temporal
+│   ├── base.html
+│   └── modals/
+├── _deprecated/
+└── simular_data.py
 ```
 
 ## Autor
