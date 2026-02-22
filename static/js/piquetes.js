@@ -592,6 +592,34 @@ function calcularDiasNecessarios(capim, alturaEntrada, alturaSaida) {
     return Math.max(1, Math.round(alturaNecessaria / crescimento));
 }
 
+function atualizarClimaAtualUI() {
+    if (typeof fazendaId === 'undefined' || !fazendaId) return;
+
+    fetch('/api/clima/condicao-atual?fazenda_id=' + fazendaId)
+        .then(r => r.json())
+        .then(data => {
+            const condicao = (data.condicao || 'normal').toUpperCase();
+            const fator = data.fator !== undefined ? data.fator : 1.0;
+            const fonte = data.fonte || 'api';
+
+            const textoSidebar = `${condicao} (fator ${fator})`;
+            const textoPiquetes = `${condicao} • fator ${fator} • fonte: ${fonte}`;
+
+            const sidebarEl = document.getElementById('clima-sidebar-valor');
+            if (sidebarEl) sidebarEl.textContent = textoSidebar;
+
+            const topoEl = document.getElementById('clima-piquetes-valor');
+            if (topoEl) topoEl.textContent = textoPiquetes;
+        })
+        .catch(() => {
+            const sidebarEl = document.getElementById('clima-sidebar-valor');
+            if (sidebarEl) sidebarEl.textContent = 'Indisponível';
+
+            const topoEl = document.getElementById('clima-piquetes-valor');
+            if (topoEl) topoEl.textContent = 'Indisponível';
+        });
+}
+
 function atualizarInfoCapim() {
     const capim = document.getElementById('pq-capim').value;
     const infoDiv = document.getElementById('info-capim');

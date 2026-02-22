@@ -77,6 +77,9 @@ function showSection(id) {
                     drawAllPiquetes();
                 }
             }
+            if (typeof atualizarClimaAtualUI === 'function') {
+                atualizarClimaAtualUI();
+            }
         }, 200);
     }
 }
@@ -537,6 +540,9 @@ window.onload = function() {
         injetarLotacaoUI();
         carregarLotacao();
         carregarAlertas();
+        if (typeof atualizarClimaAtualUI === 'function') {
+            atualizarClimaAtualUI();
+        }
     } else {
         console.log('Elemento #map não encontrado. Ignorando initMap().');
     }

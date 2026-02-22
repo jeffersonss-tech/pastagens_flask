@@ -7,6 +7,7 @@ import logging
 from routes.api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
 from routes.api_categorias import api_categorias  # Módulo de APIs de categorias de animais
 from simular_data import now, get_status  # Suporte a data de teste
+from services.clima_service import obter_clima_com_fallback, get_descricao_clima
 
 app = Flask(__name__)
 app.secret_key = 'pastagens_secret_key_2024'
@@ -22,6 +23,44 @@ app.register_blueprint(api_categorias)  # Registrar API de categorias
 def api_data_teste():
     """Retorna a data atual (teste ou real)"""
     return jsonify(get_status())
+
+
+@app.route('/api/clima/condicao-atual')
+def api_clima_condicao_atual():
+    """Retorna a condição climática atual usada pelo sistema para a fazenda da sessão."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+
+    fazenda_id = request.args.get('fazenda_id') or session.get('fazenda_id')
+    if not fazenda_id:
+        return jsonify({'error': 'Nenhuma fazenda'}), 400
+
+    fazenda = database.get_fazenda(fazenda_id)
+    if not fazenda:
+        return jsonify({'error': 'Fazenda não encontrada'}), 404
+
+    lat = fazenda.get('latitude_sede')
+    lon = fazenda.get('longitude_sede')
+
+    if lat is None or lon is None:
+        condicao = 'normal'
+        return jsonify({
+            'condicao': condicao,
+            'descricao': get_descricao_clima(condicao),
+            'fator': 1.0,
+            'fonte': 'fallback',
+            'nota': 'Sem coordenadas da fazenda, usando condição normal.'
+        })
+
+    clima = obter_clima_com_fallback(lat, lon, prefer_cache=True)
+    condicao = (clima.get('condicao') or 'normal').lower()
+
+    return jsonify({
+        'condicao': condicao,
+        'descricao': get_descricao_clima(condicao),
+        'fator': clima.get('fator', 1.0),
+        'fonte': clima.get('fonte', 'api')
+    })
 
 # ============ AUTH ============
 @app.route('/login', methods=['GET', 'POST'])

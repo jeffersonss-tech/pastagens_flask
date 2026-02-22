@@ -7,6 +7,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from simular_data import now as data_teste_now  # Suporte a data de teste
 from services.manejo_service import calcular_altura_ocupacao, get_consumo_base, calcular_dias_tecnicos
+from services.clima_service import obter_clima_com_fallback
 from services.rotacao_service import (
     calcular_prioridade_rotacao,
     calcular_status_piquete,
@@ -1901,6 +1902,50 @@ def calcular_consumo_diario(capim):
     }
     return consumo.get(capim, 0.8)
 
+def _get_fazenda_coords(fazenda_id):
+    """Retorna (lat, lon) da fazenda ou (None, None)."""
+    if not fazenda_id:
+        return None, None
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT latitude_sede, longitude_sede FROM fazendas WHERE id = ?', (fazenda_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None, None
+    return row['latitude_sede'], row['longitude_sede']
+
+
+def _resolver_condicao_climatica_piquete(piquete):
+    """
+    Resolve condição climática com prioridade:
+    1) condicao_climatica manual (seca/normal/chuvoso)
+    2) clima automático por coordenada da fazenda
+    3) normal
+    """
+    cond_manual = (piquete.get('condicao_climatica') or '').strip().lower()
+    if cond_manual in ('seca', 'normal', 'chuvoso'):
+        return cond_manual, 'manual'
+
+    fazenda_id = piquete.get('fazenda_id')
+    lat = piquete.get('fazenda_latitude')
+    lon = piquete.get('fazenda_longitude')
+
+    if (lat is None or lon is None) and fazenda_id:
+        lat, lon = _get_fazenda_coords(fazenda_id)
+
+    if lat is not None and lon is not None:
+        try:
+            clima = obter_clima_com_fallback(lat, lon, prefer_cache=True)
+            cond = (clima.get('condicao') or 'normal').lower()
+            if cond in ('seca', 'normal', 'chuvoso'):
+                return cond, clima.get('fonte', 'api')
+        except Exception:
+            pass
+
+    return 'normal', 'fallback'
+
+
 def calcular_altura_estimada(piquete, categoria=None, peso_medio=None, consumo_base=None):
     """
     Calcula a altura do piquete baseada em medição real ou estimativa.
@@ -1987,7 +2032,7 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None, consumo_b
             from services.clima_service import calcular_fator_climatico
             from services.manejo_service import calcular_altura_descanso
 
-            condicao_climatica = piquete.get('condicao_climatica', 'normal') or 'normal'
+            condicao_climatica, _fonte_clima = _resolver_condicao_climatica_piquete(piquete)
 
             # Usar a altura_real como ponto de partida
             resultado = calcular_altura_descanso(
@@ -2040,7 +2085,7 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None, consumo_b
         from services.clima_service import calcular_fator_climatico
         from services.manejo_service import calcular_altura_descanso
 
-        condicao_climatica = piquete.get('condicao_climatica', 'normal') or 'normal'
+        condicao_climatica, _fonte_clima = _resolver_condicao_climatica_piquete(piquete)
 
         resultado = calcular_altura_descanso(
             altura_saida=altura_saida,
