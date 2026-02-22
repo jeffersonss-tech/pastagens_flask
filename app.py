@@ -379,8 +379,11 @@ def fazenda(id):
     if not fazenda:
         return "Fazenda não encontrada", 404
     
+    # Verifica se tem acesso (dono ou tem permissão via user_farm_permissions)
     if fazenda['usuario_id'] != session['user_id']:
-        return "Acesso negado", 403
+        # Se não for dono, verifica se tem permissão (já verificado pelo decorator, mas redundante para clareza)
+        if session.get('role') not in ['admin', 'gerente']:
+            return "Acesso negado", 403
     
     session['fazenda_id'] = id
     piquetes = listar_piquetes(id)

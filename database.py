@@ -50,10 +50,18 @@ def farm_permission_required(f):
         # Admin tem acesso a tudo
         if session.get('role') == 'admin':
             return f(*args, **kwargs)
-            
-        # Verificar permissão no banco
+        
         conn = get_db()
         cursor = conn.cursor()
+        
+        # Gerente tem acesso às fazendas que são dele (usuario_id)
+        if session.get('role') == 'gerente':
+            cursor.execute('SELECT 1 FROM fazendas WHERE id = ? AND usuario_id = ?', (farm_id, session.get('user_id')))
+            if cursor.fetchone():
+                conn.close()
+                return f(*args, **kwargs)
+        
+        # Verificar permissão explícita no banco (para operadores)
         cursor.execute('''
             SELECT 1 FROM user_farm_permissions 
             WHERE user_id = ? AND farm_id = ?
