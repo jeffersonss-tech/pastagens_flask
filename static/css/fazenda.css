@@ -79,11 +79,17 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
 }
 
 .sidebar.collapsed .menu-item {
-    padding: 15px 25px;
+    padding: 15px 10px;
+    justify-content: center;
 }
 
 .sidebar.collapsed .menu-item span:last-child {
     display: none;
+}
+
+.sidebar.collapsed .menu-item span:first-child {
+    margin: 0;
+    font-size: 1.2rem;
 }
 
 /* Botão de Toggle */
