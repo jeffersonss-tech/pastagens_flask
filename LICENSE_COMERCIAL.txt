@@ -1,0 +1,77 @@
+LICENÇA COMERCIAL - PastoFlow
+================================
+
+Copyright (c) 2024-2026 Jeferson Silva Santos. Todos os direitos reservados.
+
+TERMOS DE USO
+
+1. PROPRIEDADE
+Este software é de propriedade exclusiva do autor/da empresa. Todo o código-fonte,
+bancos de dados, documentação e materiais relacionados são propriedade intelectual
+do titular acima identificado.
+
+2. PROIBIDO
+É EXPRESSAMENTE PROIBIDO:
+- Copiar, reproduzir ou distribuir este software
+- Criar trabalhos derivados
+- Usar o software para fins comerciais sem autorização
+- Sub-licenciar, vender ou alugar o software
+- Remover ou alterar avisos de direitos autorais
+
+3. USO COMERCIAL
+O uso deste software em ambiente comercial requer a aquisição de uma licença
+comercial válida. Entre em contato com o proprietário para negociar os termos.
+
+4. GARANTIA
+Este software é fornecido "como está", sem garantias de qualquer tipo,
+expressas ou implícitas, incluindo mas não limitadas a garantias de
+comercialização, adequação a um propósito específico e não violação.
+
+5. RESPONSABILIDADE
+Em nenhuma circunstância o autor será responsável por quaisquer reclamações,
+danos ou outras responsabilidades decorrentes de ou em conexão com o software
+ou o uso ou outras negociações no software.
+
+6. CONTATO
+Para aquisição de licença comercial:
+- Email: jeffersonssantos92@gmail.com
+
+---
+
+LICENSED SOFTWARE - PastoFlow
+================================
+
+Copyright (c) 2024-2026 Jeferson Silva Santos. All rights reserved.
+
+COMMERCIAL LICENSE TERMS
+
+1. OWNERSHIP
+This software is the exclusive property of the author/company. All source code,
+databases, documentation and related materials are the intellectual property
+of the owner identified above.
+
+2. PROHIBITED
+It is EXPRESSLY PROHIBITED to:
+- Copy, reproduce or distribute this software
+- Create derivative works
+- Use the software for commercial purposes without authorization
+- Sublicense, sell or rent the software
+- Remove or alter copyright notices
+
+3. COMMERCIAL USE
+Use of this software in a commercial environment requires the purchase of a
+valid commercial license. Contact the owner to negotiate terms.
+
+4. WARRANTY
+This software is provided "as is", without warranties of any kind, express
+or implied, including but not limited to warranties of merchantability,
+fitness for a particular purpose and non-infringement.
+
+5. LIABILITY
+In no event shall the author be liable for any claims, damages or other
+liabilities arising from or in connection with the software or the use or
+other dealings in the software.
+
+6. CONTACT
+For commercial license acquisition:
+- Email: jeffersonssantos92@gmail.com
