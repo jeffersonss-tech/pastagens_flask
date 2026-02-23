@@ -257,7 +257,7 @@ function carregarPiquetesSelect() {
                     const entrada = p.altura_entrada || 25;
                     const statusCalc = altura >= entrada ? 'APTO' : 'RECUPERANDO';
                     const emoji = p.bloqueado ? '🔴' : (statusCalc === 'APTO' ? '🟢' : '🟡');
-                    return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : statusCalc} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
+                    return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : statusCalc}</option>`;
                 }).join('');
         });
 }
@@ -380,7 +380,7 @@ function abrirModalEditar(loteId) {
             let html = '<option value="">🚫 Sem piquete</option>';
             disponiveis.forEach(p => {
                 const isRecuperando = !p.bloqueado && p.statusCalc === 'RECUPERANDO';
-                html += `<option value="${p.id}" ${lote.piquete_atual_id === p.id ? 'selected' : ''} style="${isRecuperando ? 'background:#f8d7da;' : ''}">${p.nome} (${p.capim || 'N/I'}) ${p.bloqueado ? '🔴' : (p.statusCalc === 'APTO' ? '🟢' : '🟡')} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
+                html += `<option value="${p.id}" ${lote.piquete_atual_id === p.id ? 'selected' : ''} style="${isRecuperando ? 'background:#f8d7da;' : ''}">${p.nome} (${p.capim || 'N/I'}) ${p.bloqueado ? '🔴' : (p.statusCalc === 'APTO' ? '🟢' : '🟡')} ${p.bloqueado ? 'BLOQUEADO' : p.statusCalc}</option>`;
             });
             select.innerHTML = html;
         });
