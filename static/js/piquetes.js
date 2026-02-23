@@ -171,9 +171,24 @@ function drawAllPiquetes() {
                             diasInfo += `<br><i class="fa-solid fa-ruler-vertical"></i> Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
                         }
                     }
-                    const avisoUrgente = (p.animais_no_piquete > 0 && p.altura_estimada && p.altura_estimada < p.altura_entrada)
-                        ? `<br><strong style="color:#dc3545;"><i class="fa-solid fa-triangle-exclamation"></i> AVISO: Remova urgentemente!</strong>`
-                        : '';
+                    
+                    // Verificar se está atrasado usando campo da API (mesma lógica de lotes)
+                    // ATENÇÃO: 0 ou 1 dia antes, RETIRAR: depois da data
+                    let avisoUrgente = '';
+                    if (p.data_saida_prevista && p.animais_no_piquete > 0) {
+                        const diasAteSaida = p.dias_ate_saida;
+                        if (diasAteSaida !== undefined && diasAteSaida !== null) {
+                            if (diasAteSaida < 0) {
+                                // Passou da data -> RETIRAR
+                                const atrasado = Math.abs(diasAteSaida);
+                                avisoUrgente = `<br><strong style="color:#dc3545;"><i class="fa-solid fa-triangle-exclamation"></i> 🔴 RETIRAR JÁ! (atrasado ${atrasado} dia${atrasado !== 1 ? 's' : ''})</strong>`;
+                            } else if (diasAteSaida <= 1) {
+                                // 0 ou 1 dia antes -> ATENÇÃO
+                                avisoUrgente = `<br><strong style="color:#fd7e14;"><i class="fa-solid fa-triangle-exclamation"></i> 🟠 Preparar saída! (faltam ${diasAteSaida} dia${diasAteSaida !== 1 ? 's' : ''})</strong>`;
+                            }
+                        }
+                    }
+                    
                     let badgeClass = '';
                     let badgeText = '';
                     let statusInfo = '';

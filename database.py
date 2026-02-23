@@ -1284,6 +1284,23 @@ def listar_piquetes(fazenda_id=None):
             row_dict['lote_id'] = lote_info['lote_id']
             row_dict['dias_tecnicos'] = lote_info['dias_tecnicos']
             row_dict['data_saida_prevista'] = lote_info['data_saida_prevista']
+            
+            # Calcular dias_ate_saida para o aviso
+            data_saida = lote_info['data_saida_prevista']
+            if data_saida:
+                try:
+                    if '/' in data_saida:
+                        partes = data_saida.split('/')
+                        data_iso = f"{partes[2]}-{partes[1]}-{partes[0]}"
+                    else:
+                        data_iso = data_saida
+                    saida_dt = datetime.fromisoformat(data_iso.replace('Z', '+00:00').replace('+00:00', ''))
+                    row_dict['dias_ate_saida'] = (saida_dt - data_teste_now()).days
+                except:
+                    row_dict['dias_ate_saida'] = None
+            else:
+                row_dict['dias_ate_saida'] = None
+            
             # Calcular dias no piquete
             if lote_info['data_entrada']:
                 try:
@@ -1300,6 +1317,7 @@ def listar_piquetes(fazenda_id=None):
             row_dict['lote_id'] = None
             row_dict['dias_tecnicos'] = None
             row_dict['data_saida_prevista'] = None
+            row_dict['dias_ate_saida'] = None
         
         # Calcular dias_descanso desde data_medicao
         data_medicao = row_dict.get('data_medicao')
@@ -1385,10 +1403,30 @@ def get_piquete(id):
             row_dict['data_entrada'] = lote_row['data_entrada']
             row_dict['dias_tecnicos'] = lote_row['dias_tecnicos']
             row_dict['data_saida_prevista'] = lote_row['data_saida_prevista']
+            
+            # Calcular se está atrasado para o aviso
+            data_saida = lote_row['data_saida_prevista']
+            print(f"[DEBUG] data_saida: {data_saida}")
+            if data_saida:
+                try:
+                    # Converter de dd/mm/aaaa para ISO se necessário
+                    if '/' in data_saida:
+                        partes = data_saida.split('/')
+                        data_iso = f"{partes[2]}-{partes[1]}-{partes[0]}"
+                    else:
+                        data_iso = data_saida
+                    saida_dt = datetime.fromisoformat(data_iso.replace('Z', '+00:00').replace('+00:00', ''))
+                    dias_ate_saida = (saida_dt - data_teste_now()).days
+                    print(f"[DEBUG] dias_ate_saida calculado: {dias_ate_saida}")
+                    row_dict['dias_ate_saida'] = dias_ate_saida
+                except Exception as e:
+                    print(f"[ERRO] ao calcular dias_ate_saida: {e}")
+                    row_dict['dias_ate_saida'] = None
         else:
             row_dict['lote_id'] = None
             row_dict['dias_tecnicos'] = None
             row_dict['data_saida_prevista'] = None
+            row_dict['dias_ate_saida'] = None
         
         # Calcular dias de descanso desde a data_medicao (se houver) ou ultima_mov
         data_medicao = row_dict.get('data_medicao')
@@ -1419,6 +1457,7 @@ def get_piquete(id):
         else:
             row_dict['altura_atual'] = altura_estimada
         
+        print(f"[DEBUG] returning row_dict with dias_ate_saida: {row_dict.get('dias_ate_saida')}")
         return row_dict
     return None
 
