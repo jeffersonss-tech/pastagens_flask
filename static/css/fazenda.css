@@ -9,8 +9,25 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
     padding: 20px 0;
     flex-shrink: 0;
     transition: width 0.3s ease;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
     overflow-x: hidden;
+    z-index: 1000;
+}
+
+/* Main content com margem para sidebar fixa */
+.main {
+    margin-left: 260px;
+    flex: 1;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+/* Quando a sidebar tiver recolhida, ajustar a margem do main */
+body.sidebar-collapsed .main {
+    margin-left: 70px;
 }
 
 /* Estado contraído da sidebar */

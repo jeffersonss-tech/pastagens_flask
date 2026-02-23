@@ -30,6 +30,9 @@ function toggleSidebar() {
     const icon = document.getElementById('toggle-icon');
     const isCollapsed = sidebar.classList.toggle('collapsed');
     
+    // Adicionar/remover classe no body para ajustar main-content
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+    
     // Salvar preferência
     localStorage.setItem('sidebarCollapsed', isCollapsed);
     
@@ -51,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = document.getElementById('toggle-icon');
         if (sidebar) sidebar.classList.add('collapsed');
         if (icon) icon.className = 'fa-solid fa-chevron-right';
+        document.body.classList.add('sidebar-collapsed');
     }
 });
 
