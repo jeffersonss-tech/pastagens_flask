@@ -365,14 +365,22 @@ function abrirModalEditar(loteId) {
     document.getElementById('aviso-piquete-recuperacao').style.display = 'none';
     window.personalizadoParamsEdit = lote.categoria === 'Personalizado' ? { peso_medio: lote.peso_medio, consumo_base: lote.consumo_base } : null;
     
-    fetch('/api/piquetes/disponiveis?fazenda_id=' + fazendaId)
-        .then(r => r.json()).then(data => {
+    fetch('/api/piquetes?fazenda_id=' + fazendaId + '&_=' + Date.now())
+        .then(r => r.json()).then(allPiquetes => {
+            // Filtrar disponíveis (sem animais ou o atual do lote)
+            const disponiveis = allPiquetes.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0 || p.id === lote.piquete_atual_id);
+            // Calcular status
+            disponiveis.forEach(p => {
+                const altura = p.altura_estimada || 0;
+                const entrada = p.altura_entrada || 25;
+                p.statusCalc = altura >= entrada ? 'APTO' : 'RECUPERANDO';
+            });
+            
             const select = document.getElementById('edit-lote-piquete');
             let html = '<option value="">🚫 Sem piquete</option>';
-            data.forEach(p => {
-                const alturaUsada = p.altura_real_medida !== null ? p.altura_real_medida : p.altura_estimada;
-                const isRecuperando = !p.bloqueado && alturaUsada < p.altura_entrada;
-                html += `<option value="${p.id}" ${lote.piquete_atual_id === p.id ? 'selected' : ''} style="${isRecuperando ? 'background:#f8d7da;' : ''}">${p.nome} (${p.capim || 'N/I'}) ${p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡')} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
+            disponiveis.forEach(p => {
+                const isRecuperando = !p.bloqueado && p.statusCalc === 'RECUPERANDO';
+                html += `<option value="${p.id}" ${lote.piquete_atual_id === p.id ? 'selected' : ''} style="${isRecuperando ? 'background:#f8d7da;' : ''}">${p.nome} (${p.capim || 'N/I'}) ${p.bloqueado ? '🔴' : (p.statusCalc === 'APTO' ? '🟢' : '🟡')} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
             });
             select.innerHTML = html;
         });
