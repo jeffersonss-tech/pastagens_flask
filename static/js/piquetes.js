@@ -938,7 +938,7 @@ function filtrarPiquetes() {
         let mostrar = nome.includes(termo);
         
         if (mostrar && statusFiltro) {
-            if (statusFiltro === 'ocupado' && !texto.includes('em ocupa') && !texto.includes('ocupacao')) {
+            if (statusFiltro === 'ocupado' && !texto.includes('em occupac') && !texto.includes('em ocupa') && !texto.includes('retirar')) {
                 mostrar = false;
             } else if (statusFiltro === 'disponivel' && !texto.includes('disponivel') && !texto.includes('disponível')) {
                 mostrar = false;
