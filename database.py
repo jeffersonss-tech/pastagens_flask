@@ -1334,6 +1334,21 @@ def listar_piquetes(fazenda_id=None):
         if fonte == 'real':
             row_dict['altura_atual'] = altura_estimada
         
+        # Calcular status simples: APTO se altura >= entrada
+        altura_util = altura_estimada if altura_estimada else 0
+        if row_dict.get('altura_real_medida') is not None:
+            altura_util = row_dict['altura_real_medida']
+        
+        altura_entrada = row_dict.get('altura_entrada', 25) or 25
+        
+        if altura_util >= altura_entrada:
+            row_dict['status'] = 'APTO'
+        else:
+            row_dict['status'] = 'RECUPERANDO'
+        
+        # Adicionar dias_ideais
+        row_dict['dias_ideais'] = row_dict.get('dias_descanso_min', 30) or 30
+        
         result.append(row_dict)
     
     return result

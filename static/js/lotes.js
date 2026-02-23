@@ -228,15 +228,17 @@ function renderizarTabela() {
 }
 
 function carregarPiquetesSelect() {
-    fetch('/api/piquetes/disponiveis?fazenda_id=' + fazendaId)
+    fetch('/api/piquetes?fazenda_id=' + fazendaId + '&_=' + Date.now())
         .then(r => r.json())
         .then(data => {
             const select = document.getElementById('lote-piquete');
+            // Filtrar disponíveis (sem animais)
+            const disponiveis = data.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0);
             select.innerHTML = '<option value="">Nenhum (lote sem piquete)</option>' +
-                data.map(p => {
-                    const alturaUsada = p.altura_real_medida !== null ? p.altura_real_medida : p.altura_estimada;
-                    const emoji = p.bloqueado ? '🔴' : (alturaUsada >= p.altura_entrada ? '🟢' : '🟡');
-                    return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : (alturaUsada >= p.altura_entrada ? 'APTO' : 'RECUPERANDO')} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
+                disponiveis.map(p => {
+                    // Usar status da API
+                    const emoji = p.bloqueado ? '🔴' : (p.status === 'APTO' ? '🟢' : '🟡');
+                    return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : p.status} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
                 }).join('');
         });
 }
