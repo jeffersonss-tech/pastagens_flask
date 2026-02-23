@@ -349,6 +349,13 @@ function loadAll() {
                     ${p.data_medicao ? `<small style="color: #999; font-size: 0.7rem;"><br>📅 ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</small>` : ''}
                     ${diasRestantes}
                     ${alertaUrgente}
+                    ${(p.data_saida_prevista && p.animais_no_piquete > 0 && p.dias_ate_saida !== undefined && p.dias_ate_saida !== null) ? (
+                        p.dias_ate_saida < 0 
+                            ? `<div style="background: #dc3545; color: white; padding: 8px; border-radius: 4px; margin-top: 8px; text-align: center;"><strong>🔴 RETIRAR JÁ! Atrasado ${Math.abs(p.dias_ate_saida)} dia${Math.abs(p.dias_ate_saida) !== 1 ? 's' : ''}</strong></div>`
+                            : p.dias_ate_saida <= 1 
+                                ? `<div style="background: #fd7e14; color: white; padding: 8px; border-radius: 4px; margin-top: 8px; text-align: center;"><strong>🟠 Preparar saída! Faltam ${p.dias_ate_saida} dia${p.dias_ate_saida !== 1 ? 's' : ''}</strong></div>`
+                                : ''
+                    ) : ''}
                     <div style="margin-top: 10px; display: flex; gap: 5px;">
                         <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); abrirModalEditarPiquete(${p.id})">✏️ Editar</button>
                         <button class="btn btn-sm" style="background:#6c757d;color:white" onclick="event.stopPropagation(); mostrarPiquete(${p.id})">👁️ Ver</button>

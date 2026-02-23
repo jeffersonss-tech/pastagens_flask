@@ -354,6 +354,20 @@ function mostrarPiquete(id) {
             diasInfo += `<p style="color:#dc3545;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Ineficiência!</strong><br><small>Passou de 30 dias sem atingir altura</small></p>`;
         }
     }
+    
+    // Adicionar aviso de saída prevista (mesma lógica do popup)
+    if (p.data_saida_prevista && p.animais_no_piquete > 0) {
+        const diasAteSaida = p.dias_ate_saida;
+        if (diasAteSaida !== undefined && diasAteSaida !== null) {
+            if (diasAteSaida < 0) {
+                const atrasado = Math.abs(diasAteSaida);
+                diasInfo += `<p style="color:#dc3545;background:#ffeef0;padding:8px;border-radius:4px;margin-top:8px;"><strong><i class="fa-solid fa-triangle-exclamation"></i> 🔴 RETIRAR JÁ!</strong><br><small>Atrasado ${atrasado} dia${atrasado !== 1 ? 's' : ''}</small></p>`;
+            } else if (diasAteSaida <= 1) {
+                diasInfo += `<p style="color:#fd7e14;background:#fff3cd;padding:8px;border-radius:4px;margin-top:8px;"><strong><i class="fa-solid fa-triangle-exclamation"></i> 🟠 Preparar saída!</strong><br><small>Faltam ${diasAteSaida} dia${diasAteSaida !== 1 ? 's' : ''}</small></p>`;
+            }
+        }
+    }
+    
     let estimativaInfo = '';
     if (temReal && p.altura_estimada !== null) {
         const diff = p.altura_estimada - p.altura_real_medida;
