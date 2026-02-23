@@ -94,7 +94,7 @@ function renderCard(item) {
             </div>
         </div>`;
     } else {
-        loteInfoHTML = `<div style="margin-top: 8px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.8rem; color: #666;"><span style="color: #28a745;">✅ Piquete disponível</span> - Aguardando animais</div>`;
+        loteInfoHTML = '';
     }
     
     return `<div class="piquete-card ${statusClass}">
