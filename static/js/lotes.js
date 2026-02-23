@@ -237,9 +237,12 @@ function carregarPiquetesSelect() {
             const disponiveis = data.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0);
             select.innerHTML = '<option value="">Nenhum (lote sem piquete)</option>' +
                 disponiveis.map(p => {
-                    // Usar status da API
-                    const emoji = p.bloqueado ? '🔴' : (p.status === 'APTO' ? '🟢' : '🟡');
-                    return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : p.status} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
+                    // Calcular status localmente: APTO se altura_estimada >= altura_entrada
+                    const altura = p.altura_estimada || 0;
+                    const entrada = p.altura_entrada || 25;
+                    const statusCalc = altura >= entrada ? 'APTO' : 'RECUPERANDO';
+                    const emoji = p.bloqueado ? '🔴' : (statusCalc === 'APTO' ? '🟢' : '🟡');
+                    return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : statusCalc} • ${p.dias_descanso || 0}/${p.dias_ideais || 30} dias</option>`;
                 }).join('');
         });
 }
