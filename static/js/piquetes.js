@@ -756,17 +756,17 @@ function validarSalvarPiquete() {
     const alturaSaida = parseFloat(document.getElementById('pq-altura-saida').value) || 0;
     const alturaAtual = document.getElementById('pq-altura-atual').value.trim();
     const dataMedicao = document.getElementById('pq-data-medicao').value.trim();
-    if (!nome) return alert('<i class="fa-solid fa-circle-xmark"></i> Informe o nome do piquete!');
-    if (!capim) return alert('<i class="fa-solid fa-circle-xmark"></i> Selecione o tipo de capim!');
-    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('<i class="fa-solid fa-circle-xmark"></i> Configure os parâmetros do capim Outro.');
-    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('<i class="fa-solid fa-circle-xmark"></i> Configure os parâmetros do capim Outro.');
-    if (area <= 0) return alert('<i class="fa-solid fa-circle-xmark"></i> A área deve ser maior que 0!');
-    if (alturaEntrada <= 0) return alert('<i class="fa-solid fa-circle-xmark"></i> Informe a altura ideal de entrada!');
-    if (alturaSaida <= 0) return alert('<i class="fa-solid fa-circle-xmark"></i> Informe a altura mínima de saída!');
-    if (alturaSaida >= alturaEntrada) return alert('<i class="fa-solid fa-circle-xmark"></i> A altura de saída deve ser MENOR que a altura de entrada!');
-    if (alturaAtual && !dataMedicao) return alert('<i class="fa-solid fa-circle-xmark"></i> Se informar a Altura Atual, informe também a Data da Medição!');
+    if (!nome) return alert('Informe o nome do piquete!');
+    if (!capim) return alert('Selecione o tipo de capim!');
+    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('Configure os parâmetros do capim Outro.');
+    if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('Configure os parâmetros do capim Outro.');
+    if (area <= 0) return alert('A área deve ser maior que 0!');
+    if (alturaEntrada <= 0) return alert('Informe a altura ideal de entrada!');
+    if (alturaSaida <= 0) return alert('Informe a altura mínima de saída!');
+    if (alturaSaida >= alturaEntrada) return alert('A altura de saída deve ser MENOR que a altura de entrada!');
+    if (alturaAtual && !dataMedicao) return alert('Se informar a Altura Atual, informe também a Data da Medição!');
     if (pontos.length < 3 && area <= 0) {
-        return alert('<i class="fa-solid fa-circle-xmark"></i> Desenhe o piquete no mapa OU libere a área manual!');
+        return alert('Desenhe o piquete no mapa OU libere a área manual!');
     }
     salvarPiquete();
 }
@@ -813,13 +813,13 @@ function validarSalvarEdicaoPiquete() {
     const alturaSaida = parseFloat(document.getElementById('edit-pq-altura-saida').value) || 0;
     const alturaAtual = document.getElementById('edit-pq-altura-atual').value.trim();
     const dataMedicao = document.getElementById('edit-pq-data-medicao').value.trim();
-    if (!nome) return alert('<i class="fa-solid fa-circle-xmark"></i> Informe o nome do piquete!');
-    if (!capim) return alert('<i class="fa-solid fa-circle-xmark"></i> Selecione o tipo de capim!');
-    if (area <= 0) return alert('<i class="fa-solid fa-circle-xmark"></i> A área deve ser maior que 0!');
-    if (alturaEntrada <= 0) return alert('<i class="fa-solid fa-circle-xmark"></i> Informe a altura de entrada!');
-    if (alturaSaida <= 0) return alert('<i class="fa-solid fa-circle-xmark"></i> Informe a altura mínima de saída!');
-    if (alturaSaida >= alturaEntrada) return alert('<i class="fa-solid fa-circle-xmark"></i> A altura de saída deve ser MENOR que a altura de entrada!');
-    if (alturaAtual && !dataMedicao) return alert('<i class="fa-solid fa-circle-xmark"></i> Se informar a Altura Atual, informe também a Data da Medição!');
+    if (!nome) return alert('Informe o nome do piquete!');
+    if (!capim) return alert('Selecione o tipo de capim!');
+    if (area <= 0) return alert('A área deve ser maior que 0!');
+    if (alturaEntrada <= 0) return alert('Informe a altura de entrada!');
+    if (alturaSaida <= 0) return alert('Informe a altura mínima de saída!');
+    if (alturaSaida >= alturaEntrada) return alert('A altura de saída deve ser MENOR que a altura de entrada!');
+    if (alturaAtual && !dataMedicao) return alert('Se informar a Altura Atual, informe também a Data da Medição!');
     salvarEdicaoPiquete();
 }
 
