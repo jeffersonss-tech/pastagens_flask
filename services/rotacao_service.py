@@ -123,6 +123,12 @@ def calcular_prioridade_rotacao(fazenda_id):
                     except (ValueError, IndexError):
                         pass
         
+        # Calcular altura_estimada se não existir
+        if p.get('altura_estimada') is None:
+            from database import calcular_altura_estimada
+            altura_calc, _ = calcular_altura_estimada(p)
+            p['altura_estimada'] = altura_calc
+        
         # Calcular status
         status_info = calcular_status_piquete(p)
         
@@ -147,7 +153,8 @@ def calcular_status_piquete(piquete):
     """Calcula status detalhado de um piquete."""
     altura_real = piquete.get('altura_real_medida')
     altura_estimada = piquete.get('altura_estimada')
-    altura_base = altura_real if altura_real is not None else altura_estimada
+    # Usar altura_estimada como prioridade (altura atual após crescimento)
+    altura_base = altura_estimada if altura_estimada is not None else altura_real
     altura_entrada = float(piquete.get('altura_entrada', 25) or 25)
     altura_saida = float(piquete.get('altura_saida', 15) or 15)
     dias_ocupacao = int(piquete.get('dias_ocupacao', 3) or 3)
