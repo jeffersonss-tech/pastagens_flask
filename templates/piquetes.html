@@ -4,6 +4,21 @@
     <div class="card">
         <h3><i class="fa-solid fa-map-location-dot"></i> Piquetes</h3>
         <div id="clima-piquetes-topo" style="margin: 8px 0 12px 0; color: #495057; font-size: 0.9rem;"><i class="fa-solid fa-cloud-sun"></i> Condição climática atual: <strong id="clima-piquetes-valor">Carregando...</strong></div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <input type="text" id="buscar-piquete" placeholder="🔍 Buscar piquete..." 
+                   style="flex: 1; min-width: 150px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px;"
+                   oninput="filtrarPiquetes()">
+            <select id="filtro-status-piquete" onchange="filtrarPiquetes()" 
+                    style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px;">
+                <option value="">Todos os status</option>
+                <option value="ocupado">Ocupados</option>
+                <option value="disponivel">Disponíveis</option>
+                <option value="recuperando">Recuperando</option>
+                <option value="sem_altura">Sem Altura</option>
+            </select>
+        </div>
+        
         <button class="btn btn-success" onclick="abrirModalPiquete()"><i class="fa-solid fa-plus"></i> Novo Piquete</button>
         
         <div class="piquetes-grid" id="lista-piquetes" style="max-height: 400px; overflow-y: auto;"></div>

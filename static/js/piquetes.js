@@ -924,3 +924,31 @@ if (typeof fazendaId !== 'undefined' && fazendaId) {
     window._climaFatorAtual = 1.0;
     climaAtualFator = 1.0;
 }
+
+// Função para filtrar piquetes na lista
+function filtrarPiquetes() {
+    const termo = document.getElementById('buscar-piquete').value.toLowerCase();
+    const statusFiltro = document.getElementById('filtro-status-piquete').value;
+    
+    const cards = document.querySelectorAll('#lista-piquetes > div');
+    cards.forEach(card => {
+        const nome = card.querySelector('h4')?.textContent.toLowerCase() || '';
+        const texto = card.textContent.toLowerCase();
+        
+        let mostrar = nome.includes(termo);
+        
+        if (mostrar && statusFiltro) {
+            if (statusFiltro === 'ocupado' && !texto.includes('em ocupa') && !texto.includes('ocupacao')) {
+                mostrar = false;
+            } else if (statusFiltro === 'disponivel' && !texto.includes('disponivel') && !texto.includes('disponível')) {
+                mostrar = false;
+            } else if (statusFiltro === 'recuperando' && !texto.includes('recuperando')) {
+                mostrar = false;
+            } else if (statusFiltro === 'sem_altura' && !texto.includes('sem altura') && !texto.includes('precisa medir')) {
+                mostrar = false;
+            }
+        }
+        
+        card.style.display = mostrar ? '' : 'none';
+    });
+}
