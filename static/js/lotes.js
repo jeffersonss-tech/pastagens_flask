@@ -200,8 +200,11 @@ function renderizarTabela() {
             // Criar mapa de sugestoes por lote (todos os disponíveis para cada lote)
             const sugestoesMap = {};
             lotes.forEach(l => {
-                // Filtrar disponíveis (sem animais)
-                const disponiveis = piquetesProcessados.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0);
+                // Filtrar disponíveis (sem animais) E com medição (altura_real_medida OU data_medicao)
+                const disponiveis = piquetesProcessados.filter(p => 
+                    (!p.animais_no_piquete || p.animais_no_piquete === 0) && 
+                    (p.altura_real_medida || p.data_medicao)
+                );
                 sugestoesMap[l.id] = disponiveis;
             });
             
@@ -248,8 +251,11 @@ function carregarPiquetesSelect() {
         .then(data => {
             console.log('[DEBUG] Piquetes recebidos:', data);
             const select = document.getElementById('lote-piquete');
-            // Filtrar disponíveis (sem animais)
-            const disponiveis = data.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0);
+            // Filtrar disponíveis (sem animais) E com medição (altura_real_medida OU data_medicao)
+            const disponiveis = data.filter(p => 
+                (!p.animais_no_piquete || p.animais_no_piquete === 0) && 
+                (p.altura_real_medida || p.data_medicao)
+            );
             select.innerHTML = '<option value="">Nenhum (lote sem piquete)</option>' +
                 disponiveis.map(p => {
                     // Calcular status localmente: APTO se altura_estimada >= altura_entrada
@@ -303,9 +309,9 @@ function abrirModalMover(loteId, nome) {
     document.getElementById('modal-mover').classList.add('active');
     fetch(`/api/piquetes?fazenda_id=${fazendaId}&_=${Date.now()}`)
         .then(r => r.json()).then(allPiquetes => {
-            // Processar e calcular status
+            // Processar e calcular status E filtrar com medição (altura_real_medida OU data_medicao)
             const disponiveis = allPiquetes
-                .filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0)
+                .filter(p => (!p.animais_no_piquete || p.animais_no_piquete === 0) && (p.altura_real_medida || p.data_medicao))
                 .map(p => {
                     const altura = p.altura_estimada || 0;
                     const entrada = p.altura_entrada || 25;
@@ -367,8 +373,11 @@ function abrirModalEditar(loteId) {
     
     fetch('/api/piquetes?fazenda_id=' + fazendaId + '&_=' + Date.now())
         .then(r => r.json()).then(allPiquetes => {
-            // Filtrar disponíveis (sem animais ou o atual do lote)
-            const disponiveis = allPiquetes.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0 || p.id === lote.piquete_atual_id);
+            // Filtrar disponíveis (sem animais ou o atual do lote) E com medição (altura_real_medida OU data_medicao)
+            const disponiveis = allPiquetes.filter(p => 
+                (!p.animais_no_piquete || p.animais_no_piquete === 0 || p.id === lote.piquete_atual_id) && 
+                (p.altura_real_medida || p.data_medicao)
+            );
             // Calcular status
             disponiveis.forEach(p => {
                 const altura = p.altura_estimada || 0;
@@ -510,9 +519,9 @@ function abrirModalTodosPiquetes(loteId) {
     document.getElementById('modal-todos-piquetes').classList.add('active');
     fetch(`/api/piquetes?fazenda_id=${fazendaId}&_=${Date.now()}`)
         .then(r => r.json()).then(allPiquetes => {
-            // Processar e calcular status
+            // Processar e calcular status E filtrar com medição (altura_real_medida OU data_medicao)
             const disponiveis = allPiquetes
-                .filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0)
+                .filter(p => (!p.animais_no_piquete || p.animais_no_piquete === 0) && (p.altura_real_medida || p.data_medicao))
                 .map(p => {
                     const altura = p.altura_estimada || 0;
                     const entrada = p.altura_entrada || 25;
