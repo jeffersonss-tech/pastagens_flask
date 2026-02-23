@@ -1931,14 +1931,19 @@ def _get_fazenda_clima_config(fazenda_id):
 def _resolver_condicao_climatica_piquete(piquete):
     """
     Resolve condição climática com prioridade:
-    1) condicao_climatica manual (seca/normal/chuvoso)
-    2) clima automático por coordenada da fazenda
-    3) normal
+    1) Se piquete tem condicao_climatica explícita E não for 'normal', usar ela
+    2) config da fazenda (se modo manual)
+    3) clima automático por coordenada da fazenda
+    4) normal
     """
-    cond_manual = (piquete.get('condicao_climatica') or '').strip().lower()
-    if cond_manual in ('seca', 'normal', 'chuvoso'):
+    # Primeiro, verificar se o piquete tem uma condição climática específica (não padrão 'normal')
+    cond_manual = (piquete.get('condicao_climatica')().lower()
+ or '').strip    
+    # Se o piquete tem uma condição explícita (não 'normal'), usar ela
+    if cond_manual and cond_manual != 'normal' and cond_manual in ('seca', 'normal', 'chuvoso'):
         return cond_manual, 'manual'
 
+    # Caso contrário, buscar da fazenda
     fazenda_id = piquete.get('fazenda_id')
     lat = piquete.get('fazenda_latitude')
     lon = piquete.get('fazenda_longitude')

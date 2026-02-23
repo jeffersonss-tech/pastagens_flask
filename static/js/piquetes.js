@@ -586,7 +586,7 @@ function preencherSelectCapins(selectId) {
     if (valorAtual) select.value = valorAtual;
 }
 
-let climaAtualFator = 1.0;
+let climaAtualFator = window._climaFatorAtual || 1.0;
 
 function getCrescimentoCapim(capim) {
     if (capim && dadosCapins[capim]) return dadosCapins[capim].crescimentoDiario;
@@ -615,7 +615,8 @@ function atualizarClimaAtualUI() {
             const condicao = (data.condicao || 'normal').toUpperCase();
             const fator = data.fator !== undefined ? data.fator : 1.0;
             const fonte = data.fonte || 'api';
-            climaAtualFator = parseFloat(fator) || 1.0;
+            window._climaFatorAtual = parseFloat(fator) || 1.0;
+            climaAtualFator = window._climaFatorAtual;
 
             const textoSidebar = `${condicao} (fator ${fator})`;
             const textoPiquetes = `${condicao} • fator ${fator} • fonte: ${fonte}`;
@@ -901,3 +902,12 @@ window.addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) manterMapaPiquetesAlinhado();
 });
+
+// Carregar fator climático ao iniciar (sincronizar com fazenda.js)
+if (typeof fazendaId !== 'undefined' && fazendaId) {
+    atualizarClimaAtualUI();
+} else {
+    // Se ainda não tem fazenda, definir padrão
+    window._climaFatorAtual = 1.0;
+    climaAtualFator = 1.0;
+}
