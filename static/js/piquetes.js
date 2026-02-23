@@ -265,6 +265,8 @@ function mostrarPiquete(id) {
         }
         mapPiquetes.invalidateSize();
         drawAllPiquetes();
+        
+        // Centralizar no mapa mas NÃO criar novo polígono
         if (p.geometria) {
             try {
                 const geo = JSON.parse(p.geometria);
@@ -272,27 +274,9 @@ function mostrarPiquete(id) {
                     const coords = geo.coordinates[0].map(c => [c[1], c[0]]);
                     const bounds = L.latLngBounds(coords.map(c => [c[0], c[1]]));
                     mapPiquetes.fitBounds(bounds, {padding: [50, 50]});
-                    let corPoligono = '#28a745'; 
-                    if (p.estado === 'ocupado') corPoligono = '#dc3545';
-                    else if (p.altura_atual && p.altura_atual < p.altura_entrada) corPoligono = '#ffc107';
-                    else if (!p.altura_atual) corPoligono = '#fd7e14';
-                    L.polygon(coords, {
-                        color: corPoligono,
-                        weight: 4,
-                        fill: true,
-                        fillOpacity: 0.4
-                    }).addTo(mapPiquetes).bindPopup(`
-                        <strong>${p.nome}</strong><br>
-                        <i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}<br>
-                        <i class="fa-solid fa-ruler-combined"></i> ${p.area || 0} hectares<br>
-                        <i class="fa-solid fa-ruler-vertical"></i> ${p.altura_atual || '?'}/${p.altura_entrada || '?'} cm<br>
-                        ${p.estado === 'ocupado' 
-                            ? `<i class="fa-solid fa-clock"></i> ${p.dias_tecnicos || 0} dias técnicos${p.data_saida_prevista ? ' • <i class="fa-regular fa-calendar"></i> ' + p.data_saida_prevista : ''}`
-                            : `<i class="fa-regular fa-calendar"></i> ${p.dias_descanso || 0}/${p.dias_descanso_min || 30} dias descanso`}
-                    `).openPopup();
                 }
             } catch (e) {
-                console.log('Erro ao mostrar piquete', e);
+                console.log('Erro ao centralizar mapa', e);
             }
         }
     }, 200);
