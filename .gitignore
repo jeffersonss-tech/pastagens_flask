@@ -1,6 +1,7 @@
 venv/
 __pycache__/
 *.db
+data_teste_config.json
 git add .
 git commit -m "Sua mensagem aqui"
 git push
