@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}{{ fazenda.nome }}{% endblock %}
-{% block header_title %}🏠 {{ fazenda.nome }}{% endblock %}
+{% block header_title %}<i class="fa-solid fa-house"></i> {{ fazenda.nome }}{% endblock %}
 
 {% block content %}
     <!-- DASHBOARD -->
@@ -31,20 +31,20 @@
         
         <div class="dashboard-grid">
             <div class="card">
-                <h3>📍 Mapa dos Piquetes</h3>
+                <h3><i class="fa-solid fa-map-location-dot"></i> Mapa dos Piquetes</h3>
                 <div id="map-container">
                     <div id="map"></div>
                 </div>
                 <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="geoLocalizacaoDashboard()">📍 Minha Localização</button>
+                    <button class="btn btn-primary" onclick="geoLocalizacaoDashboard()"><i class="fa-solid fa-location-crosshairs"></i> Minha Localização</button>
                     <div style="flex: 1; display: flex; gap: 5px; min-width: 250px;">
                         <input type="text" id="endereco-dashboard" placeholder="Buscar endereço (Ex: Aruanã, GO)" style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
-                        <button class="btn btn-success" onclick="buscarEnderecoDashboard()">🔍 Buscar</button>
+                        <button class="btn btn-success" onclick="buscarEnderecoDashboard()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
                     </div>
                 </div>
             </div>
             <div class="card">
-                <h3>📋 Últimas Movimentações</h3>
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Últimas Movimentações</h3>
                 <table class="data-table">
                     <thead>
                         <tr><th>Animal</th><th>De</th><th>Para</th><th>Data</th></tr>
@@ -61,7 +61,7 @@
     <!-- MOVIMENTAÇÃO -->
     <div id="movimentacao-section" style="display:none;">
         <div class="card">
-            <h3>🔄 Nova Movimentação</h3>
+            <h3><i class="fa-solid fa-right-left"></i> Nova Movimentação</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                 <div class="form-group">
                     <label>Animal/Lote</label>
@@ -76,11 +76,11 @@
                     <select id="mov-destino"><option value="">Selecione...</option></select>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="novaMovimentacao()">🔄 Movimentar</button>
+            <button class="btn btn-primary" onclick="novaMovimentacao()"><i class="fa-solid fa-right-left"></i> Movimentar</button>
         </div>
         
         <div class="card">
-            <h3>📋 Histórico de Movimentações</h3>
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Movimentações</h3>
             <table class="data-table">
                 <thead>
                     <tr><th>Data</th><th>Animal</th><th>Origem</th><th>Destino</th><th>Motivo</th></tr>
@@ -93,7 +93,7 @@
     <!-- RELATÓRIOS -->
     <div id="relatorios-section" style="display:none;">
         <div class="card">
-            <h3>📈 Relatórios da Fazenda</h3>
+            <h3><i class="fa-solid fa-chart-line"></i> Relatórios da Fazenda</h3>
             <p style="color: #666;">Em breve...</p>
         </div>
     </div>

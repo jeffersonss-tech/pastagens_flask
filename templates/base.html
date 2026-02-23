@@ -21,7 +21,7 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-toggle" onclick="toggleSidebar()" title="Recolher/Expandir">
-            <span id="toggle-icon">◀</span>
+            <i class="fa-solid fa-chevron-left" id="toggle-icon"></i>
         </div>
         <div class="sidebar-header">
             <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="width: 120px; margin-bottom: 10px;">
@@ -40,26 +40,26 @@
         <ul class="menu">
             {% if fazenda %}
             <li class="menu-item {% if request.endpoint == 'fazenda' %}active{% endif %}" onclick="showSection('dashboard')">
-                <span>📊</span> <span>Dashboard</span>
+                <i class="fa-solid fa-gauge-high"></i> <span>Dashboard</span>
             </li>
             <li class="menu-item" onclick="showSection('piquetes')">
-                <span>📍</span> <span>Piquetes</span>
+                <i class="fa-solid fa-map-location-dot"></i> <span>Piquetes</span>
             </li>
             <li class="menu-item {% if request.endpoint == 'lotes' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/lotes'">
-                <span>📋</span> <span>Lotes</span>
+                <i class="fa-solid fa-clipboard-list"></i> <span>Lotes</span>
             </li>
             <li class="menu-item" onclick="showSection('movimentacao')">
-                <span>🔄</span> <span>Movimentação</span>
+                <i class="fa-solid fa-right-left"></i> <span>Movimentação</span>
             </li>
             <li class="menu-item {% if request.endpoint == 'rotacao' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/rotacao'">
-                <span>🧠</span> <span>IA Rotação</span>
+                <i class="fa-solid fa-brain"></i> <span>IA Rotação</span>
             </li>
             <li class="menu-item" onclick="showSection('relatorios')">
-                <span>📈</span> <span>Relatórios</span>
+                <i class="fa-solid fa-chart-line"></i> <span>Relatórios</span>
             </li>
             {% else %}
             <li class="menu-item active" onclick="window.location.href='/'">
-                <span>🏠</span> <span>Home</span>
+                <i class="fa-solid fa-house"></i> <span>Home</span>
             </li>
             {% endif %}
         </ul>
@@ -72,14 +72,14 @@
             <div class="user-info">
                 {% if fazenda %}
                 <button class="btn" style="background: #6c757d; color: white; padding: 8px 15px; margin-right: 10px;" onclick="verificarAlertasManualmente()" title="Verificar alertas">
-                    🔄
+                    <i class="fa-solid fa-rotate-right"></i>
                 </button>
                 <button class="btn" style="background: transparent; color: #1a1a2e; padding: 8px 15px; position: relative;" onclick="abrirModalAlertas()" title="Alertas">
-                    🔔
+                    <i class="fa-solid fa-bell"></i>
                     <span id="alerta-badge" style="display: none; position: absolute; top: 0; right: 0; background: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">0</span>
                 </button>
                 {% endif %}
-                <a href="{{ url_for('home') }}" style="margin-left: 15px;">← Início</a>
+                <a href="{{ url_for('home') }}" style="margin-left: 15px;"><i class="fa-solid fa-house"></i> Início</a>
                 <a href="{{ url_for('logout') }}" class="btn btn-danger" style="margin-left: 10px;">Sair</a>
             </div>
         </div>

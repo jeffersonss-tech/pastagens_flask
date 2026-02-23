@@ -2,22 +2,22 @@
 
 <div id="piquetes-section">
     <div class="card">
-        <h3>📍 Piquetes</h3>
-        <div id="clima-piquetes-topo" style="margin: 8px 0 12px 0; color: #495057; font-size: 0.9rem;">🌦️ Condição climática atual: <strong id="clima-piquetes-valor">Carregando...</strong></div>
-        <button class="btn btn-success" onclick="abrirModalPiquete()">➕ Novo Piquete</button>
+        <h3><i class="fa-solid fa-map-location-dot"></i> Piquetes</h3>
+        <div id="clima-piquetes-topo" style="margin: 8px 0 12px 0; color: #495057; font-size: 0.9rem;"><i class="fa-solid fa-cloud-sun"></i> Condição climática atual: <strong id="clima-piquetes-valor">Carregando...</strong></div>
+        <button class="btn btn-success" onclick="abrirModalPiquete()"><i class="fa-solid fa-plus"></i> Novo Piquete</button>
         
         <div class="piquetes-grid" id="lista-piquetes"></div>
     </div>
     
     <div class="card">
-        <h3>🗺️ Mapa dos Piquetes</h3>
+        <h3><i class="fa-solid fa-map"></i> Mapa dos Piquetes</h3>
         <div id="map-piquetes" style="height: 400px; border-radius: 10px;"></div>
         
         <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="geoLocalizacaoMapaPiquetes()">📍 Minha Localização</button>
+            <button class="btn btn-primary" onclick="geoLocalizacaoMapaPiquetes()"><i class="fa-solid fa-location-crosshairs"></i> Minha Localização</button>
             <div style="flex: 1; display: flex; gap: 5px; min-width: 250px;">
                 <input type="text" id="endereco-busca" placeholder="Buscar endereço (Ex: Aruanã, GO)" style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
-                <button class="btn btn-success" onclick="buscarEndereco()">🔍 Buscar</button>
+                <button class="btn btn-success" onclick="buscarEndereco()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
             </div>
         </div>
     </div>

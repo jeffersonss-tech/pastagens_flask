@@ -34,7 +34,7 @@ function toggleSidebar() {
     localStorage.setItem('sidebarCollapsed', isCollapsed);
     
     // Atualizar ícone
-    icon.textContent = isCollapsed ? '▶' : '◀';
+    icon.className = isCollapsed ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
     
     // Forçar redimensionamento dos mapas se existirem
     setTimeout(() => {
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sidebar = document.getElementById('sidebar');
         const icon = document.getElementById('toggle-icon');
         if (sidebar) sidebar.classList.add('collapsed');
-        if (icon) icon.textContent = '▶';
+        if (icon) icon.className = 'fa-solid fa-chevron-right';
     }
 });
 
