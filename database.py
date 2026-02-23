@@ -763,10 +763,18 @@ def calcular_status_lote(lote):
         try:
             from simular_data import now as data_teste_now
             data_teste = data_teste_now()
-            saida_dt = datetime.fromisoformat(data_saida_prevista.replace('Z', '+00:00').replace('+00:00', ''))
+            
+            # Converter data de dd/mm/aaaa para ISO se necessário
+            data_saida_str = data_saida_prevista
+            if '/' in data_saida_str:
+                partes = data_saida_str.split('/')
+                data_saida_str = f"{partes[2]}-{partes[1]}-{partes[0]}"
+            
+            saida_dt = datetime.fromisoformat(data_saida_str.replace('Z', '+00:00').replace('+00:00', ''))
             
             # Calcular dias restantes
             dias_restantes = (saida_dt - data_teste).days
+            print(f"[DEBUG] lote data_saida: {data_saida_prevista}, convertida: {data_saida_str}, data_teste: {data_teste}, dias_restantes: {dias_restantes}")
             
             if dias_restantes < 0:
                 # Passou da data de saída
