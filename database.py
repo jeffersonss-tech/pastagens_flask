@@ -1937,8 +1937,8 @@ def _resolver_condicao_climatica_piquete(piquete):
     4) normal
     """
     # Primeiro, verificar se o piquete tem uma condição climática específica (não padrão 'normal')
-    cond_manual = (piquete.get('condicao_climatica')().lower()
- or '').strip    
+    cond_manual = (piquete.get('condicao_climatica') or '').strip().lower()
+    
     # Se o piquete tem uma condição explícita (não 'normal'), usar ela
     if cond_manual and cond_manual != 'normal' and cond_manual in ('seca', 'normal', 'chuvoso'):
         return cond_manual, 'manual'
