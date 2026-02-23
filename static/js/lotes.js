@@ -231,6 +231,7 @@ function carregarPiquetesSelect() {
     fetch('/api/piquetes?fazenda_id=' + fazendaId + '&_=' + Date.now())
         .then(r => r.json())
         .then(data => {
+            console.log('[DEBUG] Piquetes recebidos:', data);
             const select = document.getElementById('lote-piquete');
             // Filtrar disponíveis (sem animais)
             const disponiveis = data.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0);
