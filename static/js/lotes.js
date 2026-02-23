@@ -185,12 +185,27 @@ function renderizarTabela() {
         tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><h3>😕 Nenhum lote encontrado</h3><p>Cadastre o primeiro lote ou ajuste os filtros.</p></td></tr>`;
         return;
     }
-    Promise.all(lotes.map(l => fetch(`/api/lotes/${l.id}/sugerir-piquetes?fazenda_id=${fazendaId}`).then(r => r.json())))
-    .then(sugestoesArrays => {
-        const sugestoesMap = {};
-        lotes.forEach((l, i) => sugestoesMap[l.id] = sugestoesArrays[i]);
-        
-        tbody.innerHTML = lotes.map((lote, idx) => {
+    // Buscar todos os piquetes de uma vez
+    fetch(`/api/piquetes?fazenda_id=${fazendaId}&_=${Date.now()}`)
+        .then(r => r.json())
+        .then(allPiquetes => {
+            // Processar piquetes para adicionar status calculado
+            const piquetesProcessados = allPiquetes.map(p => {
+                const altura = p.altura_estimada || 0;
+                const entrada = p.altura_entrada || 25;
+                p.statusCalc = altura >= entrada ? 'APTO' : 'RECUPERANDO';
+                return p;
+            });
+            
+            // Criar mapa de sugestoes por lote (todos os disponíveis para cada lote)
+            const sugestoesMap = {};
+            lotes.forEach(l => {
+                // Filtrar disponíveis (sem animais)
+                const disponiveis = piquetesProcessados.filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0);
+                sugestoesMap[l.id] = disponiveis;
+            });
+            
+            tbody.innerHTML = lotes.map((lote, idx) => {
             const sugestoes = sugestoesMap[lote.id] || [];
             const temPiquete = !!lote.piquete_atual_id;
             const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
@@ -210,13 +225,13 @@ function renderizarTabela() {
             let piqueteInfo = temPiquete ? `${lote.piquete_nome}<br><small style="color: #28a745;">📏 ${lote.altura_estimada || '?'}cm</small>` : '<span style="color: #999;">Sem piquete</span>';
             
             let proximoHtml = sugestoes.length > 0 ? (function(){
-                const aptos = sugestoes.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA').length;
-                const emRecup = sugestoes.filter(p => p.status === 'RECUPERANDO').length;
+                const aptos = sugestoes.filter(p => p.statusCalc === 'APTO').length;
+                const emRecup = sugestoes.filter(p => p.statusCalc === 'RECUPERANDO').length;
                 return `<button class="btn btn-sm" style="background: #6c757d; color: white;" onclick="abrirModalTodosPiquetes(${lote.id})">📋 Ver ${sugestoes.length} opções</button><br><small style="color: #28a745;">🟢 ${aptos} aptos</small>${emRecup > 0 ? `<br><small style="color: #856404;">🟡 ${emRecup} em recup.</small>` : ''}`;
             })() : '<span style="font-size: 0.85rem; color: #999;">⚠️ Nenhum disponível</span>';
             
             let actions = (function(){
-                const aptos = sugestoes.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA');
+                const aptos = sugestoes.filter(p => p.statusCalc === 'APTO');
                 if (temPiquete) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Mover</button><button class="btn-sair" onclick="registrarSaida(${lote.id})">📤 Sair</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
                 if (aptos.length > 0) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Alocar</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
                 return `<button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
@@ -286,10 +301,20 @@ function abrirModalMover(loteId, nome) {
     document.getElementById('mover-lote-id').value = loteId;
     document.getElementById('mover-lote-nome').textContent = nome;
     document.getElementById('modal-mover').classList.add('active');
-    fetch(`/api/lotes/${loteId}/sugerir-piquetes?fazenda_id=${fazendaId}`)
-        .then(r => r.json()).then(data => {
+    fetch(`/api/piquetes?fazenda_id=${fazendaId}&_=${Date.now()}`)
+        .then(r => r.json()).then(allPiquetes => {
+            // Processar e calcular status
+            const disponiveis = allPiquetes
+                .filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0)
+                .map(p => {
+                    const altura = p.altura_estimada || 0;
+                    const entrada = p.altura_entrada || 25;
+                    p.statusCalc = altura >= entrada ? 'APTO' : 'RECUPERANDO';
+                    return p;
+                });
+            
             const container = document.getElementById('sugestoes-piquetes');
-            const aptos = data.filter(p => p.status === 'APTO' || p.status === 'APTO_ALCANCADA');
+            const aptos = disponiveis.filter(p => p.statusCalc === 'APTO');
             if (aptos.length === 0) {
                 container.innerHTML = '';
                 document.getElementById('sem-piquetes-aptos').style.display = 'block';
@@ -475,12 +500,22 @@ function atualizarStatus() {
 
 function abrirModalTodosPiquetes(loteId) {
     document.getElementById('modal-todos-piquetes').classList.add('active');
-    fetch(`/api/lotes/${loteId}/sugerir-piquetes?fazenda_id=${fazendaId}`)
-        .then(r => r.json()).then(data => {
+    fetch(`/api/piquetes?fazenda_id=${fazendaId}&_=${Date.now()}`)
+        .then(r => r.json()).then(allPiquetes => {
+            // Processar e calcular status
+            const disponiveis = allPiquetes
+                .filter(p => !p.animais_no_piquete || p.animais_no_piquete === 0)
+                .map(p => {
+                    const altura = p.altura_estimada || 0;
+                    const entrada = p.altura_entrada || 25;
+                    p.statusCalc = altura >= entrada ? 'APTO' : 'RECUPERANDO';
+                    return p;
+                });
+            
             const container = document.getElementById('lista-todos-piquetes');
-            container.innerHTML = data.map(p => `
-                <div class="sugestao-item ${p.status === 'APTO' ? 'apto' : 'quase'}" onclick="selecionarPiquete(${p.id}, this)">
-                    <div class="sugestao-header"><span class="sugestao-nome">${p.nome}</span><span class="sugestao-badge ${p.status === 'APTO' ? 'badge-apto' : 'badge-quase'}">${p.status}</span></div>
+            container.innerHTML = disponiveis.map(p => `
+                <div class="sugestao-item ${p.statusCalc === 'APTO' ? 'apto' : 'quase'}" onclick="selecionarPiquete(${p.id}, this)">
+                    <div class="sugestao-header"><span class="sugestao-nome">${p.nome}</span><span class="sugestao-badge ${p.statusCalc === 'APTO' ? 'badge-apto' : 'badge-quase'}">${p.statusCalc}</span></div>
                     <div class="sugestao-info">${p.capim} • ${p.area} ha • ${p.dias_descanso} dias descanso</div>
                 </div>
             `).join('');
