@@ -113,7 +113,7 @@ function initMap() {
         L.marker([mapaLat, mapaLng], {
             icon: L.divIcon({
                 className: 'fazenda-marker',
-                html: '🏠',
+                html: '<i class="fa-solid fa-house" style="font-size:20px;color:#1a1a2e;"></i>',
                 iconSize: [30, 30],
                 iconAnchor: [15, 30]
             })

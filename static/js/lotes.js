@@ -182,7 +182,7 @@ function atualizarStats() {
 function renderizarTabela() {
     const tbody = document.getElementById('lista-lotes');
     if (lotes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><h3>😕 Nenhum lote encontrado</h3><p>Cadastre o primeiro lote ou ajuste os filtros.</p></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><h3><i class="fa-solid fa-face-frown"></i> Nenhum lote encontrado</h3><p>Cadastre o primeiro lote ou ajuste os filtros.</p></td></tr>`;
         return;
     }
     // Buscar todos os piquetes de uma vez
@@ -213,31 +213,31 @@ function renderizarTabela() {
             const temPiquete = !!lote.piquete_atual_id;
             const statusCalc = lote.status_info ? lote.status_info.status : (lote.status_calculado || '');
             
-            let statusBadge = !temPiquete ? '<span class="status-badge aguardando">⚪ Aguardando Alocação</span>' : 
-                (statusCalc === 'RETIRAR' ? '<span class="status-badge retirar">🔴 Retirar</span>' : 
-                (statusCalc === 'ATENCAO' ? '<span class="status-badge atencao">🟠 Atenção</span>' : 
-                '<span class="status-badge ocupacao">🔵 Em Ocupação</span>'));
+            let statusBadge = !temPiquete ? '<span class="status-badge aguardando"><i class="fa-regular fa-circle"></i> Aguardando Alocação</span>' : 
+                (statusCalc === 'RETIRAR' ? '<span class="status-badge retirar"><i class="fa-solid fa-circle" style="color:#dc3545;"></i> Retirar</span>' : 
+                (statusCalc === 'ATENCAO' ? '<span class="status-badge atencao"><i class="fa-solid fa-circle" style="color:#fd7e14;"></i> Atenção</span>' : 
+                '<span class="status-badge ocupacao"><i class="fa-solid fa-circle" style="color:#007bff;"></i> Em Ocupação</span>'));
             
             let diasHtml = !temPiquete ? '<span style="color: #999;">—</span>' : (function(){
                 const diasPassados = calcularDiasPassados(lote.data_entrada);
                 const dataFormatada = formatarData(lote.data_entrada);
                 const diasRestantes = Math.max(0, (lote.dias_tecnicos || 0) - diasPassados);
-                return `<div class="dias-info"><span class="atual">${lote.dias_tecnicos || 0}</span> dias técnicos${dataFormatada ? `<br><small>📅 Entrada: ${dataFormatada}</small>` : ''}${diasPassados !== null ? `<br><small style="color: #007bff;">⏱️ ${diasPassados} dia(s)</small>` : ''}${diasRestantes > 0 ? `<br><small style="color: #28a745;">📊 ${diasRestantes} dias restantes</small>` : ''}</div>`;
+                return `<div class="dias-info"><span class="atual">${lote.dias_tecnicos || 0}</span> dias técnicos${dataFormatada ? `<br><small><i class="fa-regular fa-calendar"></i> Entrada: ${dataFormatada}</small>` : ''}${diasPassados !== null ? `<br><small style="color: #007bff;"><i class="fa-solid fa-clock"></i> ${diasPassados} dia(s)</small>` : ''}${diasRestantes > 0 ? `<br><small style="color: #28a745;"><i class="fa-solid fa-chart-simple"></i> ${diasRestantes} dias restantes</small>` : ''}</div>`;
             })();
             
-            let piqueteInfo = temPiquete ? `${lote.piquete_nome}<br><small style="color: #28a745;">📏 ${lote.altura_estimada || '?'}cm</small>` : '<span style="color: #999;">Sem piquete</span>';
+            let piqueteInfo = temPiquete ? `${lote.piquete_nome}<br><small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${lote.altura_estimada || '?'}cm</small>` : '<span style="color: #999;">Sem piquete</span>';
             
             let proximoHtml = sugestoes.length > 0 ? (function(){
                 const aptos = sugestoes.filter(p => p.statusCalc === 'APTO').length;
                 const emRecup = sugestoes.filter(p => p.statusCalc === 'RECUPERANDO').length;
-                return `<button class="btn btn-sm" style="background: #6c757d; color: white;" onclick="abrirModalTodosPiquetes(${lote.id})">📋 Ver ${sugestoes.length} opções</button><br><small style="color: #28a745;">🟢 ${aptos} aptos</small>${emRecup > 0 ? `<br><small style="color: #856404;">🟡 ${emRecup} em recup.</small>` : ''}`;
-            })() : '<span style="font-size: 0.85rem; color: #999;">⚠️ Nenhum disponível</span>';
+                return `<button class="btn btn-sm" style="background: #6c757d; color: white;" onclick="abrirModalTodosPiquetes(${lote.id})"><i class="fa-solid fa-list"></i> Ver ${sugestoes.length} opções</button><br><small style="color: #28a745;"><i class="fa-solid fa-circle" style="color:#28a745;"></i> ${aptos} aptos</small>${emRecup > 0 ? `<br><small style="color: #856404;"><i class="fa-solid fa-circle" style="color:#ffc107;"></i> ${emRecup} em recup.</small>` : ''}`;
+            })() : '<span style="font-size: 0.85rem; color: #999;"><i class="fa-solid fa-triangle-exclamation"></i> Nenhum disponível</span>';
             
             let actions = (function(){
                 const aptos = sugestoes.filter(p => p.statusCalc === 'APTO');
-                if (temPiquete) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Mover</button><button class="btn-sair" onclick="registrarSaida(${lote.id})">📤 Sair</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
-                if (aptos.length > 0) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')">➡️ Alocar</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
-                return `<button class="btn-edit" onclick="abrirModalEditar(${lote.id})">✏️ Edit</button>`;
+                if (temPiquete) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')"><i class="fa-solid fa-arrow-right"></i> Mover</button><button class="btn-sair" onclick="registrarSaida(${lote.id})"><i class="fa-solid fa-right-from-bracket"></i> Sair</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})"><i class="fa-solid fa-pen"></i> Edit</button>`;
+                if (aptos.length > 0) return `<button class="btn-mover" onclick="abrirModalMover(${lote.id}, '${lote.nome}')"><i class="fa-solid fa-arrow-right"></i> Alocar</button><button class="btn-edit" onclick="abrirModalEditar(${lote.id})"><i class="fa-solid fa-pen"></i> Edit</button>`;
+                return `<button class="btn-edit" onclick="abrirModalEditar(${lote.id})"><i class="fa-solid fa-pen"></i> Edit</button>`;
             })();
             
             return `<tr><td style="cursor: pointer;" onclick="abrirModalDetalhes(${lote.id})"><strong style="color: #007bff;">${lote.nome}</strong><br><small style="color: #666;">${lote.categoria || '-'} • ${lote.quantidade || 0} animai(s)</small></td><td>${piqueteInfo}</td><td>${diasHtml}</td><td>${statusBadge}</td><td>${proximoHtml}</td><td>${actions}</td></tr>`;
@@ -262,7 +262,7 @@ function carregarPiquetesSelect() {
                     const altura = p.altura_estimada || 0;
                     const entrada = p.altura_entrada || 25;
                     const statusCalc = altura >= entrada ? 'APTO' : 'RECUPERANDO';
-                    const emoji = p.bloqueado ? '🔴' : (statusCalc === 'APTO' ? '🟢' : '🟡');
+                    const emoji = p.bloqueado ? '<i class="fa-solid fa-circle" style="color:#dc3545;"></i>' : (statusCalc === 'APTO' ? '<i class="fa-solid fa-circle" style="color:#28a745;"></i>' : '<i class="fa-solid fa-circle" style="color:#ffc107;"></i>');
                     return `<option value="${p.id}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : statusCalc}</option>`;
                 }).join('');
         });
@@ -328,7 +328,7 @@ function abrirModalMover(loteId, nome) {
                 document.getElementById('sem-piquetes-aptos').style.display = 'none';
                 container.innerHTML = aptos.map(p => `
                     <div class="sugestao-item apto" onclick="selecionarPiquete(${p.id}, this)">
-                        <div class="sugestao-header"><span class="sugestao-nome">${p.nome}</span><span class="sugestao-badge badge-apto">🟢 APTO</span></div>
+                        <div class="sugestao-header"><span class="sugestao-nome">${p.nome}</span><span class="sugestao-badge badge-apto"><i class="fa-solid fa-circle" style="color:#28a745;"></i> APTO</span></div>
                         <div class="sugestao-info">${p.capim} • ${p.area} ha • ${p.dias_descanso} dias descanso</div>
                     </div>
                 `).join('');
@@ -386,10 +386,11 @@ function abrirModalEditar(loteId) {
             });
             
             const select = document.getElementById('edit-lote-piquete');
-            let html = '<option value="">🚫 Sem piquete</option>';
+            let html = '<option value=""><i class="fa-solid fa-ban"></i> Sem piquete</option>';
             disponiveis.forEach(p => {
                 const isRecuperando = !p.bloqueado && p.statusCalc === 'RECUPERANDO';
-                html += `<option value="${p.id}" ${lote.piquete_atual_id === p.id ? 'selected' : ''} style="${isRecuperando ? 'background:#f8d7da;' : ''}">${p.nome} (${p.capim || 'N/I'}) ${p.bloqueado ? '🔴' : (p.statusCalc === 'APTO' ? '🟢' : '🟡')} ${p.bloqueado ? 'BLOQUEADO' : p.statusCalc}</option>`;
+                const emoji = p.bloqueado ? '<i class="fa-solid fa-circle" style="color:#dc3545;"></i>' : (p.statusCalc === 'APTO' ? '<i class="fa-solid fa-circle" style="color:#28a745;"></i>' : '<i class="fa-solid fa-circle" style="color:#ffc107;"></i>');
+                html += `<option value="${p.id}" ${lote.piquete_atual_id === p.id ? 'selected' : ''} style="${isRecuperando ? 'background:#f8d7da;' : ''}">${p.nome} (${p.capim || 'N/I'}) ${emoji} ${p.bloqueado ? 'BLOQUEADO' : p.statusCalc}</option>`;
             });
             select.innerHTML = html;
         });
@@ -468,24 +469,24 @@ function abrirModalDetalhes(loteId) {
         </div>
 
         <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:12px;">
-            <strong>📍 Piquete:</strong> ${lote.piquete_nome || 'Sem piquete'}<br>
-            <strong>📏 Altura estimada do capim:</strong> ${alturaCapim}<br>
-            <strong>📋 Categoria:</strong> ${lote.categoria || '-'}<br>
-            <strong>🧪 Consumo base:</strong> ${consumoBase} cm/dia
-            ${consumoEstimado !== null ? `<br><strong>📉 Consumo diário estimado do lote:</strong> ${consumoEstimado} cm/dia` : ''}
+            <strong><i class="fa-solid fa-map-location-dot"></i> Piquete:</strong> ${lote.piquete_nome || 'Sem piquete'}<br>
+            <strong><i class="fa-solid fa-ruler-vertical"></i> Altura estimada do capim:</strong> ${alturaCapim}<br>
+            <strong><i class="fa-solid fa-tags"></i> Categoria:</strong> ${lote.categoria || '-'}<br>
+            <strong><i class="fa-solid fa-flask"></i> Consumo base:</strong> ${consumoBase} cm/dia
+            ${consumoEstimado !== null ? `<br><strong><i class="fa-solid fa-chart-line"></i> Consumo diário estimado do lote:</strong> ${consumoEstimado} cm/dia` : ''}
         </div>
 
         <div style="background:#fff8e1;padding:15px;border-radius:10px;margin-bottom:15px;">
-            <strong>📅 Entrada:</strong> ${dataEntradaFmt}<br>
-            <strong>📆 Saída prevista:</strong> ${dataSaidaPrevistaFmt}<br>
-            <strong>📊 Dias técnicos:</strong> ${diasTecnicos}<br>
-            <strong>⏱️ Dias passados:</strong> ${diasPassados !== null ? diasPassados : '-'}<br>
-            <strong>⌛ Dias restantes:</strong> ${diasRestantes !== null ? diasRestantes : '-'}
+            <strong><i class="fa-solid fa-arrow-right-to-bracket"></i> Entrada:</strong> ${dataEntradaFmt}<br>
+            <strong><i class="fa-solid fa-calendar-day"></i> Saída prevista:</strong> ${dataSaidaPrevistaFmt}<br>
+            <strong><i class="fa-solid fa-chart-simple"></i> Dias técnicos:</strong> ${diasTecnicos}<br>
+            <strong><i class="fa-solid fa-clock"></i> Dias passados:</strong> ${diasPassados !== null ? diasPassados : '-'}<br>
+            <strong><i class="fa-solid fa-hourglass-half"></i> Dias restantes:</strong> ${diasRestantes !== null ? diasRestantes : '-'}
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <button class="btn btn-primary" onclick="fecharModal('modal-detalhes'); abrirModalEditar(${lote.id});">✏️ Editar</button>
-            <button class="btn btn-warning" onclick="fecharModal('modal-detalhes'); registrarSaida(${lote.id});">📤 Sair</button>
+            <button class="btn btn-primary" onclick="fecharModal('modal-detalhes'); abrirModalEditar(${lote.id});"><i class="fa-solid fa-pen"></i> Editar</button>
+            <button class="btn btn-warning" onclick="fecharModal('modal-detalhes'); registrarSaida(${lote.id});"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
         </div>`;
 
     document.getElementById('detalhes-lote-conteudo').innerHTML = html;
