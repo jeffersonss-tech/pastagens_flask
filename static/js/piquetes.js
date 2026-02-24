@@ -289,6 +289,18 @@ function mostrarPiquete(id) {
                     const coords = geo.coordinates[0].map(c => [c[1], c[0]]);
                     const bounds = L.latLngBounds(coords.map(c => [c[0], c[1]]));
                     mapPiquetes.fitBounds(bounds, {padding: [50, 50]});
+                    
+                    // Abrir popup do polígono após centralizar
+                    setTimeout(() => {
+                        mapPiquetes.eachLayer(function(layer) {
+                            if (layer instanceof L.Polygon && layer.getPopup()) {
+                                const popupContent = layer.getPopup().getContent();
+                                if (popupContent && popupContent.includes(p.nome)) {
+                                    layer.openPopup();
+                                }
+                            }
+                        });
+                    }, 300);
                 }
             } catch (e) {
                 console.log('Erro ao centralizar mapa', e);
