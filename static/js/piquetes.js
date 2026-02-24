@@ -193,10 +193,18 @@ function drawAllPiquetes() {
                     let badgeText = '';
                     let statusInfo = '';
                     let diasRestantes = '';
-                    if (!temAlgumaAltura) {
-                        badgeClass = 'badge-yellow';
-                        badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> SEM ALTURA';
-                        statusInfo = '<small style="color: #856404;">Adicione a altura medida</small>';
+                    let avisoMedicao = '';
+                    if (!temReal) {
+                        if (!temAlgumaAltura) {
+                            badgeClass = 'badge-yellow';
+                            badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> SEM ALTURA';
+                            statusInfo = '<small style="color: #856404;">Adicione a altura medida</small>';
+                        } else {
+                            badgeClass = 'badge-yellow';
+                            badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> PRECISA MEDIR';
+                            statusInfo = `<small style="color: #fd7e14;">📏 ${p.altura_estimada}cm (estimada) - <a href="#" onclick="fecharModal('modal-ver-piquete'); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color:#007bff;">Atualizar medição</a></small>`;
+                            avisoMedicao = `<br><small style="color:#fd7e14;"><i class="fa-solid fa-ruler-combined"></i> Altura estimada: ${p.altura_estimada}cm</small>`;
+                        }
                     } else if (p.estado === 'ocupado') {
                         badgeClass = 'badge-blue';
                         badgeText = '<i class="fa-solid fa-circle"></i> Em Ocupação';
@@ -241,6 +249,7 @@ function drawAllPiquetes() {
                             ${p.altura_real_medida ? `<p style="color:#28a745;margin:5px 0;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_real_medida}cm (medida)</p>` : ''}
                             ${p.data_medicao ? `<p style="color:#999;font-size:0.75rem;margin:5px 0;"><i class="fa-regular fa-calendar"></i> ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</p>` : ''}
                             ${statusInfo ? `<p style="margin:5px 0;">${statusInfo}</p>` : ''}
+                            ${avisoMedicao ? `<p style="margin:5px 0;">${avisoMedicao}</p>` : ''}
                             ${diasRestantes}
                             ${avisoUrgente}
                         </div>
