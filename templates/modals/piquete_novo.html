@@ -1,7 +1,7 @@
 <div class="modal" id="modal-piquete">
     <div class="modal-content" style="width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
-            <h3>📍 Novo Piquete</h3>
+            <h3><i class="fas fa-location-dot"></i> Novo Piquete</h3>
             <button class="modal-close" onclick="fecharModalPiquete()">×</button>
         </div>
         
@@ -21,12 +21,12 @@
         <div class="form-group">
             <label><strong>Área (hectares) *</strong></label>
             <input type="number" id="pq-area" value="0" step="0.1" readonly style="background: #f5f5f5;">
-            <small style="color: #666;">💡 Área calculada automaticamente pelo mapa. Se não desenhar, libere o campo.</small>
+            <small style="color: #666;"><i class="fas fa-lightbulb"></i> Área calculada automaticamente pelo mapa. Se não desenhar, libere o campo.</small>
         </div>
         
         <!-- Parâmetros Técnicos Obrigatórios -->
         <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-            <h4 style="margin-bottom: 12px; color: #856404;">⚙️ Parâmetros Técnicos (Obrigatórios)</h4>
+            <h4 style="margin-bottom: 12px; color: #856404;"><i class="fas fa-gear"></i> Parâmetros Técnicos (Obrigatórios)</h4>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 <div class="form-group">
@@ -43,7 +43,7 @@
         <!-- Parâmetros Avançados -->
         <details style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px;">
             <summary style="padding: 12px; cursor: pointer; background: #f8f9fa; border-radius: 8px; font-weight: bold;">
-                🔧 Parâmetros Avançados (Opcionais)
+                <i class="fas fa-wrench"></i> Parâmetros Avançados (Opcionais)
             </summary>
             <div style="padding: 15px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
@@ -71,16 +71,16 @@
         </details>
         
         <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">
-            💡 Desenhe o contorno do piquete no mapa abaixo:
+            <i class="fas fa-lightbulb"></i> Desenhe o contorno do piquete no mapa abaixo:
         </p>
         
-        <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="centralizarLocalizacao()">📍 Minha Localização</button>
-        <button class="btn" style="margin-bottom: 10px; background:#6c757d;color:white;margin-left:5px;" onclick="liberarAreaManual()">✏️ Liberar Área</button>
-        <button class="btn btn-warning" style="margin-bottom: 10px; margin-left:5px;" onclick="desfazerPonto()">↩️ Desfazer</button>
-        <button class="btn btn-danger" style="margin-bottom: 10px; margin-left:5px;" onclick="limparDesenho()">🗑️ Limpar</button>
+        <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="centralizarLocalizacao()"><i class="fas fa-location-dot"></i> Minha Localização</button>
+        <button class="btn" style="margin-bottom: 10px; background:#6c757d;color:white;margin-left:5px;" onclick="liberarAreaManual()"><i class="fas fa-pen"></i> Liberar Área</button>
+        <button class="btn btn-warning" style="margin-bottom: 10px; margin-left:5px;" onclick="desfazerPonto()"><i class="fas fa-rotate-left"></i> Desfazer</button>
+        <button class="btn btn-danger" style="margin-bottom: 10px; margin-left:5px;" onclick="limparDesenho()"><i class="fas fa-trash"></i> Limpar</button>
         <div id="map-desenho" style="height: 250px; border-radius: 8px; margin-bottom: 15px; cursor: crosshair; border: 2px dashed #00d9ff;"></div>
         
-        <button class="btn btn-success" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="validarSalvarPiquete()">💾 Salvar Piquete</button>
+        <button class="btn btn-success" style="width: 100%; padding: 12px; font-size: 1rem;" onclick="validarSalvarPiquete()"><i class="fas fa-save"></i> Salvar Piquete</button>
     </div>
 </div>
 
@@ -88,7 +88,7 @@
 <div class="modal" id="modal-capim-outro">
     <div class="modal-content" style="width: 420px; max-width: 95%;">
         <div class="modal-header">
-            <h3>🌿 Configurar capim personalizado</h3>
+            <h3><i class="fas fa-leaf"></i> Configurar capim personalizado</h3>
             <button class="modal-close" onclick="fecharModalCapimOutro()">×</button>
         </div>
         <div class="form-group">

@@ -1,7 +1,7 @@
 <div class="modal" id="modal-editar-piquete">
     <div class="modal-content" style="width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
-            <h3>✏️ Editar Piquete</h3>
+            <h3><i class="fas fa-pen"></i> Editar Piquete</h3>
             <button class="modal-close" onclick="fecharModalEditarPiquete()">×</button>
         </div>
         <input type="hidden" id="edit-pq-id">
@@ -22,12 +22,12 @@
         <div class="form-group">
             <label><strong>Área (hectares) *</strong></label>
             <input type="number" id="edit-pq-area" value="0" step="0.1" readonly style="background: #f5f5f5;">
-            <small style="color: #666;">💡 Área calculada automaticamente. Se não tiver geometria, libere o campo.</small>
+            <small style="color: #666;"><i class="fas fa-lightbulb"></i> Área calculada automaticamente. Se não tiver geometria, libere o campo.</small>
         </div>
         
         <!-- Parâmetros Técnicos Obrigatórios -->
         <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-            <h4 style="margin-bottom: 12px; color: #856404;">⚙️ Parâmetros Técnicos (Obrigatórios)</h4>
+            <h4 style="margin-bottom: 12px; color: #856404;"><i class="fas fa-gear"></i> Parâmetros Técnicos (Obrigatórios)</h4>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 <div class="form-group">
@@ -44,7 +44,7 @@
         <!-- Parâmetros Avançados -->
         <details style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px;">
             <summary style="padding: 12px; cursor: pointer; background: #f8f9fa; border-radius: 8px; font-weight: bold;">
-                🔧 Parâmetros Avançados (Opcionais)
+                <i class="fas fa-wrench"></i> Parâmetros Avançados (Opcionais)
             </summary>
             <div style="padding: 15px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
@@ -72,8 +72,8 @@
         </details>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button class="btn btn-primary" style="width: 100%;" onclick="validarSalvarEdicaoPiquete()">💾 Salvar Alterações</button>
-            <button class="btn btn-danger" style="width: 100%;" onclick="excluirPiquete()">🗑️ Excluir Piquete</button>
+            <button class="btn btn-primary" style="width: 100%;" onclick="validarSalvarEdicaoPiquete()"><i class="fas fa-save"></i> Salvar Alterações</button>
+            <button class="btn btn-danger" style="width: 100%;" onclick="excluirPiquete()"><i class="fas fa-trash"></i> Excluir Piquete</button>
         </div>
     </div>
 </div>
