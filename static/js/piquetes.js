@@ -125,13 +125,15 @@ function drawAllPiquetes() {
                 const geo = JSON.parse(p.geometria);
                 if (geo.type === 'Polygon' && geo.coordinates && geo.coordinates.length > 0) {
                     const coords = geo.coordinates[0].map(c => [c[1], c[0]]); 
-                    let corPoligono = '#28a745'; 
+                    let corPoligono = '#28a745';
+                    let fillOpacityPoligono = 0.4;
                     const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
                     const temAlgumaAltura = temReal || (p.altura_estimada !== null && p.altura_estimada !== undefined);
                     const fonteAlt = p.fonte_altura || 'estimada';
                     
-                    if (!temAlgumaAltura) {
-                        corPoligono = '#fd7e14'; 
+                    if (!temReal) {
+                        corPoligono = '#fff3cd';
+                        fillOpacityPoligono = 0.5;
                     } else if (p.estado === 'ocupado') {
                         corPoligono = '#dc3545'; 
                     } else if (p.altura_estimada >= p.altura_entrada) {
@@ -239,7 +241,7 @@ function drawAllPiquetes() {
                         color: corPoligono,
                         weight: 3,
                         fill: true,
-                        fillOpacity: 0.4
+                        fillOpacity: fillOpacityPoligono
                     }).addTo(mapPiquetes).bindPopup(`
                         <div style="min-width:200px;">
                             <strong style="font-size:14px;">${p.nome}</strong><br>
