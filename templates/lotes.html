@@ -1,97 +1,99 @@
 {% extends 'base.html' %}
 
 {% block title %}Lotes{% endblock %}
-{% block header_title %}🐄 Lotes - {{ fazenda.nome }}{% endblock %}
+{% block header_title %}<i class="fas fa-clipboard"></i> Lotes - {{ fazenda.nome }}{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/lotes.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/lotes.css') }}">
 {% endblock %}
 
 {% block content %}
-    <!-- Stats -->
-    <div class="stats-row">
-        <div class="stat-card-lotes animais">
-            <strong id="stat-total">0</strong>
-            <span>🐄 Total de Lotes</span>
-        </div>
-        <div class="stat-card-lotes ocupacao">
-            <strong id="stat-ocupacao">0</strong>
-            <span>📍 Em Ocupação</span>
-        </div>
-        <div class="stat-card-lotes saida">
-            <strong id="stat-saida">0</strong>
-            <span>⚠️ Precisa Sair</span>
-        </div>
-        <div class="stat-card-lotes disponivel">
-            <strong id="stat-animais">0</strong>
-            <span>🐃 Total Animais</span>
-        </div>
+<!-- Stats -->
+<div class="stats-row">
+    <div class="stat-card-lotes animais">
+        <strong id="stat-total">0</strong>
+        <span><i class="fas fa-square"></i> Total de Lotes</span>
     </div>
-    
-    <!-- Filters -->
-    <div class="filters">
-        <label>Status:</label>
-        <select id="filtro-status" onchange="carregarLotes()">
-            <option value="">Todos</option>
-            <option value="EM_OCUPACAO">🔵 Em Ocupação</option>
-            <option value="ATENCAO">🟠 Atenção</option>
-            <option value="RETIRAR">🔴 Retirar</option>
-            <option value="AGUARDANDO_ALOCACAO">⚪ Aguardando Alocação</option>
-        </select>
-        
-        <label>Categoria:</label>
-        <select id="filtro-categoria" onchange="carregarLotes()">
-            <option value="">Todas</option>
-            <option value="Bezerro(a)">Bezerro(a)</option>
-            <option value="Garrote / Novilho(a)">Garrote / Novilho(a)</option>
-            <option value="Boi Magro / Engorda">Boi Magro / Engorda</option>
-            <option value="Vaca">Vaca</option>
-            <option value="Touro">Touro</option>
-        </select>
-        
-        <button class="btn-warning-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;" onclick="atualizarStatus()">🔄 Atualizar Status</button>
-        <button class="btn-primary-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;" onclick="abrirModalNovoLote()">➕ Novo Lote</button>
+    <div class="stat-card-lotes ocupacao">
+        <strong id="stat-ocupacao">0</strong>
+        <span><i class="fas fa-location-dot"></i> Em Ocupação</span>
     </div>
-    
-    <!-- Tabela -->
-    <div class="table-container">
-        <div class="table-header">
-            <h2 style="color: #1a1a2e;">📋 Lotes Ativos</h2>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>🐂 Lote</th>
-                    <th>📍 Piquete Atual</th>
-                    <th>⏱️ Dias Técnicos</th>
-                    <th>📊 Status</th>
-                    <th>📋 Próximos</th>
-                    <th>⚙️ Ações</th>
-                </tr>
-            </thead>
-            <tbody id="lista-lotes">
-                <tr>
-                    <td colspan="6" class="empty-state">
-                        <h3>Carregando...</h3>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="stat-card-lotes saida">
+        <strong id="stat-saida">0</strong>
+        <span><i class="fas fa-triangle-exclamation"></i> Precisa Sair</span>
     </div>
+    <div class="stat-card-lotes disponivel">
+        <strong id="stat-animais">0</strong>
+        <span><i class="fas fa-paw"></i> Total Animais</span>
+    </div>
+</div>
 
-    <!-- Modais -->
-    {% include 'modals/lote_personalizado.html' %}
-    {% include 'modals/lote_novo.html' %}
-    {% include 'modals/lote_editar.html' %}
-    {% include 'modals/lote_mover.html' %}
-    {% include 'modals/lote_todos_piquetes.html' %}
-    {% include 'modals/lote_detalhes.html' %}
+<!-- Filters -->
+<div class="filters">
+    <label>Status:</label>
+    <select id="filtro-status" onchange="carregarLotes()">
+        <option value="">Todos</option>
+        <option value="EM_OCUPACAO"><i class="fas fa-circle" style="color:#007bff;"></i> Em Ocupação</option>
+        <option value="ATENCAO"><i class="fas fa-circle" style="color:#fd7e14;"></i> Atenção</option>
+        <option value="RETIRAR"><i class="fas fa-circle" style="color:#dc3545;"></i> Retirar</option>
+        <option value="AGUARDANDO_ALOCACAO"><i class="fa-regular fa-circle"></i> Aguardando Alocação</option>
+    </select>
+
+    <label>Categoria:</label>
+    <select id="filtro-categoria" onchange="carregarLotes()">
+        <option value="">Todas</option>
+        <option value="Bezerro(a)">Bezerro(a)</option>
+        <option value="Garrote / Novilho(a)">Garrote / Novilho(a)</option>
+        <option value="Boi Magro / Engorda">Boi Magro / Engorda</option>
+        <option value="Vaca">Vaca</option>
+        <option value="Touro">Touro</option>
+    </select>
+
+    <button class="btn-warning-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;"
+        onclick="atualizarStatus()"><i class="fas fa-rotate-right"></i> Atualizar Status</button>
+    <button class="btn-primary-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;"
+        onclick="abrirModalNovoLote()"><i class="fas fa-plus"></i> Novo Lote</button>
+</div>
+
+<!-- Tabela -->
+<div class="table-container">
+    <div class="table-header">
+        <h2 style="color: #1a1a2e;"><i class="fas fa-list"></i> Lotes Ativos</h2>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th><i class="fas fa-clipboard"></i> Lote</th>
+                <th><i class="fas fa-map-location-dot"></i> Piquete Atual</th>
+                <th><i class="fas fa-clock"></i> Dias Técnicos</th>
+                <th><i class="fas fa-chart-line"></i> Status</th>
+                <th><i class="fas fa-list"></i> Próximos</th>
+                <th><i class="fas fa-gear"></i> Ações</th>
+            </tr>
+        </thead>
+        <tbody id="lista-lotes">
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <h3>Carregando...</h3>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modais -->
+{% include 'modals/lote_personalizado.html' %}
+{% include 'modals/lote_novo.html' %}
+{% include 'modals/lote_editar.html' %}
+{% include 'modals/lote_mover.html' %}
+{% include 'modals/lote_todos_piquetes.html' %}
+{% include 'modals/lote_detalhes.html' %}
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        let lotes = [];
-        let dataTeste = null;
-    </script>
-    <script src="{{ url_for('static', filename='js/lotes.js') }}"></script>
+<script>
+    let lotes = [];
+    let dataTeste = null;
+</script>
+<script src="{{ url_for('static', filename='js/lotes.js') }}"></script>
 {% endblock %}
