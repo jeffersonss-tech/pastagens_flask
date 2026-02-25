@@ -70,6 +70,7 @@
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" id="pq-possui-cocho" onchange="alternarSuplementacao()" style="width: 18px; height: 18px;">
                             <strong><i class="fas fa-drumstick-bite"></i> Possui cocho de suplementação?</strong>
+                            <button type="button" onclick="abrirModalAjudaCocho()" style="background: none; border: none; color: #007bff; cursor: pointer; font-size: 1rem; padding: 0 5px;" title="Ajuda sobre cocho"><i class="fas fa-circle-question"></i></button>
                         </label>
                     </div>
                     <div id="div-percentual-suplementacao" class="form-group" style="display: none; margin-bottom: 0;">
@@ -124,3 +125,50 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Ajuda - Suplementação via Cocho -->
+<div class="modal" id="modal-ajuda-cocho">
+    <div class="modal-content" style="width: 500px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+            <h3><i class="fas fa-circle-question"></i> Como preencher o percentual do cocho?</h3>
+            <button class="modal-close" onclick="fecharModalAjudaCocho()">×</button>
+        </div>
+        <div style="padding: 15px; font-size: 0.9rem; line-height: 1.6;">
+            <p style="margin-bottom: 15px;">Esse campo indica quanto da alimentação dos animais vem da ração/suplemento do cocho, e não do pasto. O valor deve ser informado em percentual (%).</p>
+            
+            <p style="margin-bottom: 15px;"><strong><i class="fas fa-lightbulb"></i> Como pensar nisso?</strong><br>
+            Imagine que o animal come 100% da alimentação diária. Se parte disso vem do cocho, você informa aqui essa parte.</p>
+            
+            <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                <strong><i class="fas fa-flask"></i> Exemplos práticos:</strong>
+                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                    <li>Sal mineral puro → <strong>2% a 3%</strong></li>
+                    <li>Sal mineral com ureia → <strong>até 5%</strong></li>
+                    <li>Proteico seco → <strong>10% a 15%</strong></li>
+                    <li>Proteico-energético → <strong>20% a 30%</strong></li>
+                </ul>
+            </div>
+            
+            <p style="margin-bottom: 15px;"><strong><i class="fas fa-cow"></i> Exemplo simples:</strong></p>
+            <ul style="margin-bottom: 15px; padding-left: 20px;">
+                <li>Se os animais consomem apenas sal mineral comum: ➡️ Preencha com <strong>3%</strong></li>
+                <li>Se estiver fornecendo ração proteica mais forte: ➡️ Pode usar <strong>10%</strong> ou mais</li>
+            </ul>
+            
+            <div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <strong><i class="fas fa-triangle-exclamation"></i> Atenção</strong><br>
+                Se não houver cocho no piquete, deixe como 0%. Esse valor reduz automaticamente a estimativa de consumo de pasto. Não é necessário cálculo exato — use uma estimativa baseada no tipo de suplemento.
+            </div>
+        </div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="fecharModalAjudaCocho()">Entendi</button>
+    </div>
+</div>
+
+<script>
+function abrirModalAjudaCocho() {
+    document.getElementById('modal-ajuda-cocho').classList.add('active');
+}
+function fecharModalAjudaCocho() {
+    document.getElementById('modal-ajuda-cocho').classList.remove('active');
+}
+</script>
