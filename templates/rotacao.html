@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}IA Rotação{% endblock %}
-{% block header_title %}🧠 IA Rotação - {{ fazenda.nome }}{% endblock %}
+{% block header_title %}<i class="fa-solid fa-brain"></i> IA Rotação - {{ fazenda.nome }}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/rotacao.css') }}">
@@ -10,76 +10,76 @@
 {% block content %}
     <!-- Resumo Geral da Fazenda -->
     <div id="resumo-gerais" class="resumo-gerais">
-        <div class="resumo-box lotes"><strong id="total-lotes">0</strong><span>📋 Lotes</span></div>
-        <div class="resumo-box animais"><strong id="total-animais">0</strong><span>🐄 Animais</span></div>
-        <div class="resumo-box ocupada"><strong id="area-ocupada">0</strong><span>🔴 Ha Ocup.</span></div>
-        <div class="resumo-box descanso"><strong id="area-descanso">0</strong><span>🟡 Ha Desc.</span></div>
-        <div class="resumo-box altura"><strong id="media-altura">0</strong><span>📏 Alt. Média</span></div>
-        <div class="resumo-box prontos"><strong id="prontos">0</strong><span>🟢 Prontos</span></div>
-        <div class="resumo-box criticos"><strong id="criticos">0</strong><span>🔴 Críticos</span></div>
+        <div class="resumo-box lotes"><strong id="total-lotes">0</strong><span><i class="fa-solid fa-layer-group"></i> Lotes</span></div>
+        <div class="resumo-box animais"><strong id="total-animais">0</strong><span><i class="fa-solid fa-cow"></i> Animais</span></div>
+        <div class="resumo-box ocupada"><strong id="area-ocupada">0</strong><span><i class="fa-solid fa-pen-to-square" style="color: #dc3545;"></i> Ha Ocup.</span></div>
+        <div class="resumo-box descanso"><strong id="area-descanso">0</strong><span><i class="fa-solid fa-clock" style="color: #ffc107;"></i> Ha Desc.</span></div>
+        <div class="resumo-box altura"><strong id="media-altura">0</strong><span><i class="fa-solid fa-ruler-vertical"></i> Alt. Média</span></div>
+        <div class="resumo-box prontos"><strong id="prontos">0</strong><span><i class="fa-solid fa-check" style="color: #28a745;"></i> Prontos</span></div>
+        <div class="resumo-box criticos"><strong id="criticos">0</strong><span><i class="fa-solid fa-triangle-exclamation" style="color: #dc3545;"></i> Críticos</span></div>
     </div>
     
     <!-- Stats por Status -->
     <div class="stats-row">
-        <div class="stat-box apto"><strong id="count-apto">0</strong><span>🟢 Apto</span></div>
-        <div class="stat-box ocupacao"><strong id="count-ocupacao">0</strong><span>🔵 Ocupado</span></div>
-        <div class="stat-box descanso"><strong id="count-descanso">0</strong><span>🟡 Descanso</span></div>
-        <div class="stat-box proximo"><strong id="count-proximo">0</strong><span>🟠 Próximo</span></div>
-        <div class="stat-box saida"><strong id="count-saida">0</strong><span>🔴 Saída</span></div>
-        <div class="stat-box bloqueado"><strong id="count-bloqueado">0</strong><span>🟣 Bloqueado</span></div>
+        <div class="stat-box ativo"><strong id="count-apto">0</strong><span><i class="fa-solid fa-circle" style="color: #28a745;"></i> Apto</span></div>
+        <div class="stat-box ocupacao"><strong id="count-ocupacao">0</strong><span><i class="fa-solid fa-circle" style="color: #007bff;"></i> Ocupado</span></div>
+        <div class="stat-box descanso"><strong id="count-descanso">0</strong><span><i class="fa-solid fa-circle" style="color: #ffc107;"></i> Descanso</span></div>
+        <div class="stat-box proximo"><strong id="count-proximo">0</strong><span><i class="fa-solid fa-circle" style="color: #fd7e14;"></i> Próximo</span></div>
+        <div class="stat-box saida"><strong id="count-saida">0</strong><span><i class="fa-solid fa-circle" style="color: #dc3545;"></i> Saída</span></div>
+        <div class="stat-box bloqueado"><strong id="count-bloqueado">0</strong><span><i class="fa-solid fa-circle" style="color: #6f42c1;"></i> Bloqueado</span></div>
     </div>
     
     <!-- Seções de Listagem de Piquetes -->
     <div id="section-saida" class="section" style="display:none;">
-        <h2>🔴 SAÍDA IMEDIATA</h2>
-        <p style="color: #dc3545; margin-bottom: 15px;">⚠️ Estes piquetes precisam de ação URGENTE!</p>
+        <h2><i class="fa-solid fa-circle" style="color: #dc3545;"></i> SAÍDA IMEDIATA</h2>
+        <p style="color: #dc3545; margin-bottom: 15px;"><i class="fa-solid fa-triangle-exclamation"></i> Estes piquetes precisam de ação URGENTE!</p>
         <div id="lista-saida"></div>
     </div>
 
     <div id="section-proximo" class="section" style="display:none;">
-        <h2>🟠 PRÓXIMO DA SAÍDA</h2>
+        <h2><i class="fa-solid fa-circle" style="color: #fd7e14;"></i> PRÓXIMO DA SAÍDA</h2>
         <p style="color: #fd7e14; margin-bottom: 15px;">Planeje a saída em breve.</p>
         <div id="lista-proximo"></div>
     </div>
 
     <div id="section-ocupacao" class="section" style="display:none;">
-        <h2>🔵 EM OCUPAÇÃO</h2>
+        <h2><i class="fa-solid fa-circle" style="color: #007bff;"></i> EM OCUPAÇÃO</h2>
         <p style="color: #007bff; margin-bottom: 15px;">Animais em pastejo.</p>
         <div id="lista-ocupacao"></div>
     </div>
 
     <div id="section-apto" class="section" style="display:none;">
-        <h2>🟢 APTOS PARA ENTRADA</h2>
-        <p style="color: #28a745; margin-bottom: 15px;">✅ Prontos para receber animais!</p>
+        <h2><i class="fa-solid fa-circle" style="color: #28a745;"></i> APTOS PARA ENTRADA</h2>
+        <p style="color: #28a745; margin-bottom: 15px;"><i class="fa-solid fa-check"></i> Prontos para receber animais!</p>
         <div id="lista-apto"></div>
     </div>
 
     <div id="section-descanso" class="section" style="display:none;">
-        <h2>🟡 EM DESCANSO</h2>
+        <h2><i class="fa-solid fa-circle" style="color: #ffc107;"></i> EM DESCANSO</h2>
         <p style="color: #ffc107; margin-bottom: 15px;">Em recuperação.</p>
         <div id="lista-descanso"></div>
     </div>
 
     <div id="section-bloqueado" class="section" style="display:none;">
-        <h2>🟣 BLOQUEADOS</h2>
+        <h2><i class="fa-solid fa-circle" style="color: #6f42c1;"></i> BLOQUEADOS</h2>
         <p style="color: #6f42c1; margin-bottom: 15px;">Indisponíveis temporariamente.</p>
         <div id="lista-bloqueado"></div>
     </div>
     
     <!-- Legenda de Cores -->
     <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background: #dc3545;"></div>🔴 Saída Imediata</div>
-        <div class="legend-item"><div class="legend-dot" style="background: #fd7e14;"></div>🟠 Próximo da Saída</div>
-        <div class="legend-item"><div class="legend-dot" style="background: #007bff;"></div>🔵 Em Ocupação</div>
-        <div class="legend-item"><div class="legend-dot" style="background: #28a745;"></div>🟢 Apto para Entrada</div>
-        <div class="legend-item"><div class="legend-dot" style="background: #ffc107;"></div>🟡 Em Descanso</div>
-        <div class="legend-item"><div class="legend-dot" style="background: #6f42c1;"></div>🟣 Bloqueado</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #dc3545;"></div><i class="fa-solid fa-circle" style="color: #dc3545; font-size: 0.7rem;"></i> Saída Imediata</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #fd7e14;"></div><i class="fa-solid fa-circle" style="color: #fd7e14; font-size: 0.7rem;"></i> Próximo da Saída</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #007bff;"></div><i class="fa-solid fa-circle" style="color: #007bff; font-size: 0.7rem;"></i> Em Ocupação</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #28a745;"></div><i class="fa-solid fa-circle" style="color: #28a745; font-size: 0.7rem;"></i> Apto para Entrada</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #ffc107;"></div><i class="fa-solid fa-circle" style="color: #ffc107; font-size: 0.7rem;"></i> Em Descanso</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #6f42c1;"></div><i class="fa-solid fa-circle" style="color: #6f42c1; font-size: 0.7rem;"></i> Bloqueado</div>
     </div>
     
     <!-- Ações Inferiores -->
     <div class="actions-row" style="margin-top: 20px; display: flex; gap: 10px;">
-        <button class="btn-rotacao btn-rotacao-primary" onclick="atualizar()">🔄 Atualizar Dados</button>
-        <button class="btn-rotacao btn-rotacao-warning" onclick="verificarPassouPonto()">⚠️ Verificar Passou Ponto</button>
+        <button class="btn-rotacao btn-rotacao-primary" onclick="atualizar()"><i class="fa-solid fa-rotate"></i> Atualizar Dados</button>
+        <button class="btn-rotacao btn-rotacao-warning" onclick="verificarPassouPonto()"><i class="fa-solid fa-triangle-exclamation"></i> Verificar Passou Ponto</button>
     </div>
 {% endblock %}
 
