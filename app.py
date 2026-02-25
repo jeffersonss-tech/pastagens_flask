@@ -857,6 +857,13 @@ def api_criar_piquete():
     data = request.json
     fazenda_id = session.get('fazenda_id')
     
+    # Validar suplementação
+    percentual_sup = data.get('percentual_suplementacao', 0) or 0
+    if percentual_sup < 0:
+        percentual_sup = 0
+    elif percentual_sup > 0.7:
+        percentual_sup = 0.7  # Limitar máximo a 70%
+    
     piquete_id = database.criar_piquete(
         fazenda_id,
         data['nome'],
@@ -869,7 +876,9 @@ def api_criar_piquete():
         data.get('altura_atual'),
         data.get('data_medicao'),
         data.get('irrigado'),
-        data.get('observacao')
+        data.get('observacao'),
+        data.get('possui_cocho', 0),
+        percentual_sup
     )
     
     return jsonify({'id': piquete_id, 'status': 'ok'})
@@ -1099,6 +1108,14 @@ def api_put_piquete(id):
         return jsonify({'error': 'Não autorizado'}), 401
     
     data = request.json
+    
+    # Validar suplementação
+    percentual_sup = data.get('percentual_suplementacao', 0) or 0
+    if percentual_sup < 0:
+        percentual_sup = 0
+    elif percentual_sup > 0.7:
+        percentual_sup = 0.7  # Limitar máximo a 70%
+    
     database.atualizar_piquete(
         id,
         data.get('nome'),
@@ -1111,7 +1128,9 @@ def api_put_piquete(id):
         data.get('data_medicao'),
         data.get('irrigado'),
         data.get('observacao'),
-        data.get('limpar_altura', False)
+        data.get('limpar_altura', False),
+        data.get('possui_cocho', 0),
+        percentual_sup
     )
     return jsonify({'status': 'ok'})
 

@@ -708,6 +708,28 @@ function atualizarInfoCapimEdit() {
     }
 }
 
+function alternarSuplementacaoEdit() {
+    const checkbox = document.getElementById('edit-pq-possui-cocho');
+    const divPercentual = document.getElementById('edit-div-percentual-suplementacao');
+    if (checkbox && divPercentual) {
+        divPercentual.style.display = checkbox.checked ? 'block' : 'none';
+        if (!checkbox.checked) {
+            document.getElementById('edit-pq-percentual-suplementacao').value = '0';
+        }
+    }
+}
+
+function alternarSuplementacao() {
+    const checkbox = document.getElementById('pq-possui-cocho');
+    const divPercentual = document.getElementById('div-percentual-suplementacao');
+    if (checkbox && divPercentual) {
+        divPercentual.style.display = checkbox.checked ? 'block' : 'none';
+        if (!checkbox.checked) {
+            document.getElementById('pq-percentual-suplementacao').value = '0';
+        }
+    }
+}
+
 function abrirModalPiquete() { 
     preencherSelectCapins('pq-capim');
     pontos = [];
@@ -717,6 +739,10 @@ function abrirModalPiquete() {
     document.getElementById('pq-altura-entrada').value = '0';
     document.getElementById('pq-altura-saida').value = '0';
     document.getElementById('pq-altura-atual').value = '';
+    // Resetar campos de suplementação
+    document.getElementById('pq-possui-cocho').checked = false;
+    document.getElementById('pq-percentual-suplementacao').value = '0';
+    document.getElementById('div-percentual-suplementacao').style.display = 'none';
     document.getElementById('pq-irrigado').value = 'nao';
     document.getElementById('pq-observacoes').value = '';
     
@@ -754,6 +780,12 @@ function abrirModalEditarPiquete(id) {
     document.getElementById('edit-pq-data-medicao').value = p.data_medicao || '';
     document.getElementById('edit-pq-irrigado').value = p.irrigado || 'nao';
     document.getElementById('edit-pq-observacoes').value = p.observacao || '';
+    // Carregar campos de suplementação
+    const possuiCocho = p.possui_cocho || 0;
+    document.getElementById('edit-pq-possui-cocho').checked = possuiCocho === 1;
+    const percentualSup = p.percentual_suplementacao || 0;
+    document.getElementById('edit-pq-percentual-suplementacao').value = Math.round(percentualSup * 100);
+    document.getElementById('edit-div-percentual-suplementacao').style.display = possuiCocho === 1 ? 'block' : 'none';
     atualizarInfoCapimEdit();
     if (p.geometria) {
         document.getElementById('edit-pq-area').setAttribute('readonly', true);
@@ -837,7 +869,11 @@ function salvarPiquete() {
             altura_atual: parseFloat(document.getElementById('pq-altura-atual').value) || null,
             data_medicao: dataMedicao,
             irrigado: document.getElementById('pq-irrigado').value || 'nao',
-            observacao: observacaoCustom || null
+            observacao: observacaoCustom || null,
+            possui_cocho: document.getElementById('pq-possui-cocho').checked ? 1 : 0,
+            percentual_suplementacao: document.getElementById('pq-possui-cocho').checked 
+                ? (parseFloat(document.getElementById('pq-percentual-suplementacao').value) || 0) / 100 
+                : 0
         })
     }).then(r => r.json()).then(data => {
         alert('Piquete salvo!');
@@ -887,7 +923,11 @@ function salvarEdicaoPiquete() {
         altura_saida: parseFloat(document.getElementById('edit-pq-altura-saida').value) || 0,
         data_medicao: dataMedicao || null,
         irrigado: document.getElementById('edit-pq-irrigado').value || 'nao',
-        observacao: observacaoEdit || null
+        observacao: observacaoEdit || null,
+        possui_cocho: document.getElementById('edit-pq-possui-cocho').checked ? 1 : 0,
+        percentual_suplementacao: document.getElementById('edit-pq-possui-cocho').checked 
+            ? (parseFloat(document.getElementById('edit-pq-percentual-suplementacao').value) || 0) / 100 
+            : 0
     };
     
     if (valorAltura === '') {

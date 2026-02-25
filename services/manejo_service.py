@@ -10,6 +10,29 @@ TAXA_MAXIMA_LOTACAO = 10  # UA/ha - limite técnico para evitar explosão
 FATOR_CONVERSAO_UA = 450  # kg por Unidade Animal
 
 
+# ========== SUPLEMENTAÇÃO (RAÇÃO VIA COCHO) ==========
+def aplicar_suplementacao(consumo_calculado: float, percentual: float) -> float:
+    """
+    Aplica redução no consumo de pasto baseado na suplementação.
+    Não altera fórmula original.
+    
+    Args:
+        consumo_calculado: Consumo base de pasto calculado pelo sistema
+        percentual: Percentual da dieta via ração (0 a 0.7)
+    
+    Returns:
+        Consumo ajustado após suplementação
+    """
+    if percentual is None or percentual <= 0:
+        return consumo_calculado
+    
+    # Limitar entre 0 e 0.7 (70% máximo de suplementação)
+    percentual = max(0, min(percentual, 0.7))
+    fator = 1 - percentual
+    
+    return consumo_calculado * fator
+
+
 # ========== CATEGORIAS DE ANIMAIS ==========
 # Categorias técnicas para bovinos de corte com pesos médios e fatores de consumo
 CATEGORIAS_BOVINOS = {

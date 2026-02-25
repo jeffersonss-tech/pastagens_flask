@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from simular_data import now as data_teste_now  # Suporte a data de teste
-from services.manejo_service import calcular_altura_ocupacao, get_consumo_base, calcular_dias_tecnicos
+from services.manejo_service import calcular_altura_ocupacao, get_consumo_base, calcular_dias_tecnicos, aplicar_suplementacao
 from services.clima_service import obter_clima_com_fallback
 from services.rotacao_service import (
     calcular_prioridade_rotacao,
@@ -178,6 +178,14 @@ def init_db():
         cursor.execute("ALTER TABLE fazendas ADD COLUMN clima_modo TEXT DEFAULT 'automatico'")
     if 'condicao_climatica_manual' not in colunas_fazendas:
         cursor.execute("ALTER TABLE fazendas ADD COLUMN condicao_climatica_manual TEXT DEFAULT 'normal'")
+    
+    # Migration: adicionar campos de suplementação na tabela piquetes (se não existirem)
+    cursor.execute("PRAGMA table_info(piquetes)")
+    colunas_piquetes = [r[1] for r in cursor.fetchall()]
+    if 'possui_cocho' not in colunas_piquetes:
+        cursor.execute("ALTER TABLE piquetes ADD COLUMN possui_cocho INTEGER DEFAULT 0")
+    if 'percentual_suplementacao' not in colunas_piquetes:
+        cursor.execute("ALTER TABLE piquetes ADD COLUMN percentual_suplementacao REAL DEFAULT 0")
 
     # Piquetes
     cursor.execute('''
@@ -204,6 +212,9 @@ def init_db():
             capacidade_animal REAL DEFAULT 0,
             -- Campo climático para cálculo de crescimento
             condicao_climatica TEXT DEFAULT 'normal',
+            -- Campos de suplementação (ração via cocho)
+            possui_cocho INTEGER DEFAULT 0,
+            percentual_suplementacao REAL DEFAULT 0,
             ativo INTEGER DEFAULT 1,
             created_at TEXT,
             updated_at TEXT,
@@ -1226,7 +1237,8 @@ def sugerir_proximo_piquete(fazenda_id, lote_id):
 # ============ PIQUETES ============
 def criar_piquete(fazenda_id, nome, area=None, capim=None, geometria=None, 
                   altura_entrada=None, altura_saida=None, dias_ocupacao=None,
-                  altura_atual=None, data_medicao=None, irrigado=None, observacao=None):
+                  altura_atual=None, data_medicao=None, irrigado=None, observacao=None,
+                  possui_cocho=0, percentual_suplementacao=0):
     conn = get_db()
     cursor = conn.cursor()
     
@@ -1236,22 +1248,26 @@ def criar_piquete(fazenda_id, nome, area=None, capim=None, geometria=None,
             INSERT INTO piquetes (fazenda_id, nome, area, capim, geometria, 
                                   altura_entrada, altura_saida, dias_ocupacao,
                                   altura_real_medida, data_medicao, irrigado, observacao,
+                                  possui_cocho, percentual_suplementacao,
                                   created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (fazenda_id, nome, area, capim, geometria,
               altura_entrada, altura_saida, dias_ocupacao,
               altura_atual, data_medicao, irrigado, observacao,
+              possui_cocho, percentual_suplementacao,
               datetime.now().isoformat(), datetime.now().isoformat()))
     else:
         cursor.execute('''
             INSERT INTO piquetes (fazenda_id, nome, area, capim, geometria, 
                                   altura_entrada, altura_saida, dias_ocupacao,
                                   altura_real_medida, irrigado, observacao,
+                                  possui_cocho, percentual_suplementacao,
                                   created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (fazenda_id, nome, area, capim, geometria,
               altura_entrada, altura_saida, dias_ocupacao,
               altura_atual, irrigado, observacao,
+              possui_cocho, percentual_suplementacao,
               datetime.now().isoformat(), datetime.now().isoformat()))
     
     conn.commit()
@@ -1472,7 +1488,7 @@ def get_piquete(id):
 def atualizar_piquete(id, nome=None, area=None, capim=None, 
                      altura_entrada=None, altura_saida=None, dias_ocupacao=None,
                      altura_atual=None, data_medicao=None, irrigado=None, observacao=None,
-                     limpar_altura=False):
+                     limpar_altura=False, possui_cocho=0, percentual_suplementacao=0):
     """
     Atualiza piquete. 
     - Se altura_atual for informada: salva como altura_real_medida com data_medicao
@@ -1493,11 +1509,13 @@ def atualizar_piquete(id, nome=None, area=None, capim=None,
             UPDATE piquetes SET nome=?, area=?, capim=?, 
                               altura_entrada=?, altura_saida=?, dias_ocupacao=?,
                               altura_real_medida=NULL, data_medicao=NULL, irrigado=?, observacao=?,
+                              possui_cocho=?, percentual_suplementacao=?,
                               updated_at=?
             WHERE id=?
         ''', (nome or nome_atual, area, capim,
               altura_entrada, altura_saida, dias_ocupacao,
               irrigado, observacao,
+              possui_cocho, percentual_suplementacao,
               datetime.now().isoformat(), id))
     elif altura_atual is not None:
         # Salvar nova medição com data
@@ -1505,11 +1523,13 @@ def atualizar_piquete(id, nome=None, area=None, capim=None,
             UPDATE piquetes SET nome=?, area=?, capim=?, 
                               altura_entrada=?, altura_saida=?, dias_ocupacao=?,
                               altura_real_medida=?, data_medicao=?, irrigado=?, observacao=?,
+                              possui_cocho=?, percentual_suplementacao=?,
                               updated_at=?
             WHERE id=?
         ''', (nome or nome_atual, area, capim,
               altura_entrada, altura_saida, dias_ocupacao,
               altura_atual, data_medicao, irrigado, observacao,
+              possui_cocho, percentual_suplementacao,
               datetime.now().isoformat(), id))
     else:
         # Atualizar sem mudar altura mas pode mudar data_medicao
@@ -1518,22 +1538,26 @@ def atualizar_piquete(id, nome=None, area=None, capim=None,
                 UPDATE piquetes SET nome=?, area=?, capim=?, 
                                   altura_entrada=?, altura_saida=?, dias_ocupacao=?,
                                   data_medicao=?, irrigado=?, observacao=?,
+                                  possui_cocho=?, percentual_suplementacao=?,
                                   updated_at=?
                 WHERE id=?
             ''', (nome or nome_atual, area, capim,
                   altura_entrada, altura_saida, dias_ocupacao,
                   data_medicao, irrigado, observacao,
+                  possui_cocho, percentual_suplementacao,
                   datetime.now().isoformat(), id))
         else:
             cursor.execute('''
                 UPDATE piquetes SET nome=?, area=?, capim=?, 
                                   altura_entrada=?, altura_saida=?, dias_ocupacao=?,
                                   irrigado=?, observacao=?,
+                                  possui_cocho=?, percentual_suplementacao=?,
                                   updated_at=?
                 WHERE id=?
             ''', (nome or nome_atual, area, capim,
                   altura_entrada, altura_saida, dias_ocupacao,
                   irrigado, observacao,
+                  possui_cocho, percentual_suplementacao,
                   datetime.now().isoformat(), id))
     conn.commit()
     conn.close()
@@ -2089,6 +2113,13 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None, consumo_b
             # A medição foi feita na entrada, agora precisamos subtrair o consumo
             # Usar consumo_base personalizado se fornecido, senão usar do capim
             consumo_base_calc = consumo_base if consumo_base is not None else get_consumo_base(capim)
+            
+            # Aplicar suplementação (ração via cocho) - ajuste pós-processamento
+            # Não altera a fórmula original, apenas reduz o consumo proporcionalmente
+            percentual_sup = piquete.get('percentual_suplementacao') or 0
+            possui_cocho = piquete.get('possui_cocho') or 0
+            if possui_cocho and percentual_sup > 0:
+                consumo_base_calc = aplicar_suplementacao(consumo_base_calc, percentual_sup)
 
             # Obter dados do lote para cálculo de lotação
             quantidade_animais = piquete.get('animais_no_piquete', 0) or 0
@@ -2149,6 +2180,13 @@ def calcular_altura_estimada(piquete, categoria=None, peso_medio=None, consumo_b
         area_piquete = piquete.get('area', 0) or 0
         # Usar consumo_base personalizado se fornecido, senão usar do capim
         consumo_base_calc = consumo_base if consumo_base is not None else get_consumo_base(capim)
+        
+        # Aplicar suplementação (ração via cocho) - ajuste pós-processamento
+        # Não altera a fórmula original, apenas reduz o consumo proporcionalmente
+        percentual_sup = piquete.get('percentual_suplementacao') or 0
+        possui_cocho = piquete.get('possui_cocho') or 0
+        if possui_cocho and percentual_sup > 0:
+            consumo_base_calc = aplicar_suplementacao(consumo_base_calc, percentual_sup)
 
         if quantidade_animais > 0 and area_piquete > 0:
             try:
