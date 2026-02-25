@@ -326,7 +326,7 @@ function loadAll() {
                         if (diasOcupados >= diasTecnicos) {
                             badgeClass = 'badge-red';
                             badgeText = '<i class="fa-solid fa-circle" style="color:#dc3545;"></i> SAIDA IMEDIATA';
-                            statusInfo = `<small style="color: #dc3545;"><i class="fa-solid fa-triangle-exclamation"></i> Tempo tecnico ultrapassado!</small>`;
+                            statusInfo = `<small style="color: #dc3545;"><i class="fa-solid fa-triangle-exclamation"></i> Tempo tecnico ultrapassado!</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${diasOcupados} dias desde ocupaçao</small>`;
                             if (animaisNoPiquete) {
                                 alertaUrgente = `
                                     <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; margin-top: 8px; text-align: center;">
@@ -338,7 +338,7 @@ function loadAll() {
                         } else {
                             badgeClass = 'badge-blue';
                             badgeText = '<i class="fa-solid fa-circle" style="color:#007bff;"></i> Em Occupacao';
-                            statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada || '?'}cm (est.)</small>`;
+                            statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada || '?'}cm (est.)</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${diasOcupados} dias desde ocupaçao</small>`;
                         }
                     } else if (p.altura_estimada >= p.altura_entrada) {
                         badgeClass = 'badge-green';
@@ -364,7 +364,7 @@ function loadAll() {
                     if (!temAlgumaAltura) {
                         diasRestantes = '';
                     } else if (p.estado === 'ocupado') {
-                        diasRestantes = `<small style="color: #004085;"><i class="fa-solid fa-chart-simple"></i> ${p.dias_tecnicos || 0} dias técnicos</small>`;
+                        diasRestantes = `<small style="color: #004085;"><i class="fa-solid fa-chart-simple"></i> ${p.dias_tecnicos || 0} dias técnicos</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${p.dias_no_piquete || 0} dias desde ocupaçao</small>`;
                     } else if (alturaMostrada >= p.altura_entrada) {
                         diasRestantes = `<small style="color: #155724;"><i class="fa-solid fa-check"></i> Pronto para receber!</small>`;
                     } else {

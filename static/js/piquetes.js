@@ -155,7 +155,9 @@ function drawAllPiquetes() {
                     if (!temAlgumaAltura) {
                         diasInfo = `<br><i class="fa-solid fa-triangle-exclamation"></i> Aguardando altura`;
                     } else if (p.estado === 'ocupado') {
+                        const diasDesdeOcupacao = p.dias_no_piquete || 0;
                         diasInfo = `<br><i class="fa-solid fa-clock"></i> ${p.dias_tecnicos || 0} dias técnicos${badgeFonte}`;
+                        diasInfo += `<br><i class="fa-solid fa-calendar-day"></i> ${diasDesdeOcupacao} dias desde ocupaçao`;
                         if (p.altura_estimada) {
                             diasInfo += `<br><i class="fa-solid fa-ruler-vertical"></i> Altura: ${p.altura_estimada}/${p.altura_entrada || '?'} cm`;
                         }
@@ -227,7 +229,8 @@ function drawAllPiquetes() {
                     if (!temAlgumaAltura) {
                         diasRestantes = '';
                     } else if (p.estado === 'ocupado') {
-                        diasRestantes = `<br><small style="color: #004085;"><i class="fa-solid fa-clock"></i> ${p.dias_tecnicos || 0} dias técnicos</small>`;
+                        const diasDesdeOcupacao = p.dias_no_piquete || 0;
+                        diasRestantes = `<br><small style="color: #004085;"><i class="fa-solid fa-clock"></i> ${p.dias_tecnicos || 0} dias técnicos</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${diasDesdeOcupacao} dias desde ocupaçao</small>`;
                     } else if (p.altura_estimada >= p.altura_entrada) {
                         diasRestantes = `<br><small style="color: #155724;"><i class="fa-solid fa-check"></i> Pronto para receber!</small>`;
                     } else {
@@ -355,7 +358,8 @@ function mostrarPiquete(id) {
     }
     let diasInfo = '';
     if (p.estado === 'ocupado') {
-        diasInfo = `<p><strong>Dias Técnicos:</strong> ${p.dias_tecnicos || 0}</p>`;
+        const diasDesdeOcupacao = p.dias_no_piquete || 0;
+        diasInfo = `<p><strong>Dias Técnicos:</strong> ${p.dias_tecnicos || 0}</p><p style="color: #007bff;"><strong><i class="fa-solid fa-calendar-day"></i> Dias desde ocupação:</strong> ${diasDesdeOcupacao}</p>`;
     } else if (!temAlgumaAltura) {
         diasInfo = `<p><strong>Dias de Descanso:</strong> ${p.dias_descanso || 0}</p>`;
         const diasMin = calcularDiasNecessarios(p.capim, p.altura_entrada, p.altura_saida);
