@@ -1116,6 +1116,8 @@ def api_put_piquete(id):
     elif percentual_sup > 0.7:
         percentual_sup = 0.7  # Limitar máximo a 70%
     
+    possui_cocho = data.get('possui_cocho', 0)
+    
     database.atualizar_piquete(
         id,
         data.get('nome'),
@@ -1129,9 +1131,23 @@ def api_put_piquete(id):
         data.get('irrigado'),
         data.get('observacao'),
         data.get('limpar_altura', False),
-        data.get('possui_cocho', 0),
+        possui_cocho,
         percentual_sup
     )
+    
+    # Recalcular dias técnicos dos lotes neste piquete se suplementação mudou
+    # Buscar lotes neste piquete
+    from database import get_db
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM lotes WHERE piquete_atual_id = ? AND ativo = 1', (id,))
+    lotes = cursor.fetchall()
+    conn.close()
+    
+    # Recalcular cada lote
+    for lote in lotes:
+        database.recalcular_dias_tecnicos_lote(lote['id'])
+    
     return jsonify({'status': 'ok'})
 
 @app.route('/api/rotacao/verificar-passou-ponto')

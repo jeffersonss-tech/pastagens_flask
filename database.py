@@ -1035,6 +1035,12 @@ def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
             ua_ha = ua_total / area
             consumo_diario = consumo_base * (ua_ha / 2)
             
+            # Aplicar suplementação (ração via cocho) - ajuste pós-processamento
+            percentual_sup = piquete.get('percentual_suplementacao') or 0
+            possui_cocho = piquete.get('possui_cocho') or 0
+            if possui_cocho and percentual_sup > 0:
+                consumo_diario = aplicar_suplementacao(consumo_diario, percentual_sup)
+            
             # Calcular dias técnicos
             resultado = calcular_dias_tecnicos(
                 altura_atual=altura_atual,
@@ -1063,6 +1069,83 @@ def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
     conn.close()
     
     return {'status': 'ok', 'dias_tecnicos': dias_tecnicos, 'data_saida_prevista': data_saida_prevista}
+
+
+def recalcular_dias_tecnicos_lote(lote_id):
+    """
+    Recalcula os dias técnicos de um lote quando a suplementação do piquete é alterada.
+    """
+    from datetime import datetime, timedelta
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Buscar dados do lote e piquete atual
+    cursor.execute('''
+        SELECT l.*, p.altura_real_medida, p.altura_atual as piquete_altura_atual, 
+               p.altura_saida, p.capim, p.area, p.possui_cocho, p.percentual_suplementacao
+        FROM lotes l
+        JOIN piquetes p ON l.piquete_atual_id = p.id
+        WHERE l.id = ?
+    ''', (lote_id,))
+    row = cursor.fetchone()
+    
+    if not row or not row['piquete_atual_id']:
+        conn.close()
+        return None
+    
+    lote = dict(row)
+    piquete = {
+        'altura_real_medida': lote.get('altura_real_medida'),
+        'altura_atual': lote.get('piquete_altura_atual'),
+        'altura_saida': lote.get('altura_saida'),
+        'capim': lote.get('capim'),
+        'area': lote.get('area'),
+        'possui_cocho': lote.get('possui_cocho'),
+        'percentual_suplementacao': lote.get('percentual_suplementacao')
+    }
+    
+    # Obter dados necessários
+    altura_atual = piquete['altura_real_medida'] or piquete['altura_atual'] or 25
+    altura_saida = piquete['altura_saida'] or 15
+    capim = piquete['capim']
+    area = piquete['area'] or 0
+    qtd_animais = lote['quantidade'] or 0
+    peso_medio = lote['peso_medio'] or 0
+    
+    # Calcular consumo diário
+    if area > 0 and qtd_animais > 0 and peso_medio > 0:
+        consumo_base = get_consumo_base(capim) if capim else 0.8
+        ua_total = (qtd_animais * peso_medio) / 450
+        ua_ha = ua_total / area
+        consumo_diario = consumo_base * (ua_ha / 2)
+        
+        # Aplicar suplementação
+        percentual_sup = piquete.get('percentual_suplementacao') or 0
+        possui_cocho = piquete.get('possui_cocho') or 0
+        if possui_cocho and percentual_sup > 0:
+            consumo_diario = aplicar_suplementacao(consumo_diario, percentual_sup)
+        
+        # Recalcular dias técnicos
+        resultado = calcular_dias_tecnicos(
+            altura_atual=altura_atual,
+            altura_saida=altura_saida,
+            consumo_diario=consumo_diario,
+            detalhar=True
+        )
+        dias_tecnicos = resultado.get('dias_tecnicos')
+        data_saida_prevista = resultado.get('data_saida_prevista')
+        
+        # Atualizar lote
+        cursor.execute('''
+            UPDATE lotes SET dias_tecnicos = ?, data_saida_prevista = ?, updated_at = ?
+            WHERE id = ?
+        ''', (dias_tecnicos, data_saida_prevista, datetime.now().isoformat(), lote_id))
+        conn.commit()
+    
+    conn.close()
+    return True
+
 
 def get_lote(id):
     """Busca um lote pelo ID"""
