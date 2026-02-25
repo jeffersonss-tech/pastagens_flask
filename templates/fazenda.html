@@ -58,38 +58,6 @@
     <!-- PIQUETES -->
     {% include 'piquetes.html' %}
     
-    <!-- MOVIMENTAÇÃO -->
-    <div id="movimentacao-section" style="display:none;">
-        <div class="card">
-            <h3><i class="fa-solid fa-right-left"></i> Nova Movimentação</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                <div class="form-group">
-                    <label>Animal/Lote</label>
-                    <select id="mov-animal"><option value="">Selecione...</option></select>
-                </div>
-                <div class="form-group">
-                    <label>Origem (De)</label>
-                    <select id="mov-origem"><option value="">Nenhum</option></select>
-                </div>
-                <div class="form-group">
-                    <label>Destino (Para)</label>
-                    <select id="mov-destino"><option value="">Selecione...</option></select>
-                </div>
-            </div>
-            <button class="btn btn-primary" onclick="novaMovimentacao()"><i class="fa-solid fa-right-left"></i> Movimentar</button>
-        </div>
-        
-        <div class="card">
-            <h3><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Movimentações</h3>
-            <table class="data-table">
-                <thead>
-                    <tr><th>Data</th><th>Animal</th><th>Origem</th><th>Destino</th><th>Motivo</th></tr>
-                </thead>
-                <tbody id="historico-mov"></tbody>
-            </table>
-        </div>
-    </div>
-    
     <!-- RELATÓRIOS -->
     <div id="relatorios-section" style="display:none;">
         <div class="card">

@@ -48,9 +48,6 @@
             <li class="menu-item {% if request.endpoint == 'lotes' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/lotes'">
                 <i class="fa-solid fa-clipboard-list"></i> <span>Lotes</span>
             </li>
-            <li class="menu-item" onclick="showSection('movimentacao')">
-                <i class="fa-solid fa-right-left"></i> <span>Movimentação</span>
-            </li>
             <li class="menu-item {% if request.endpoint == 'rotacao' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/rotacao'">
                 <i class="fa-solid fa-brain"></i> <span>IA Rotação</span>
             </li>
