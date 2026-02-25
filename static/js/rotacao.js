@@ -73,24 +73,24 @@ function renderCard(item) {
     const totalAnimais = temLotes ? item.lotes_no_piquete.reduce((sum, l) => sum + l.quantidade, 0) : 0;
     const lotacao = temLotes && item.area > 0 ? ((totalAnimais * 450 / item.area) / 1000).toFixed(2) : '0';
     
-    const animaisBadge = temLotes ? `<span style="background: #007bff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 5px;">🐄 ${totalAnimais}</span>` : '';
+    const animaisBadge = temLotes ? `<span style="background: #007bff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 5px;"><i class="fa-solid fa-cow"></i> ${totalAnimais}</span>` : '';
     
     let loteInfoHTML = '';
     if (temLotes) {
         const lotesHTML = item.lotes_no_piquete.map(l => `
             <div style="padding: 6px 0; border-bottom: 1px solid #eee;">
-                <strong style="color: #007bff;">📦 ${l.nome || 'Sem nome'}</strong>
+                <strong style="color: #007bff;"><i class="fa-solid fa-layer-group"></i> ${l.nome || 'Sem nome'}</strong>
                 ${l.categoria ? `<span style="background: #6c757d; color: white; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 5px;">${l.categoria}</span>` : ''}
-                <span style="color: #28a745; margin-left: 8px;">🐄 ${l.quantidade} animais</span>
+                <span style="color: #28a745; margin-left: 8px;"><i class="fa-solid fa-cow"></i> ${l.quantidade} animais</span>
             </div>`).join('');
         
         loteInfoHTML = `<div style="margin-top: 8px; padding: 10px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; font-size: 0.8rem; border-left: 3px solid #007bff;">
-            <div style="margin-bottom: 8px;"><strong style="color: #007bff;">📦 Lote(s) neste piquete:</strong></div>
+            <div style="margin-bottom: 8px;"><strong style="color: #007bff;"><i class="fa-solid fa-layer-group"></i> Lote(s) neste piquete:</strong></div>
             ${lotesHTML}
             <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 0.75rem;">
-                <span><strong>🐄 Total:</strong> ${totalAnimais} animais</span>
-                <span><strong>📐 Área:</strong> ${item.area} ha</span>
-                <span><strong>📏 Lotação:</strong> ${lotacao} UA/ha</span>
+                <span><strong><i class="fa-solid fa-cow"></i> Total:</strong> ${totalAnimais} animais</span>
+                <span><strong><i class="fa-solid fa-ruler-combined"></i> Área:</strong> ${item.area} ha</span>
+                <span><strong><i class="fa-solid fa-chart-line"></i> Lotação:</strong> ${lotacao} UA/ha</span>
             </div>
         </div>`;
     } else {
@@ -102,12 +102,12 @@ function renderCard(item) {
             <h4>${item.nome} ${animaisBadge}</h4>
             <p>${item.capim} • ${item.area} ha</p>
             <div class="piquete-meta">
-                <span>📍 ${s.pergunta_1 || '-'}</span>
-                <span>⏱️ ${s.pergunta_3 || '-'}</span>
+                <span><i class="fa-solid fa-location-dot"></i> ${s.pergunta_1 || '-'}</span>
+                <span><i class="fa-solid fa-clock"></i> ${s.pergunta_3 || '-'}</span>
             </div>
             <div class="piquete-meta" style="margin-top: 5px;">
-                ${item.altura_real_medida ? `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">📏 ${item.altura_real_medida}cm (MEDIDA)</span>` : ''}
-                <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">📐 Est: ${item.altura_estimada || 0}cm</span>
+                ${item.altura_real_medida ? `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-vertical"></i> ${item.altura_real_medida}cm (MEDIDA)</span>` : ''}
+                <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-combined"></i> Est: ${item.altura_estimada || 0}cm</span>
                 ${item.data_medicao ? `<span style="font-size: 0.7rem; color: #666; margin-left: 5px;">(Medido: ${new Date(item.data_medicao).toLocaleDateString('pt-BR')})</span>` : ''}
             </div>
             ${loteInfoHTML}
@@ -125,11 +125,11 @@ function verificarPassouPonto() {
         .then(r => r.json())
         .then(data => {
             if (data.length > 0) {
-                let msg = '⚠️ PASSOU DO PONTO:\n\n';
+                let msg = '<i class="fa-solid fa-triangle-exclamation"></i> PASSOU DO PONTO:\n\n';
                 data.forEach(a => msg += `• ${a.nome}: ${a.mensagem}\n`);
                 alert(msg);
             } else {
-                alert('✅ Nenhum piquete passou do ponto!');
+                alert('<i class="fa-solid fa-check"></i> Nenhum piquete passou do ponto!');
             }
         });
 }
