@@ -13,7 +13,46 @@ function manterMapaPiquetesAlinhado() {
 function initMapPiquetes() {
     if (!mapPiquetes) {
         mapPiquetes = L.map('map-piquetes', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
+        
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri'
+        });
+
+        const offlineLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17
+        });
+
+        offlineLayer.createTile = function(coords, done) {
+            if (typeof window.createOfflineTile === 'function') {
+                return window.createOfflineTile(coords, done, 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+            }
+            const tile = document.createElement('img');
+            tile.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${coords.z}/${coords.y}/${coords.x}`;
+            done(null, tile);
+            return tile;
+        };
+
+        // Lógica de alternância: se online usa satélite, se offline usa o banco local
+        function toggleMapLayerPiquetes() {
+            if (!mapPiquetes) return;
+            
+            fetch('/api/data-teste?check_server=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+            .then(() => {
+                if (mapPiquetes.hasLayer(offlineLayer)) mapPiquetes.removeLayer(offlineLayer);
+                satelliteLayer.addTo(mapPiquetes);
+            })
+            .catch(() => {
+                if (mapPiquetes.hasLayer(satelliteLayer)) mapPiquetes.removeLayer(satelliteLayer);
+                offlineLayer.addTo(mapPiquetes);
+            });
+        }
+
+        // Primeira execução
+        toggleMapLayerPiquetes();
+
+        // Ouvir mudanças de conexão
+        window.addEventListener('online', toggleMapLayerPiquetes);
+        window.addEventListener('offline', toggleMapLayerPiquetes);
         
         if (temSede) {
             L.marker([mapaLat, mapaLng], {
@@ -26,7 +65,6 @@ function initMapPiquetes() {
             }).addTo(mapPiquetes).bindPopup(`<strong>${fazendaNome}</strong><br>Sede da fazenda`);
         }
     } else {
-        // Se já existe, garantir que o mapa esteja focado e limpo para novos desenhos
         mapPiquetes.setView([mapaLat, mapaLng], 15);
     }
     manterMapaPiquetesAlinhado();
@@ -34,15 +72,53 @@ function initMapPiquetes() {
 
 function initMapDesenho() {
     if (mapDesenhoInit) {
-        layerGroup.clearLayers();
+        if (layerGroup) layerGroup.clearLayers();
         drawPiquetesExistentes();
-        setTimeout(() => mapDesenho.invalidateSize(), 200);
+        if (mapDesenho) setTimeout(() => mapDesenho.invalidateSize(), 200);
         return;
     }
     mapDesenho = L.map('map-desenho', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapDesenho);
-    layerGroup = L.layerGroup().addTo(mapDesenho);
     
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Esri'
+    });
+
+    const offlineLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17
+    });
+
+    offlineLayer.createTile = function(coords, done) {
+        if (typeof window.createOfflineTile === 'function') {
+            return window.createOfflineTile(coords, done, 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+        }
+        const tile = document.createElement('img');
+        tile.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${coords.z}/${coords.y}/${coords.x}`;
+        done(null, tile);
+        return tile;
+    };
+
+    function toggleMapLayerDesenho() {
+        if (!mapDesenho) return;
+        
+        fetch('/api/data-teste?check_server=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+        .then(() => {
+            if (mapDesenho.hasLayer(offlineLayer)) mapDesenho.removeLayer(offlineLayer);
+            satelliteLayer.addTo(mapDesenho);
+        })
+        .catch(() => {
+            if (mapDesenho.hasLayer(satelliteLayer)) mapDesenho.removeLayer(satelliteLayer);
+            offlineLayer.addTo(mapDesenho);
+        });
+    }
+
+    // Primeira execução
+    toggleMapLayerDesenho();
+
+    // Ouvir mudanças de conexão
+    window.addEventListener('online', toggleMapLayerDesenho);
+    window.addEventListener('offline', toggleMapLayerDesenho);
+
+    layerGroup = L.layerGroup().addTo(mapDesenho);
     drawPiquetesExistentes();
     
     mapDesenho.on('click', function(e) {
@@ -73,7 +149,7 @@ function drawPiquetesExistentes() {
 }
 
 function atualizarDesenho() {
-    layerGroup.clearLayers();
+    if (layerGroup) layerGroup.clearLayers();
     drawPiquetesExistentes();
     
     pontos.forEach((p, i) => {
@@ -85,11 +161,15 @@ function atualizarDesenho() {
     if (pontos.length >= 3) {
         L.polygon(pontos, {color: '#228B22', weight: 3, fill: true, fillOpacity: 0.3}).addTo(layerGroup);
         const area = calcularAreaPolygon(pontos);
-        document.getElementById('pq-area').value = area.toFixed(2);
-        document.getElementById('pq-area').setAttribute('readonly', true);
-        document.getElementById('pq-area').style.background = '#f5f5f5';
+        const areaEl = document.getElementById('pq-area');
+        if (areaEl) {
+            areaEl.value = area.toFixed(2);
+            areaEl.setAttribute('readonly', true);
+            areaEl.style.background = '#f5f5f5';
+        }
     } else {
-        document.getElementById('pq-area').value = '0';
+        const areaEl = document.getElementById('pq-area');
+        if (areaEl) areaEl.value = '0';
     }
 }
 
@@ -833,7 +913,7 @@ function validarSalvarPiquete() {
     if (!capim) return alert('Selecione o tipo de capim!');
     if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('Configure os parâmetros do capim Outro.');
     if (capim === 'Outro' && !capimOutroCustom.crescimentoDiario) return alert('Configure os parâmetros do capim Outro.');
-    if (area <= 0) return alert('A área deve ser maior que 0!');
+    if (area <= 0) return alert('A área deve ser mayor que 0!');
     if (alturaEntrada <= 0) return alert('Informe a altura ideal de entrada!');
     if (alturaSaida <= 0) return alert('Informe a altura mínima de saída!');
     if (alturaSaida >= alturaEntrada) return alert('A altura de saída deve ser MENOR que a altura de entrada!');
@@ -855,6 +935,7 @@ function salvarPiquete() {
         observacaoCustom = observacaoCustom ? `${observacaoCustom}\n${customStr}` : customStr;
     }
     
+
     fetch('/api/piquetes', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -892,7 +973,7 @@ function validarSalvarEdicaoPiquete() {
     const dataMedicao = document.getElementById('edit-pq-data-medicao').value.trim();
     if (!nome) return alert('Informe o nome do piquete!');
     if (!capim) return alert('Selecione o tipo de capim!');
-    if (area <= 0) return alert('A área deve ser maior que 0!');
+    if (area <= 0) return alert('A área deve ser mayor que 0!');
     if (alturaEntrada <= 0) return alert('Informe a altura de entrada!');
     if (alturaSaida <= 0) return alert('Informe a altura mínima de saída!');
     if (alturaSaida >= alturaEntrada) return alert('A altura de saída deve ser MENOR que a altura de entrada!');

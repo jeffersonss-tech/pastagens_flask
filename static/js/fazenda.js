@@ -103,6 +103,15 @@ function showSection(id) {
     });
     
     // 5. EXECUTAR ACOES ESPECIFICAS
+    if (cleanId === 'dashboard') {
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize();
+                console.log('Map invalidated (Dashboard)');
+            }
+        }, 200);
+    }
+
     if (cleanId === 'piquetes') {
         setTimeout(() => {
             if (typeof initMapPiquetes === 'function') {
@@ -130,8 +139,110 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Maps
 function initMap() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+    
     map = L.map('map', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 14);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(map);
+    
+    // 1. Camada Satélite (Esri) - PRIORIDADE ONLINE
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Esri'
+    });
+
+    // 2. Camada Offline (IndexedDB / OpenStreetMap) - APENAS OFFLINE
+    const offlineLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17
+    });
+
+    // Singleton para a conexão do banco
+    window._dbInstance = null;
+    window.getPastoFlowDB = function(callback) {
+        if (window._dbInstance) return callback(window._dbInstance);
+        const request = indexedDB.open('PastoFlowOffline');
+        request.onsuccess = (e) => {
+            window._dbInstance = e.target.result;
+            callback(window._dbInstance);
+        };
+        request.onerror = () => callback(null);
+    };
+
+    window.createOfflineTile = function(coords, done, urlTemplate) {
+        const tile = document.createElement('img');
+        // Tratar URL de Satélite (Esri usa Z, Y, X em ordem diferente ou formatos específicos)
+        let url = urlTemplate.replace('{z}', coords.z).replace('{x}', coords.x).replace('{y}', coords.y);
+        
+        // Se a template for do Esri, a ordem no banco deve ser respeitada
+        if (urlTemplate.includes('arcgisonline')) {
+            url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${coords.z}/${coords.y}/${coords.x}`;
+        }
+        
+        window.getPastoFlowDB((db) => {
+            if (!db || !db.objectStoreNames.contains('tiles')) {
+                tile.src = url; 
+                done(null, tile); 
+                return;
+            }
+            
+            try {
+                const tx = db.transaction('tiles', 'readonly');
+                const store = tx.objectStore('tiles');
+                const getRequest = store.get(url);
+                getRequest.onsuccess = function() {
+                    // CORREÇÃO: getRequest.result já é o Blob
+                    if (getRequest.result) {
+                        tile.src = URL.createObjectURL(getRequest.result);
+                    } else {
+                        tile.src = url;
+                    }
+                    done(null, tile);
+                };
+                getRequest.onerror = () => {
+                    tile.src = url;
+                    done(null, tile);
+                };
+            } catch (err) {
+                tile.src = url;
+                done(null, tile);
+            }
+        });
+        return tile;
+    };
+
+    offlineLayer.createTile = function(coords, done) {
+        // Agora busca SATÉLITE no banco offline
+        return window.createOfflineTile(coords, done, 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+    };
+
+    // Lógica de alternância: se online usa satélite, se offline usa o banco local
+    function toggleMapLayer() {
+        if (!map) return;
+        
+        // Verifica conexão real via fetch rápido (se possível)
+        // Se falhar o fetch no próprio servidor, assume offline para o mapa
+        fetch('/api/data-teste?check_server=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+        .then(() => {
+            // Online: Usa satélite padrão
+            if (map.hasLayer(offlineLayer)) map.removeLayer(offlineLayer);
+            satelliteLayer.addTo(map);
+        })
+        .catch(() => {
+            // Offline ou servidor fora do ar: Usa banco local
+            if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+            offlineLayer.addTo(map);
+        });
+    }
+
+    // Primeira execução
+    toggleMapLayer();
+
+    // Ouvir mudanças de conexão
+    window.addEventListener('online', toggleMapLayer);
+    window.addEventListener('offline', toggleMapLayer);
+
+    // Forçar atualização do tamanho após inicialização
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 500);
     
     if (temSede) {
         L.marker([mapaLat, mapaLng], {

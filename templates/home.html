@@ -807,50 +807,32 @@
             fecharModal('modalRaioOffline');
             
             // Mostrar toast de início
-            mostrarToast('⬇ Iniciando download do mapa offline (' + raioKm + 'km)...', 'info');
+            mostrarToast('⬇ Iniciando download do mapa SATÉLITE offline (' + raioKm + 'km)...', 'info');
             
-            // Converter km para graus (aprox)
+            // MUDANÇA: AGORA BAIXA MÚLTIPLOS NÍVEIS DE ZOOM PARA SATÉLITE
             const raioGraus = raioKm / 111;
-            const zoomLevels = [17]; // Só zoom 17
+            const zoomLevels = [13, 14, 15, 16, 17]; 
             
             try {
                 for (let i = 0; i < zoomLevels.length; i++) {
                     const z = zoomLevels[i];
-                    const statusMsg = `<i class="fa-solid fa-spinner fa-spin"></i> Zoom ${z}...`;
-                    if (btn) btn.innerHTML = statusMsg;
-                    
-                    // Toast de progresso
                     const tiles = getTilesInBounds(lat, lng, raioGraus, z);
                     let salvos = 0;
                     
-                    // Toast inicial de progresso
+                    // Toast de progresso por zoom
                     const toastId = 'toast-progress';
                     let toastEl = document.getElementById(toastId);
                     if (!toastEl) {
                         toastEl = document.createElement('div');
                         toastEl.id = toastId;
-                        toastEl.style.cssText = `
-                            position: fixed;
-                            bottom: 20px;
-                            left: 50%;
-                            transform: translateX(-50%);
-                            background: #17a2b8;
-                            color: white;
-                            padding: 15px 25px;
-                            border-radius: 8px;
-                            font-size: 14px;
-                            font-weight: bold;
-                            z-index: 10000;
-                            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                        `;
+                        toastEl.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #17a2b8; color: white; padding: 15px 25px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
                         document.body.appendChild(toastEl);
                     }
-                    toastEl.textContent = `⬇ Baixando Zoom ${z}: 0/${tiles.length}`;
-                    toastEl.style.display = 'block';
                     
                     for (let j = 0; j < tiles.length; j++) {
                         const tile = tiles[j];
-                        const url = `https://tile.openstreetmap.org/${z}/${tile.x}/${tile.y}.png`;
+                        // URL Satélite Esri: Z, Y, X
+                        const url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${tile.y}/${tile.x}`;
                         
                         try {
                             const resp = await fetch(url);
@@ -858,16 +840,10 @@
                                 const blob = await resp.blob();
                                 await saveTile(url, blob);
                             }
-                            salvos++;
-                            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${z}: ${salvos}/${tiles.length}`;
-                            document.getElementById('toast-progress').textContent = `⬇ Baixando Zoom ${z}: ${salvos}/${tiles.length}`;
-                        } catch (e) {
-                            salvos++;
-                            document.getElementById('toast-progress').textContent = `⬇ Baixando Zoom ${z}: ${salvos}/${tiles.length}`;
-                        }
+                        } catch (e) {}
+                        salvos++;
+                        toastEl.textContent = `⬇ Baixando Satélite: Zoom ${z} (${salvos}/${tiles.length})`;
                     }
-                    
-                    await new Promise(r => setTimeout(r, 500));
                 }
                 
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo!';
