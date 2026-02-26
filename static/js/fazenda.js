@@ -247,7 +247,7 @@ function initMap() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
     
-    map = L.map('map', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 14);
+    map = L.map('map', {minZoom: 13, maxZoom: 17}).setView([mapaLat, mapaLng], 14);
     
     // 1. Camada Satélite (Esri) - PRIORIDADE ONLINE
     const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
