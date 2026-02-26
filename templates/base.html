@@ -101,6 +101,7 @@
                     letter-spacing: 0.08em;
                     border-radius: 8px;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    transition: all 0.2s ease;
                 }
                 .sidebar-reload-button:hover {
                     transform: translateY(-1px);
@@ -112,9 +113,14 @@
                     margin: 24px 0 0;
                 }
                 .sidebar.collapsed .sidebar-reload-button {
-                    padding: 3px 6px;
-                    font-size: 0.65rem;
+                    padding: 4px;
+                    font-size: 0.5rem;
                     letter-spacing: 0.04em;
+                    width: 32px;
+                    justify-content: center;
+                }
+                .sidebar.collapsed .sidebar-reload-button span {
+                    display: none;
                 }
             </style>
 
