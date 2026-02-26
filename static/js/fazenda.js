@@ -59,50 +59,64 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showSection(id) {
-    // Verificar se estamos na página da fazenda (onde as seções existem)
+    // Se estivermos em uma página diferente (ex: Lotes), redireciona para a fazenda com o hash
     const targetSection = document.getElementById(id + '-section');
     if (!targetSection) {
-        // Se a seção não existe nesta página (ex: estamos na página de Lotes), redireciona
         window.location.href = '/fazenda/' + fazendaId + '#' + id;
         return;
     }
 
     // Atualizar a URL sem recarregar a página
-    history.pushState(null, null, '#' + id);
+    if (window.location.hash !== '#' + id) {
+        history.pushState(null, null, '#' + id);
+    }
 
+    // Atualizar classe ativa no menu
     document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
     
-    // Tentar ativar o item de menu baseado no ID da seção ou no evento
-    if (typeof event !== 'undefined' && event && event.target && event.target.closest) {
-        const menuItem = event.target.closest('.menu-item');
-        if (menuItem) menuItem.classList.add('active');
-    } else {
-        // Fallback: busca pelo ícone se não houver evento (ex: carregamento via URL)
-        const sectionIcons = { 'dashboard': '📊', 'piquetes': '📍', 'movimentacao': '🔄', 'relatorios': '📈' };
-        if (sectionIcons[id]) {
-            document.querySelectorAll('.menu-item').forEach(item => {
-                if (item.textContent.includes(sectionIcons[id])) item.classList.add('active');
-            });
-        }
-    }
+    // Tenta ativar o item de menu baseado no texto/ícone
+    const sectionNames = { 
+        'dashboard': ['Dashboard', 'gauge'], 
+        'piquetes': ['Piquetes', 'map'], 
+        'movimentacao': ['Movimentação', 'rotate'], 
+        'relatorios': ['Relatórios', 'chart'] 
+    };
     
+    document.querySelectorAll('.menu-item').forEach(item => {
+        const info = sectionNames[id];
+        if (info && (item.textContent.includes(info[0]) || item.querySelector(`[class*="${info[1]}"]`))) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Esconder todas e mostrar apenas a alvo
     document.querySelectorAll('[id$="-section"]').forEach(s => s.style.display = 'none');
     targetSection.style.display = 'block';
     
+    // Ações específicas de cada seção
     if (id === 'piquetes') {
         setTimeout(() => {
             if (typeof initMapPiquetes === 'function') {
                 initMapPiquetes();
-                if (typeof drawAllPiquetes === 'function') {
-                    drawAllPiquetes();
-                }
+                if (typeof drawAllPiquetes === 'function') drawAllPiquetes();
             }
-            if (typeof atualizarClimaAtualUI === 'function') {
-                atualizarClimaAtualUI();
-            }
+            if (typeof atualizarClimaAtualUI === 'function') atualizarClimaAtualUI();
         }, 200);
     }
 }
+
+// Detectar mudança de Hash (Navegação via URL ou botões Voltar/Avançar)
+window.addEventListener('hashchange', () => {
+    const id = window.location.hash.substring(1) || 'dashboard';
+    showSection(id);
+});
+
+// Ao carregar a página, checar se tem hash na URL
+document.addEventListener('DOMContentLoaded', () => {
+    const initialId = window.location.hash.substring(1) || 'dashboard';
+    // Pequeno delay para garantir que o DOM está pronto
+    setTimeout(() => showSection(initialId), 100);
+});
 
 // Maps
 function initMap() {
