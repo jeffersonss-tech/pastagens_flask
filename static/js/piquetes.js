@@ -599,7 +599,7 @@ function mostrarPiquete(id) {
     document.getElementById('piquetes-section').style.display = 'block';
     setTimeout(() => {
         if (!mapPiquetes) {
-            mapPiquetes = L.map('map-piquetes', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
+            mapPiquetes = L.map('map-piquetes', {minZoom: 13, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
         }
         mapPiquetes.invalidateSize();
@@ -751,7 +751,7 @@ function buscarEndereco() {
             const lat = parseFloat(data[0].lat);
             const lon = parseFloat(data[0].lon);
             if (!mapPiquetes) {
-                mapPiquetes = L.map('map-piquetes', {minZoom: 10, maxZoom: 17}).setView([lat, lon], 15);
+                mapPiquetes = L.map('map-piquetes', {minZoom: 13, maxZoom: 17}).setView([lat, lon], 15);
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
             } else {
                 mapPiquetes.setView([lat, lon], 15);
