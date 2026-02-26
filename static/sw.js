@@ -1,5 +1,5 @@
-// Service Worker para PastoFlow (v2)
-const CACHE_NAME = 'pastoflow-v2';
+// Service Worker para PastoFlow (v3)
+const CACHE_NAME = 'pastoflow-v3';
 
 // Arquivos para pré-cachear
 const PRECACHE_URLS = [
@@ -74,8 +74,18 @@ self.addEventListener('fetch', (e) => {
                 .catch(() => {
                     return caches.match(e.request).then(cached => {
                         if (cached) return cached;
-                        // Fallback JSON para APIs offline sem cache
-                        return new Response(JSON.stringify({ error: 'offline', status: 'error' }), {
+                        
+                        // Fallback inteligente: retorna [] para listas conhecidas para evitar erros de .map/.filter no JS
+                        const path = url.pathname;
+                        const isList = path.includes('/lotes') || 
+                                       path.includes('/piquetes') || 
+                                       path.includes('/alertas') || 
+                                       path.includes('/movimentacoes') || 
+                                       path.includes('/capins');
+                        
+                        const fallback = isList ? [] : { error: 'offline', status: 'error' };
+                        
+                        return new Response(JSON.stringify(fallback), {
                             headers: { 'Content-Type': 'application/json' }
                         });
                     });

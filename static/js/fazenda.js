@@ -291,10 +291,11 @@ function drawAllPiquetesOnMap() {
 
 function loadAll() {
     fetch('/api/piquetes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
-        piquetes = data;
+        // Garantir que piquetes seja sempre um array
+        piquetes = Array.isArray(data) ? data : [];
         const listaPiquetes = document.getElementById('lista-piquetes');
         if (listaPiquetes) {
-            listaPiquetes.innerHTML = data.map(p => {
+            listaPiquetes.innerHTML = piquetes.map(p => {
                 const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
                 const temAlgumaAltura = temReal || (p.altura_estimada !== null && p.altura_estimada !== undefined);
                 const fonteAlt = p.fonte_altura || 'estimada';
@@ -441,38 +442,43 @@ function loadAll() {
     });
     
     fetch('/api/animais?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
-        animais = data;
+        // Garantir que animais seja sempre um array
+        animais = Array.isArray(data) ? data : [];
         const listaLotes = document.getElementById('lista-lotes');
         if (listaLotes) {
-            listaLotes.innerHTML = data.map(a => `
+            listaLotes.innerHTML = animais.map(a => `
                 <tr><td>${a.nome}</td><td>${a.quantidade || 0}</td><td>${a.categoria || '-'}</td><td>${a.peso_medio || 0} kg</td></tr>
             `).join('');
         }
         
         const movAnimal = document.getElementById('mov-animal');
         if (movAnimal) {
-            const opts = data.map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
+            const opts = animais.map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
             movAnimal.innerHTML = '<option value="">Selecione...</option>' + opts;
         }
     });
     
     fetch('/api/movimentacoes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
+        // Garantir que movimentacoes seja sempre um array
+        const movimentacoes = Array.isArray(data) ? data : [];
         const histMov = document.getElementById('historico-mov');
         if (histMov) {
-            histMov.innerHTML = data.slice(0, 10).map(m => `
+            histMov.innerHTML = movimentacoes.slice(0, 10).map(m => `
                 <tr><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.animal_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${m.motivo || '-'}</td></tr>
             `).join('');
         }
         const ultMov = document.getElementById('ultimas-mov');
         if (ultMov) {
-            ultMov.innerHTML = data.slice(0, 5).map(m => `
+            ultMov.innerHTML = movimentacoes.slice(0, 5).map(m => `
                 <tr><td>${m.animal_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td></tr>
             `).join('');
         }
     });
     
     fetch('/api/piquetes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
-        const opts = data.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+        // Garantir que data seja sempre um array
+        const piquetesData = Array.isArray(data) ? data : [];
+        const opts = piquetesData.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
         const movOrigem = document.getElementById('mov-origem');
         if (movOrigem) movOrigem.innerHTML = '<option value="">Nenhum</option>' + opts;
         const movDestino = document.getElementById('mov-destino');

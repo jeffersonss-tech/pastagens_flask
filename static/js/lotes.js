@@ -163,13 +163,26 @@ function carregarLotes() {
     fetch(`/api/lotes?fazenda_id=${fazendaId}&status=${status}&categoria=${categoria}`)
         .then(r => r.json())
         .then(data => {
-            lotes = data;
+            // Garantir que lotes seja sempre um array para não quebrar o .filter/.map
+            lotes = Array.isArray(data) ? data : [];
             renderizarTabela();
             atualizarStats();
+        })
+        .catch(err => {
+            console.error('Erro ao carregar lotes:', err);
+            lotes = [];
+            renderizarTabela();
         });
 }
 
 function atualizarStats() {
+    if (!Array.isArray(lotes)) {
+        document.getElementById('stat-total').textContent = '0';
+        document.getElementById('stat-ocupacao').textContent = '0';
+        document.getElementById('stat-saida').textContent = '0';
+        document.getElementById('stat-animais').textContent = '0';
+        return;
+    }
     document.getElementById('stat-total').textContent = lotes.length;
     const emOcupacao = lotes.filter(l => l.piquete_atual_id).length;
     document.getElementById('stat-ocupacao').textContent = emOcupacao;
@@ -181,14 +194,17 @@ function atualizarStats() {
 
 function renderizarTabela() {
     const tbody = document.getElementById('lista-lotes');
-    if (lotes.length === 0) {
+    if (!Array.isArray(lotes) || lotes.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><h3><i class="fa-solid fa-face-frown"></i> Nenhum lote encontrado</h3><p>Cadastre o primeiro lote ou ajuste os filtros.</p></td></tr>`;
         return;
     }
     // Buscar todos os piquetes de uma vez
     fetch(`/api/piquetes?fazenda_id=${fazendaId}&_=${Date.now()}`)
         .then(r => r.json())
-        .then(allPiquetes => {
+        .then(data => {
+            // Garantir que data seja sempre um array
+            const allPiquetes = Array.isArray(data) ? data : [];
+            
             // Processar piquetes para adicionar status calculado
             const piquetesProcessados = allPiquetes.map(p => {
                 const altura = p.altura_estimada || 0;
@@ -251,8 +267,13 @@ function carregarPiquetesSelect() {
         .then(data => {
             console.log('[DEBUG] Piquetes recebidos:', data);
             const select = document.getElementById('lote-piquete');
+            if (!select) return;
+            
+            // Garantir que data seja sempre um array
+            const piquetes = Array.isArray(data) ? data : [];
+            
             // Filtrar disponíveis (sem animais) E com medição (altura_real_medida OU data_medicao)
-            const disponiveis = data.filter(p => 
+            const disponiveis = piquetes.filter(p => 
                 (!p.animais_no_piquete || p.animais_no_piquete === 0) && 
                 (p.altura_real_medida || p.data_medicao)
             );
