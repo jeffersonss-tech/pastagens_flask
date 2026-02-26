@@ -861,6 +861,24 @@
                 btn.disabled = true;
             }
             
+            //Aviso para não fechar a aba durante o download
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '';
+            });
+            
+            // Mostrar aviso permanente
+            const toastId = 'toast-download-warning';
+            let toastEl = document.getElementById(toastId);
+            if (!toastEl) {
+                toastEl = document.createElement('div');
+                toastEl.id = toastId;
+                toastEl.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ffc107; color: #000; padding: 15px 25px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-align: center;';
+                document.body.appendChild(toastEl);
+            }
+            toastEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Download em andamento...</strong><br><small>Não feche esta aba ou o download será perdido!</small>';
+            toastEl.style.display = 'block';
+            
             fecharModal('modalRaioOffline');
             
             // Mostrar toast de início
@@ -903,6 +921,14 @@
                     }
                 }
                 
+                // Remover aviso de download e habilitar fechar aba
+                window.removeEventListener('beforeunload', function(e) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                });
+                const toastWarning = document.getElementById('toast-download-warning');
+                if (toastWarning) toastWarning.remove();
+                
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo!';
                 btn.classList.remove('btn-secondary');
                 btn.classList.add('btn-success');
@@ -925,6 +951,15 @@
                 
             } catch (e) {
                 console.error(e);
+                
+                // Remover aviso de download e habilitar fechar aba
+                window.removeEventListener('beforeunload', function(ev) {
+                    ev.preventDefault();
+                    ev.returnValue = '';
+                });
+                const toastWarning = document.getElementById('toast-download-warning');
+                if (toastWarning) toastWarning.remove();
+                
                 alert('Erro ao baixar: ' + e.message);
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
