@@ -551,6 +551,9 @@ function loadAll() {
             if (typeof drawAllPiquetes === 'function') {
                 drawAllPiquetes();
             }
+            if (typeof drawAllPiquetesOnMap === 'function') {
+                drawAllPiquetesOnMap();
+            }
             if (typeof refreshOfflineQueueIndicator === 'function') {
                 refreshOfflineQueueIndicator();
             }
