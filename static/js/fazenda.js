@@ -59,22 +59,35 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showSection(id) {
-    // Se estivermos em uma página diferente (ex: Lotes), redireciona para a fazenda com o hash
-    const targetSection = document.getElementById(id + '-section');
+    console.log('Solicitada seção:', id);
+    
+    // Normalizar ID (remover hash se houver)
+    const cleanId = id.replace('#', '') || 'dashboard';
+    const targetSection = document.getElementById(cleanId + '-section');
+    
+    // Se não estivermos na página da fazenda (ex: Lotes), redireciona com o hash
     if (!targetSection) {
-        window.location.href = '/fazenda/' + fazendaId + '#' + id;
+        window.location.href = '/fazenda/' + fazendaId + '#' + cleanId;
         return;
     }
 
-    // Atualizar a URL sem recarregar a página
-    if (window.location.hash !== '#' + id) {
-        history.pushState(null, null, '#' + id);
+    // 1. ESCONDER TODAS AS SEÇÕES PRIMEIRO
+    const allSections = document.querySelectorAll('[id$="-section"]');
+    allSections.forEach(s => {
+        s.style.setProperty('display', 'none', 'important');
+    });
+
+    // 2. MOSTRAR APENAS A ALVO
+    targetSection.style.setProperty('display', 'block', 'important');
+    console.log('Seção exibida:', cleanId);
+
+    // 3. ATUALIZAR URL (sem disparar hashchange se já for o mesmo)
+    if (window.location.hash !== '#' + cleanId) {
+        history.pushState(null, null, '#' + cleanId);
     }
 
-    // Atualizar classe ativa no menu
+    // 4. ATUALIZAR MENU
     document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-    
-    // Tenta ativar o item de menu baseado no texto/ícone
     const sectionNames = { 
         'dashboard': ['Dashboard', 'gauge'], 
         'piquetes': ['Piquetes', 'map'], 
@@ -83,39 +96,36 @@ function showSection(id) {
     };
     
     document.querySelectorAll('.menu-item').forEach(item => {
-        const info = sectionNames[id];
+        const info = sectionNames[cleanId];
         if (info && (item.textContent.includes(info[0]) || item.querySelector(`[class*="${info[1]}"]`))) {
             item.classList.add('active');
         }
     });
     
-    // Esconder todas e mostrar apenas a alvo
-    document.querySelectorAll('[id$="-section"]').forEach(s => s.style.display = 'none');
-    targetSection.style.display = 'block';
-    
-    // Ações específicas de cada seção
-    if (id === 'piquetes') {
+    // 5. EXECUTAR ACOES ESPECIFICAS
+    if (cleanId === 'piquetes') {
         setTimeout(() => {
             if (typeof initMapPiquetes === 'function') {
                 initMapPiquetes();
                 if (typeof drawAllPiquetes === 'function') drawAllPiquetes();
             }
-            if (typeof atualizarClimaAtualUI === 'function') atualizarClimaAtualUI();
-        }, 200);
+        }, 100);
     }
 }
 
-// Detectar mudança de Hash (Navegação via URL ou botões Voltar/Avançar)
+// Ouvir mudanças de hash (botões voltar/avançar do navegador)
 window.addEventListener('hashchange', () => {
     const id = window.location.hash.substring(1) || 'dashboard';
     showSection(id);
 });
 
-// Ao carregar a página, checar se tem hash na URL
+// Inicialização ao carregar o DOM
 document.addEventListener('DOMContentLoaded', () => {
-    const initialId = window.location.hash.substring(1) || 'dashboard';
-    // Pequeno delay para garantir que o DOM está pronto
-    setTimeout(() => showSection(initialId), 100);
+    // Só executa se estivermos na página da fazenda
+    if (document.querySelector('[id$="-section"]')) {
+        const initialId = window.location.hash.substring(1) || 'dashboard';
+        showSection(initialId);
+    }
 });
 
 // Maps

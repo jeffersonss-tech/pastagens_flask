@@ -71,14 +71,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    // Se houver um hash na URL (ex: #piquetes), mostrar a seção correta
-    window.addEventListener('load', () => {
-        const hash = window.location.hash.replace('#', '');
-        if (hash) {
-            showSection(hash);
-            // Marcar item do menu como ativo se necessário
-        }
-    });
-</script>
+<!-- O controle de seções é feito pelo fazenda.js via Hash -->
 {% endblock %}

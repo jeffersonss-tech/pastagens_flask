@@ -1,5 +1,8 @@
-// Service Worker para PastoFlow (v5)
-const CACHE_NAME = 'pastoflow-v5';
+// Service Worker para PastoFlow (v7)
+const CACHE_NAME = 'pastoflow-v7';
+
+// Tempo máximo de espera pela rede (ms) antes de usar o cache para APIs
+const NETWORK_TIMEOUT = 2500; 
 
 // Arquivos para pré-cachear
 const PRECACHE_URLS = [
@@ -60,36 +63,48 @@ self.addEventListener('fetch', (e) => {
                        url.pathname === '/home' || 
                        url.pathname.startsWith('/fazenda/');
 
-    // APIs: Network-first (tenta rede, fallback cache)
+    // APIs: Network-first com Timeout (tenta rede rápido, fallback cache)
     if (isApi) {
         e.respondWith(
-            fetch(e.request)
-                .then((resp) => {
-                    if (resp.ok) {
-                        const clone = resp.clone();
-                        caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
-                    }
-                    return resp;
-                })
-                .catch(() => {
-                    return caches.match(e.request).then(cached => {
-                        if (cached) return cached;
-                        
-                        // Fallback inteligente: retorna [] para listas conhecidas para evitar erros de .map/.filter no JS
-                        const path = url.pathname;
-                        const isList = path.includes('/lotes') || 
-                                       path.includes('/piquetes') || 
-                                       path.includes('/alertas') || 
-                                       path.includes('/movimentacoes') || 
-                                       path.includes('/capins');
-                        
-                        const fallback = isList ? [] : { error: 'offline', status: 'error' };
-                        
-                        return new Response(JSON.stringify(fallback), {
-                            headers: { 'Content-Type': 'application/json' }
+            new Promise((resolve) => {
+                const timeoutId = setTimeout(() => {
+                    // Timeout atingido: tenta o cache
+                    caches.match(e.request).then((cached) => {
+                        if (cached) resolve(cached);
+                    });
+                }, NETWORK_TIMEOUT);
+
+                fetch(e.request)
+                    .then((resp) => {
+                        clearTimeout(timeoutId);
+                        if (resp.ok) {
+                            const clone = resp.clone();
+                            caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
+                        }
+                        resolve(resp);
+                    })
+                    .catch(() => {
+                        clearTimeout(timeoutId);
+                        caches.match(e.request).then(cached => {
+                            if (cached) {
+                                resolve(cached);
+                            } else {
+                                // Fallback inteligente: retorna [] para listas conhecidas
+                                const path = url.pathname;
+                                const isList = path.includes('/lotes') || 
+                                               path.includes('/piquetes') || 
+                                               path.includes('/alertas') || 
+                                               path.includes('/movimentacoes') || 
+                                               path.includes('/capins');
+                                
+                                const fallback = isList ? [] : { error: 'offline', status: 'error' };
+                                resolve(new Response(JSON.stringify(fallback), {
+                                    headers: { 'Content-Type': 'application/json' }
+                                }));
+                            }
                         });
                     });
-                })
+            })
         );
         return;
     }
