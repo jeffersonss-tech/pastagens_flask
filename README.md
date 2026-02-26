@@ -15,7 +15,8 @@ Sistema web para gestão de fazendas, piquetes, lotes e rotação inteligente de
 1. Na Home, clique em "Baixar Mapas Offline" antes de sair
 2. Desligue a internet
 3. Acesse a fazenda - o mapa usa OSM offline
-4. Para lançar dados offline,aguarde sincronização futura
+4. Para lançar dados offline, aguarde sincronização futura
+- Ao cadastrar piquetes sem conexão, os dados ficam em uma fila local e um badge na tela informa quantos registros aguardam sincronização automática ao reconectar.
 
 ---
 

@@ -698,11 +698,13 @@
         // ============ MAPA OFFLINE ============
         // IndexedDB para salvar tiles
         const DB_NAME = 'PastoFlowOffline';
-        const STORE_NAME = 'tiles';
+        const DB_VERSION = 2;
+        const TILE_STORE = 'tiles';
+        const OFFLINE_QUEUE_STORE = 'offlinePiquetes';
         
         function openDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
                 request.onerror = () => {
                     console.error('Erro ao abrir IDB:', request.error);
                     reject(request.error);
@@ -710,8 +712,11 @@
                 request.onsuccess = () => resolve(request.result);
                 request.onupgradeneeded = (e) => {
                     const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME);
+                    if (!db.objectStoreNames.contains(TILE_STORE)) {
+                        db.createObjectStore(TILE_STORE);
+                    }
+                    if (!db.objectStoreNames.contains(OFFLINE_QUEUE_STORE)) {
+                        db.createObjectStore(OFFLINE_QUEUE_STORE, { keyPath: 'id', autoIncrement: true });
                     }
                 };
             });
@@ -720,8 +725,8 @@
         function saveTile(url, blob) {
             return new Promise((resolve, reject) => {
                 openDB().then(db => {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
+                    const tx = db.transaction(TILE_STORE, 'readwrite');
+                    const store = tx.objectStore(TILE_STORE);
                     store.put(blob, url);
                     tx.oncomplete = () => resolve();
                     tx.onerror = () => reject(tx.error);
@@ -732,8 +737,8 @@
         function getTile(url) {
             return new Promise((resolve, reject) => {
                 openDB().then(db => {
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
+                    const tx = db.transaction(TILE_STORE, 'readonly');
+                    const store = tx.objectStore(TILE_STORE);
                     const request = store.get(url);
                     request.onsuccess = () => resolve(request.result);
                     request.onerror = () => reject(request.error);
@@ -791,8 +796,8 @@
             
             try {
                 const db = await openDB();
-                const tx = db.transaction(STORE_NAME, 'readonly');
-                const store = tx.objectStore(STORE_NAME);
+                const tx = db.transaction(TILE_STORE, 'readonly');
+                const store = tx.objectStore(TILE_STORE);
                 const request = store.count();
                 
                 request.onsuccess = () => {
@@ -834,8 +839,8 @@
             
             try {
                 const db = await openDB();
-                const tx = db.transaction(STORE_NAME, 'readwrite');
-                const store = tx.objectStore(STORE_NAME);
+                const tx = db.transaction(TILE_STORE, 'readwrite');
+                const store = tx.objectStore(TILE_STORE);
                 const request = store.clear();
                 
                 request.onsuccess = () => {
@@ -939,8 +944,8 @@
                 
                 // Contar total de tiles salvos
                 openDB().then(db => {
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
+                    const tx = db.transaction(TILE_STORE, 'readonly');
+                    const store = tx.objectStore(TILE_STORE);
                     const request = store.count();
                     request.onsuccess = () => {
                         const total = request.result;
@@ -1008,8 +1013,8 @@
             if (!navigator.onLine) {
                 // Offline - verificar se tem mapa baixado
                 openDB().then(db => {
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
+                    const tx = db.transaction(TILE_STORE, 'readonly');
+                    const store = tx.objectStore(TILE_STORE);
                     const request = store.count();
                     request.onsuccess = () => {
                         const count = request.result;
@@ -1027,8 +1032,8 @@
             } else {
                 // Online - verificar se tem mapa baixado paraAvisar
                 openDB().then(db => {
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
+                    const tx = db.transaction(TILE_STORE, 'readonly');
+                    const store = tx.objectStore(TILE_STORE);
                     const request = store.count();
                     request.onsuccess = () => {
                         const count = request.result;
@@ -1058,8 +1063,8 @@
         // ============ VERIFICAR BOTÕES OFFLINE AO CARREGAR ============
         function verificarBotoesOffline() {
             openDB().then(db => {
-                const tx = db.transaction(STORE_NAME, 'readonly');
-                const store = tx.objectStore(STORE_NAME);
+                const tx = db.transaction(TILE_STORE, 'readonly');
+                const store = tx.objectStore(TILE_STORE);
                 const request = store.count();
                 request.onsuccess = () => {
                     const total = request.result;

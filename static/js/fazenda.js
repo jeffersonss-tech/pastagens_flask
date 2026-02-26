@@ -7,6 +7,15 @@ let animais = [];
 let mapDesenhoInit = false;
 window._climaFatorAtual = 1.0;
 
+const OFFLINE_DB_NAME = 'PastoFlowOffline';
+const OFFLINE_DB_VERSION = 2;
+const OFFLINE_TILE_STORE = 'tiles';
+const OFFLINE_QUEUE_STORE = 'offlinePiquetes';
+window.OFFLINE_DB_NAME = OFFLINE_DB_NAME;
+window.OFFLINE_DB_VERSION = OFFLINE_DB_VERSION;
+window.OFFLINE_TILE_STORE = OFFLINE_TILE_STORE;
+window.OFFLINE_QUEUE_STORE = OFFLINE_QUEUE_STORE;
+
 function getCrescimentoComClima(capim) {
     const fator = window._climaFatorAtual || 1.0;
 
@@ -158,12 +167,21 @@ function initMap() {
     window._dbInstance = null;
     window.getPastoFlowDB = function(callback) {
         if (window._dbInstance) return callback(window._dbInstance);
-        const request = indexedDB.open('PastoFlowOffline');
+        const request = indexedDB.open(OFFLINE_DB_NAME, OFFLINE_DB_VERSION);
+        request.onerror = () => callback(null);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(OFFLINE_TILE_STORE)) {
+                db.createObjectStore(OFFLINE_TILE_STORE);
+            }
+            if (!db.objectStoreNames.contains(OFFLINE_QUEUE_STORE)) {
+                db.createObjectStore(OFFLINE_QUEUE_STORE, { keyPath: 'id', autoIncrement: true });
+            }
+        };
         request.onsuccess = (e) => {
             window._dbInstance = e.target.result;
             callback(window._dbInstance);
         };
-        request.onerror = () => callback(null);
     };
 
     window.createOfflineTile = function(coords, done, urlTemplate) {
@@ -177,14 +195,14 @@ function initMap() {
         }
         
         window.getPastoFlowDB((db) => {
-            if (!db || !db.objectStoreNames.contains('tiles')) {
+            if (!db || !db.objectStoreNames.contains(OFFLINE_TILE_STORE)) {
                 tile.src = url; 
                 done(null, tile); 
                 return;
             }
             
             try {
-                const tx = db.transaction('tiles', 'readonly');
+                const tx = db.transaction(OFFLINE_TILE_STORE, 'readonly');
                 const store = tx.objectStore('tiles');
                 const getRequest = store.get(url);
                 getRequest.onsuccess = function() {

@@ -59,3 +59,12 @@
 .piquete-label {
     pointer-events: none;
 }
+
+/* Indicador de fila offline */
+#offline-queue-status {
+    font-size: 0.85rem;
+    color: #fd7e14;
+    font-weight: 600;
+    margin-left: 12px;
+    display: none;
+}

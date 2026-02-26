@@ -2,11 +2,171 @@
 
 var mapPiquetes = null;
 
+const offlineConfig = {
+    dbName: window.OFFLINE_DB_NAME || 'PastoFlowOffline',
+    dbVersion: window.OFFLINE_DB_VERSION || 2,
+    tileStore: window.OFFLINE_TILE_STORE || 'tiles',
+    queueStore: window.OFFLINE_QUEUE_STORE || 'offlinePiquetes'
+};
+const OFFLINE_INDICATOR_ID = 'offline-queue-status';
+
 function manterMapaPiquetesAlinhado() {
     if (!mapPiquetes) return;
     setTimeout(() => mapPiquetes.invalidateSize(), 50);
     setTimeout(() => mapPiquetes.invalidateSize(), 250);
     setTimeout(() => mapPiquetes.invalidateSize(), 700);
+}
+
+let offlineSyncInProgress = false;
+
+function openOfflineQueueDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(offlineConfig.dbName, offlineConfig.dbVersion);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(offlineConfig.tileStore)) {
+                db.createObjectStore(offlineConfig.tileStore);
+            }
+            if (!db.objectStoreNames.contains(offlineConfig.queueStore)) {
+                db.createObjectStore(offlineConfig.queueStore, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+    });
+}
+
+async function queueOfflinePiquete(payload) {
+    try {
+        const db = await openOfflineQueueDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(offlineConfig.queueStore, 'readwrite');
+            const store = tx.objectStore(offlineConfig.queueStore);
+            store.add({ payload, created_at: new Date().toISOString() });
+            tx.oncomplete = () => {
+                db.close();
+                resolve();
+            };
+            tx.onerror = () => {
+                db.close();
+                reject(tx.error || new Error('Erro ao gravar offline'));
+            };
+        });
+    } catch (err) {
+        console.error('Não foi possível abrir IndexedDB:', err);
+        throw err;
+    }
+}
+
+async function getOfflineQueueItems() {
+    const db = await openOfflineQueueDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(offlineConfig.queueStore, 'readonly');
+        const request = tx.objectStore(offlineConfig.queueStore).getAll();
+        request.onsuccess = () => {
+            db.close();
+            resolve(request.result || []);
+        };
+        request.onerror = () => {
+            db.close();
+            reject(request.error);
+        };
+    });
+}
+
+async function deleteOfflineQueueItem(id) {
+    const db = await openOfflineQueueDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(offlineConfig.queueStore, 'readwrite');
+        const request = tx.objectStore(offlineConfig.queueStore).delete(id);
+        tx.oncomplete = () => {
+            db.close();
+            resolve();
+        };
+        tx.onerror = () => {
+            db.close();
+            reject(tx.error);
+        };
+    });
+}
+
+async function getOfflineQueueCount() {
+    const db = await openOfflineQueueDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(offlineConfig.queueStore, 'readonly');
+        const request = tx.objectStore(offlineConfig.queueStore).count();
+        request.onsuccess = () => {
+            db.close();
+            resolve(request.result || 0);
+        };
+        request.onerror = () => {
+            db.close();
+            reject(request.error);
+        };
+    });
+}
+
+function ensureOfflineQueueIndicator() {
+    let indicator = document.getElementById(OFFLINE_INDICATOR_ID);
+    if (indicator) return indicator;
+    const button = document.querySelector('button[onclick="abrirModalPiquete()"]');
+    if (!button || !button.parentNode) return null;
+    indicator = document.createElement('span');
+    indicator.id = OFFLINE_INDICATOR_ID;
+    indicator.style.cssText = 'margin-left: 12px; font-size: 0.85rem; font-weight: 600; color: #fd7e14; display: inline-flex; align-items: center; gap: 4px;';
+    indicator.title = 'Piquetes aguardando sincronização';
+    button.parentNode.insertBefore(indicator, button.nextSibling);
+    return indicator;
+}
+
+async function refreshOfflineQueueIndicator() {
+    try {
+        const count = await getOfflineQueueCount();
+        const indicator = ensureOfflineQueueIndicator();
+        if (!indicator) return;
+        if (count > 0) {
+            indicator.textContent = `⏳ ${count} offline pendente${count > 1 ? 's' : ''}`;
+            indicator.style.display = 'inline-flex';
+        } else {
+            indicator.style.display = 'none';
+        }
+    } catch (err) {
+        console.error('Erro ao atualizar indicador offline:', err);
+    }
+}
+
+async function syncOfflinePiquetes() {
+    if (!navigator.onLine) return;
+    if (offlineSyncInProgress) return;
+    offlineSyncInProgress = true;
+    try {
+        const items = await getOfflineQueueItems();
+        if (!items.length) return;
+        let synced = 0;
+        for (const item of items) {
+            try {
+                const response = await fetch('/api/piquetes', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(item.payload)
+                });
+                if (!response.ok) throw new Error('Status ' + response.status);
+                await response.json();
+                await deleteOfflineQueueItem(item.id);
+                synced++;
+            } catch (err) {
+                console.error('Erro ao sincronizar piquete offline:', err);
+                break;
+            }
+        }
+        if (synced > 0) {
+            alert(`${synced} piquete${synced > 1 ? 's' : ''} offline sincronizado${synced > 1 ? 's' : ''}!`);
+            loadAll();
+        }
+    } finally {
+        offlineSyncInProgress = false;
+        refreshOfflineQueueIndicator();
+    }
 }
 
 // Maps e Desenho
@@ -924,7 +1084,7 @@ function validarSalvarPiquete() {
     salvarPiquete();
 }
 
-function salvarPiquete() {
+async function salvarPiquete() {
     const nome = document.getElementById('pq-nome').value || 'Piquete_' + Date.now();
     const coords = pontos.map(p => [p[1], p[0]]);
     coords.push(coords[0]);
@@ -934,33 +1094,65 @@ function salvarPiquete() {
         const customStr = `[CAPIM_OUTRO] crescimento=${capimOutroCustom.crescimentoDiario}; fator_consumo=${capimOutroCustom.fatorConsumo}; lotacao=${capimOutroCustom.lotacao}`;
         observacaoCustom = observacaoCustom ? `${observacaoCustom}\n${customStr}` : customStr;
     }
-    
 
-    fetch('/api/piquetes', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            fazenda_id: fazendaId,
-            nome,
-            capim: document.getElementById('pq-capim').value,
-            area: parseFloat(document.getElementById('pq-area').value) || 0,
-            geometria: JSON.stringify({type: 'Polygon', coordinates: [coords]}),
-            altura_entrada: parseFloat(document.getElementById('pq-altura-entrada').value) || 0,
-            altura_saida: parseFloat(document.getElementById('pq-altura-saida').value) || 0,
-            altura_atual: parseFloat(document.getElementById('pq-altura-atual').value) || null,
-            data_medicao: dataMedicao,
-            irrigado: document.getElementById('pq-irrigado').value || 'nao',
-            observacao: observacaoCustom || null,
-            possui_cocho: document.getElementById('pq-possui-cocho').checked ? 1 : 0,
-            percentual_suplementacao: document.getElementById('pq-possui-cocho').checked 
-                ? (parseFloat(document.getElementById('pq-percentual-suplementacao').value) || 0) / 100 
-                : 0
-        })
-    }).then(r => r.json()).then(data => {
+    const payload = {
+        fazenda_id: fazendaId,
+        nome,
+        capim: document.getElementById('pq-capim').value,
+        area: parseFloat(document.getElementById('pq-area').value) || 0,
+        geometria: JSON.stringify({type: 'Polygon', coordinates: [coords]}),
+        altura_entrada: parseFloat(document.getElementById('pq-altura-entrada').value) || 0,
+        altura_saida: parseFloat(document.getElementById('pq-altura-saida').value) || 0,
+        altura_atual: parseFloat(document.getElementById('pq-altura-atual').value) || null,
+        data_medicao: dataMedicao,
+        irrigado: document.getElementById('pq-irrigado').value || 'nao',
+        observacao: observacaoCustom || null,
+        possui_cocho: document.getElementById('pq-possui-cocho').checked ? 1 : 0,
+        percentual_suplementacao: document.getElementById('pq-possui-cocho').checked 
+            ? (parseFloat(document.getElementById('pq-percentual-suplementacao').value) || 0) / 100 
+            : 0
+    };
+
+    if (!navigator.onLine) {
+        try {
+            await queueOfflinePiquete(payload);
+            alert('Sem internet. Piquete salvo localmente e será sincronizado quando voltar.');
+            fecharModalPiquete();
+        } catch (err) {
+            console.error('Erro ao salvar offline:', err);
+            alert('Não foi possível salvar offline: ' + (err.message || 'IndexedDB indisponível.'));
+        }
+        refreshOfflineQueueIndicator();
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/piquetes', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            const mensagem = await response.text().catch(() => '');
+            throw new Error(mensagem || 'Status ' + response.status);
+        }
+        await response.json();
         alert('Piquete salvo!');
         fecharModalPiquete();
         loadAll();
-    });
+    } catch (err) {
+        console.error('Erro ao salvar piquete online:', err);
+        try {
+            await queueOfflinePiquete(payload);
+            alert('Não foi possível enviar agora. Piquete salvo offline e será sincronizado quando voltar.');
+            fecharModalPiquete();
+        } catch (queueErr) {
+            console.error('Erro ao registrar offline:', queueErr);
+            alert('Erro ao registrar offline: ' + (queueErr.message || 'IndexedDB indisponível.'));
+        }
+    } finally {
+        refreshOfflineQueueIndicator();
+    }
 }
 
 function validarSalvarEdicaoPiquete() {
@@ -1063,6 +1255,14 @@ window.addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) manterMapaPiquetesAlinhado();
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    refreshOfflineQueueIndicator();
+    syncOfflinePiquetes();
+});
+
+window.addEventListener('online', syncOfflinePiquetes);
+window.addEventListener('offline', refreshOfflineQueueIndicator);
 
 // Carregar fator climático ao iniciar (sincronizar com fazenda.js)
 if (typeof fazendaId !== 'undefined' && fazendaId) {
