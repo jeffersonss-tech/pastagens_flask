@@ -10,8 +10,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: system-ui, sans-serif; 
+        body {
+            font-family: system-ui, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
         }
@@ -39,9 +39,9 @@
         .btn-warning { background: #ffc107; color: #212529; }
         .btn-success { background: #28a745; color: white; }
         .btn-sm { padding: 5px 10px; font-size: 12px; }
-        
+
         .container { max-width: 1200px; margin: 0 auto; padding: 30px; }
-        
+
         .card {
             background: white;
             border-radius: 15px;
@@ -49,7 +49,7 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
         .card h2 { color: #1a1a2e; margin-bottom: 20px; }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -65,9 +65,9 @@
         }
         .stat-card strong { display: block; font-size: 2rem; color: #00d9ff; }
         .stat-card span { font-size: 13px; opacity: 0.8; }
-        
+
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        
+
         .fazenda-card {
             background: white;
             border-radius: 12px;
@@ -107,7 +107,7 @@
             padding-top: 15px;
             border-top: 1px solid #eee;
         }
-        
+
         .nova-fazenda {
             background: linear-gradient(135deg, #16213e, #1a1a2e);
             color: white;
@@ -121,18 +121,18 @@
         }
         .nova-fazenda:hover { background: linear-gradient(135deg, #1a1a2e, #16213e); }
         .nova-fazenda span { font-size: 3rem; display: block; margin-bottom: 10px; }
-        
+
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 500; }
-        .form-group input { 
-            width: 100%; 
+        .form-group input {
+            width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
             border-radius: 8px;
         }
         .form-row { display: flex; gap: 15px; }
         .form-row .form-group { flex: 1; }
-        
+
         .modal {
             display: none;
             position: fixed;
@@ -155,7 +155,7 @@
         .modal h3 { margin-bottom: 20px; color: #1a1a2e; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
         .modal-buttons .btn { flex: 1; padding: 12px; }
-        
+
         .coordenadas-info {
             background: #f8f9fa;
             padding: 10px 15px;
@@ -164,7 +164,7 @@
             color: #666;
             margin-bottom: 15px;
         }
-        
+
         /* Data Teste Display */
         .data-teste-display {
             background: rgba(255, 193, 7, 0.2);
@@ -183,7 +183,7 @@
         .data-teste-valor { color: #00d9ff; font-weight: bold; }
         .data-teste-display.modo-real .data-teste-valor { color: #28a745; }
         .coordenadas-info strong { color: #1a1a2e; }
-        
+
         .warning-text {
             color: #dc3545;
             font-size: 14px;
@@ -191,7 +191,7 @@
             padding: 20px;
         }
         .warning-text strong { display: block; margin-bottom: 10px; font-size: 16px; }
-        
+
         /* Offline status */
         .offline-chip {
             padding: 5px 12px;
@@ -210,7 +210,7 @@
             background: #28a745;
             color: white;
         }
-        
+
         /* Toast animations */
         @keyframes slideUp {
             from { transform: translateX(-50%) translateY(20px); opacity: 0; }
@@ -230,7 +230,7 @@
             <a href="{{ url_for('admin_voltar') }}" class="btn" style="background: #856404; color: white; padding: 2px 8px; font-size: 0.7rem;">← Voltar ao Admin</a>
         </div>
         {% endif %}
-        
+
         <div style="display: flex; align-items: center;">
             <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="height: 40px; margin-right: 15px;">
             <div id="data-teste-display" class="data-teste-display modo-real">
@@ -246,7 +246,7 @@
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Sair</a>
         </div>
     </div>
-    
+
     <div class="container">
         <div class="stats-grid">
             <div class="stat-card">
@@ -266,10 +266,10 @@
                 <span>Animais</span>
             </div>
         </div>
-        
+
         <div class="card">
             <h2><i class="fa-solid fa-map-pin"></i> Minhas Fazendas</h2>
-            
+
             <!-- Seção do Gerente: Gerenciar Operadores -->
             {% if usuario.role == 'gerente' %}
             <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
@@ -280,7 +280,7 @@
                 </a>
             </div>
             {% endif %}
-            
+
             {% if fazendas %}
             <div class="grid">
                 {% for f in fazendas %}
@@ -305,7 +305,7 @@
                     {% endif %}
                 </div>
                 {% endfor %}
-                
+
                 {% if usuario.role in ['admin', 'gerente'] %}
                 <div class="fazenda-card nova-fazenda" onclick="abrirModalCriar()">
                     <span>+</span>
@@ -330,7 +330,7 @@
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Modal Nova Fazenda -->
     <div class="modal" id="modalCriar">
         <div class="modal-content">
@@ -394,7 +394,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Editar Fazenda -->
     <div class="modal" id="modalEditar">
         <div class="modal-content">
@@ -457,7 +457,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Escolher Raio Offline -->
     <div class="modal" id="modalRaioOffline">
         <div class="modal-content">
@@ -466,22 +466,22 @@
                 <!-- Status inserido via JS -->
             </div>
             <p style="color: #666; margin-bottom: 20px;" id="modal-offline-texto">Escolha o raio de download. Áreas maiores usam mais armazenamento e demoram mais.</p>
-            
+
             <div style="display: flex; flex-direction: column; gap: 10px;" id="modal-opcoes-download">
                 <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 2)">
-                    <strong>2 km</strong> — Rápido, ~4 tiles — <span style="color: #28a745;">Leve</span>
+                    <strong>2 km</strong> - Rápido, ~4 tiles - <span style="color: #28a745;">Leve</span>
                 </button>
                 <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 5)">
-                    <strong>5 km</strong> — Médio, ~25 tiles
+                    <strong>5 km</strong> - Médio, ~25 tiles
                 </button>
                 <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 10)">
-                    <strong>10 km</strong> — Grande, ~100 tiles
+                    <strong>10 km</strong> - Grande, ~100 tiles
                 </button>
                 <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 15)">
-                    <strong>15 km</strong> — Muito grande, ~400 tiles
+                    <strong>15 km</strong> - Muito grande, ~400 tiles
                 </button>
             </div>
-            
+
             <!-- Botão para apagar mapa offline -->
             <div id="modal-opcoes-apagar" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
                 <p style="color: #666; margin-bottom: 10px; font-size: 14px;">
@@ -491,13 +491,13 @@
                     <i class="fa-solid fa-trash"></i> Apagar Mapas Offline
                 </button>
             </div>
-            
+
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="fecharModal('modalRaioOffline')">Fechar</button>
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Excluir Fazenda -->
     <div class="modal" id="modalExcluir">
         <div class="modal-content">
@@ -515,7 +515,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         function abrirModalCriar() {
             document.getElementById('climaModoFazenda').value = 'automatico';
@@ -530,7 +530,7 @@
             if (!modo || !condicao) return;
             condicao.disabled = modo.value !== 'manual';
         }
-        
+
         function abrirModalEditar(id) {
             // Buscar dados da fazenda
             fetch('/api/fazendas/' + id)
@@ -546,28 +546,28 @@
                 document.getElementById('editarClimaModoFazenda').value = data.clima_modo || 'automatico';
                 document.getElementById('editarCondicaoManualFazenda').value = data.condicao_climatica_manual || 'normal';
                 toggleClimaManual('editarClimaModoFazenda','editarCondicaoManualFazenda');
-                
+
                 document.getElementById('modalEditar').classList.add('active');
             });
         }
-        
+
         function abrirModalExcluir(id, nome) {
             document.getElementById('excluirFazendaId').value = id;
             document.getElementById('excluirFazendaNome').textContent = nome;
             document.getElementById('modalExcluir').classList.add('active');
         }
-        
+
         function fecharModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
-        
+
         function criarFazenda() {
             const nome = document.getElementById('nomeFazenda').value;
             if (!nome) return alert('Digite o nome!');
-            
+
             const lat = document.getElementById('latitudeFazenda').value;
             const lng = document.getElementById('longitudeFazenda').value;
-            
+
             fetch('/api/fazendas', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -591,15 +591,15 @@
                 }
             });
         }
-        
+
         function salvarEdicao() {
             const id = document.getElementById('editarFazendaId').value;
             const nome = document.getElementById('editarNomeFazenda').value;
             if (!nome) return alert('Digite o nome!');
-            
+
             const lat = document.getElementById('editarLatitudeFazenda').value;
             const lng = document.getElementById('editarLongitudeFazenda').value;
-            
+
             fetch('/api/fazendas/' + id, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
@@ -623,10 +623,10 @@
                 }
             });
         }
-        
+
         function excluirFazenda() {
             const id = document.getElementById('excluirFazendaId').value;
-            
+
             fetch('/api/fazendas/' + id, {
                 method: 'DELETE'
             })
@@ -639,7 +639,7 @@
                 }
             });
         }
-        
+
         // Fechar modal ao clicar fora
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', function(e) {
@@ -648,7 +648,7 @@
                 }
             });
         });
-        
+
         // Carregar data de teste
         function carregarDataTeste() {
             fetch('/api/data-teste')
@@ -670,7 +670,7 @@
                     if (valor) valor.textContent = 'Erro';
                 });
         }
-        
+
         function carregarClimaFazendas() {
             const chips = document.querySelectorAll('[id^="clima-fazenda-"]');
             chips.forEach(chip => {
@@ -694,14 +694,61 @@
         // Carregar data ao iniciar
         carregarDataTeste();
         carregarClimaFazendas();
-        
+
         // ============ MAPA OFFLINE ============
-        // IndexedDB para salvar tiles
         const DB_NAME = 'PastoFlowOffline';
         const DB_VERSION = 2;
         const TILE_STORE = 'tiles';
         const OFFLINE_QUEUE_STORE = 'offlinePiquetes';
-        
+        const OFFLINE_METADATA_KEY = 'PastoFlowOfflineFarms';
+        let currentOfflineFarmId = null;
+
+        function getOfflineMetadata() {
+            try {
+                return JSON.parse(localStorage.getItem(OFFLINE_METADATA_KEY) || '{}');
+            } catch (err) {
+                console.error('Erro ao ler metadados offline:', err);
+                return {};
+            }
+        }
+
+        function setOfflineMetadata(meta) {
+            try {
+                localStorage.setItem(OFFLINE_METADATA_KEY, JSON.stringify(meta));
+            } catch (err) {
+                console.error('Erro ao salvar metadados offline:', err);
+            }
+        }
+
+        function recordOfflineTiles(fazendaId, tileCount) {
+            if (!fazendaId) return;
+            const meta = getOfflineMetadata();
+            meta[fazendaId] = tileCount;
+            setOfflineMetadata(meta);
+        }
+
+        function clearOfflineMetadata() {
+            localStorage.removeItem(OFFLINE_METADATA_KEY);
+        }
+
+        function getTilePrefix(fazendaId) {
+            const id = fazendaId ? String(fazendaId) : 'global';
+            return `${id}::`;
+        }
+
+        function buildTileKey(fazendaId, url) {
+            return getTilePrefix(fazendaId) + url;
+        }
+
+        function getCurrentOfflineFarmId() {
+            return window._currentOfflineFarmId || (window._raioOffline ? window._raioOffline.fazendaId : null) || currentOfflineFarmId;
+        }
+
+        function setCurrentOfflineFarm(fazendaId) {
+            currentOfflineFarmId = fazendaId;
+            window._currentOfflineFarmId = fazendaId;
+        }
+
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -721,31 +768,65 @@
                 };
             });
         }
-        
-        function saveTile(url, blob) {
+
+        function saveTile(url, blob, fazendaId) {
             return new Promise((resolve, reject) => {
                 openDB().then(db => {
                     const tx = db.transaction(TILE_STORE, 'readwrite');
                     const store = tx.objectStore(TILE_STORE);
-                    store.put(blob, url);
+                    const key = buildTileKey(fazendaId || getCurrentOfflineFarmId(), url);
+                    store.put(blob, key);
                     tx.oncomplete = () => resolve();
                     tx.onerror = () => reject(tx.error);
                 }).catch(reject);
             });
         }
-        
-        function getTile(url) {
+
+        function getTile(url, fazendaId) {
             return new Promise((resolve, reject) => {
                 openDB().then(db => {
                     const tx = db.transaction(TILE_STORE, 'readonly');
                     const store = tx.objectStore(TILE_STORE);
-                    const request = store.get(url);
-                    request.onsuccess = () => resolve(request.result);
+                    const key = buildTileKey(fazendaId || getCurrentOfflineFarmId(), url);
+                    const request = store.get(key);
+                    request.onsuccess = () => {
+                        if (request.result) {
+                            resolve(request.result);
+                        } else {
+                            // fallback para dados legados (sem prefixo)
+                            const legacyRequest = store.get(url);
+                            legacyRequest.onsuccess = () => resolve(legacyRequest.result);
+                            legacyRequest.onerror = () => reject(legacyRequest.error);
+                        }
+                    };
                     request.onerror = () => reject(request.error);
                 }).catch(reject);
             });
         }
-        
+
+        async function countTilesForFarm(fazendaId) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const prefix = getTilePrefix(fazendaId);
+                const tx = db.transaction(TILE_STORE, 'readonly');
+                const store = tx.objectStore(TILE_STORE);
+                const request = store.openCursor();
+                let count = 0;
+                request.onsuccess = () => {
+                    const cursor = request.result;
+                    if (cursor) {
+                        if (cursor.key && cursor.key.startsWith(prefix)) {
+                            count++;
+                        }
+                        cursor.continue();
+                    } else {
+                        resolve(count);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
         // Converter lat/lng para tile x,y
         function latLngToTile(lat, lng, zoom) {
             const n = Math.pow(2, zoom);
@@ -754,7 +835,7 @@
             const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
             return { x, y };
         }
-        
+
         // Calcular bounds em tiles (30km = ~0.27 graus)
         function getTilesInBounds(lat, lng, raioGraus, zoom) {
             const center = latLngToTile(lat, lng, zoom);
@@ -762,7 +843,7 @@
             // Converter raio em km para tiles (aprox)
             const tilesPorGrau = n / 360;
             const raioTiles = Math.ceil(raioGraus * tilesPorGrau);
-            
+
             const tiles = [];
             for (let x = center.x - raioTiles; x <= center.x + raioTiles; x++) {
                 for (let y = center.y - raioTiles; y <= center.y + raioTiles; y++) {
@@ -777,63 +858,49 @@
             }
             return tiles;
         }
-        
+
         async function mostrarOpcoesOffline(lat, lng, fazendaId) {
+            setCurrentOfflineFarm(fazendaId);
             window._raioOffline = { lat, lng, fazendaId };
-            
+
             // Verificar se já tem tiles baixados
             const statusEl = document.getElementById('modal-offline-status');
             const textoEl = document.getElementById('modal-offline-texto');
             const opcoesEl = document.getElementById('modal-opcoes-download');
             const apagarEl = document.getElementById('modal-opcoes-apagar');
-            
+
             // Mostrar loading enquanto verifica
             statusEl.innerHTML = '<div style="text-align: center; padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Verificando...</div>';
             statusEl.style.display = 'block';
             textoEl.style.display = 'none';
             opcoesEl.style.display = 'none';
             apagarEl.style.display = 'none';
-            
+
             try {
-                const db = await openDB();
-                const tx = db.transaction(TILE_STORE, 'readonly');
-                const store = tx.objectStore(TILE_STORE);
-                const request = store.count();
-                
-                request.onsuccess = () => {
-                    const total = request.result;
-                    if (total > 0) {
-                        statusEl.innerHTML = '<div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 6px; text-align: center;"><i class="fa-solid fa-check-circle"></i> <strong> Mapa offline disponível</strong><br><small>' + total + ' tiles salvos</small></div>';
-                        statusEl.style.display = 'block';
-                        textoEl.style.display = 'none';
-                        opcoesEl.style.display = 'flex';
-                        apagarEl.style.display = 'block';
-                    } else {
-                        statusEl.style.display = 'none';
-                        textoEl.style.display = 'block';
-                        opcoesEl.style.display = 'flex';
-                        apagarEl.style.display = 'none';
-                    }
-                };
-                
-                request.onerror = () => {
-                    console.error('Erro ao contar tiles:', request.error);
+                const total = await countTilesForFarm(fazendaId);
+                if (total > 0) {
+                    statusEl.innerHTML = '<div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 6px; text-align: center;"><i class="fa-solid fa-check-circle"></i> <strong> Mapa offline disponível</strong><br><small>' + total + ' tiles salvos</small></div>';
+                    statusEl.style.display = 'block';
+                    textoEl.style.display = 'none';
+                    opcoesEl.style.display = 'flex';
+                    apagarEl.style.display = 'block';
+                } else {
                     statusEl.style.display = 'none';
                     textoEl.style.display = 'block';
                     opcoesEl.style.display = 'flex';
                     apagarEl.style.display = 'none';
-                };
+                }
             } catch (e) {
-                console.error('Erro ao abrir DB:', e);
+                console.error('Erro ao contar tiles:', e);
                 statusEl.style.display = 'none';
                 textoEl.style.display = 'block';
                 opcoesEl.style.display = 'flex';
                 apagarEl.style.display = 'none';
             }
-            
+
             document.getElementById('modalRaioOffline').classList.add('active');
         }
-        
+
         async function apagarMapasOffline() {
             if (!confirm('Tem certeza que deseja apagar todos os mapas offline salvos?')) return;
             
@@ -844,6 +911,8 @@
                 const request = store.clear();
                 
                 request.onsuccess = () => {
+                    clearOfflineMetadata();
+                    setCurrentOfflineFarm(null);
                     mostrarToast('✅ Mapas offline apagados!', 'success');
                     getOfflineStatus();
                     verificarBotoesOffline();
@@ -857,21 +926,22 @@
                 alert('Erro ao apagar: ' + e.message);
             }
         }
-        
+
         async function baixarMapaOffline(lat, lng, raioKm) {
             const btn = event.target.closest('button');
+            const farmId = window._raioOffline ? window._raioOffline.fazendaId : null;
             const originalHtml = btn ? btn.innerHTML : '<i class="fa-solid fa-download"></i> ⬇';
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
                 btn.disabled = true;
             }
-            
+
             //Aviso para não fechar a aba durante o download
             window.addEventListener('beforeunload', function(e) {
                 e.preventDefault();
                 e.returnValue = '';
             });
-            
+
             // Mostrar aviso permanente
             const toastId = 'toast-download-warning';
             let toastEl = document.getElementById(toastId);
@@ -883,22 +953,22 @@
             }
             toastEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Download em andamento...</strong><br><small>Não feche esta aba ou o download será perdido!</small>';
             toastEl.style.display = 'block';
-            
+
             fecharModal('modalRaioOffline');
-            
+
             // Mostrar toast de início
             mostrarToast('⬇ Iniciando download do mapa SATÉLITE offline (' + raioKm + 'km)...', 'info');
-            
+
             // MUDANÇA: AGORA BAIXA MÚLTIPLOS NÍVEIS DE ZOOM PARA SATÉLITE
             const raioGraus = raioKm / 111;
-            const zoomLevels = [13, 14, 15, 16, 17]; 
-            
+            const zoomLevels = [13, 14, 15, 16, 17];
+
             try {
                 for (let i = 0; i < zoomLevels.length; i++) {
                     const z = zoomLevels[i];
                     const tiles = getTilesInBounds(lat, lng, raioGraus, z);
                     let salvos = 0;
-                    
+
                     // Toast de progresso por zoom
                     const toastId = 'toast-progress';
                     let toastEl = document.getElementById(toastId);
@@ -908,24 +978,24 @@
                         toastEl.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #17a2b8; color: white; padding: 15px 25px; border-radius: 8px; font-size: 14px; font-weight: bold; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
                         document.body.appendChild(toastEl);
                     }
-                    
+
                     for (let j = 0; j < tiles.length; j++) {
                         const tile = tiles[j];
                         // URL Satélite Esri: Z, Y, X
                         const url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${tile.y}/${tile.x}`;
-                        
+
                         try {
                             const resp = await fetch(url);
                             if (resp.ok) {
                                 const blob = await resp.blob();
-                                await saveTile(url, blob);
+                                await saveTile(url, blob, farmId);
                             }
                         } catch (e) {}
                         salvos++;
                         toastEl.textContent = `⬇ Baixando Satélite: Zoom ${z} (${salvos}/${tiles.length})`;
                     }
                 }
-                
+
                 // Remover aviso de download e habilitar fechar aba
                 window.removeEventListener('beforeunload', function(e) {
                     e.preventDefault();
@@ -933,30 +1003,27 @@
                 });
                 const toastWarning = document.getElementById('toast-download-warning');
                 if (toastWarning) toastWarning.remove();
-                
+
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo!';
                 btn.classList.remove('btn-secondary');
                 btn.classList.add('btn-success');
-                
+
                 // Remover toast de progresso
                 const toastProgress = document.getElementById('toast-progress');
                 if (toastProgress) toastProgress.remove();
-                
+
                 // Contar total de tiles salvos
-                openDB().then(db => {
-                    const tx = db.transaction(TILE_STORE, 'readonly');
-                    const store = tx.objectStore(TILE_STORE);
-                    const request = store.count();
-                    request.onsuccess = () => {
-                        const total = request.result;
-                        mostrarToast('✅ Mapa offline salvo! (' + total + ' tiles disponíveis)', 'success');
-                        getOfflineStatus();
-                    };
-                });
-                
+                const total = await countTilesForFarm(farmId);
+                if (typeof farmId !== 'undefined' && farmId !== null) {
+                    recordOfflineTiles(farmId, total);
+                }
+                mostrarToast('✅ Mapa offline salvo! (' + total + ' tiles disponíveis)', 'success');
+                getOfflineStatus();
+                verificarBotoesOffline();
+
             } catch (e) {
                 console.error(e);
-                
+
                 // Remover aviso de download e habilitar fechar aba
                 window.removeEventListener('beforeunload', function(ev) {
                     ev.preventDefault();
@@ -964,22 +1031,22 @@
                 });
                 const toastWarning = document.getElementById('toast-download-warning');
                 if (toastWarning) toastWarning.remove();
-                
+
                 alert('Erro ao baixar: ' + e.message);
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
                 return;
             }
-            
+
             // O setTimeout original foi removido - agora só volta ao normal no alert
         }
-        
+
         // ============ TOAST NOTIFICATIONS ============
         function mostrarToast(mensagem, tipo) {
             // Remover toast anterior se existir
             const existing = document.getElementById('toast-notification');
             if (existing) existing.remove();
-            
+
             const toast = document.createElement('div');
             toast.id = 'toast-notification';
             toast.style.cssText = `
@@ -999,100 +1066,68 @@
             `;
             toast.textContent = mensagem;
             document.body.appendChild(toast);
-            
+
             // Auto remover após 4 segundos
             setTimeout(() => {
                 toast.style.animation = 'slideDown 0.3s ease';
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
         }
-        
+
         // ============ DETECÇÃO OFFLINE ============
         function getOfflineStatus() {
             const statusEl = document.getElementById('offline-status');
+            const metadata = getOfflineMetadata();
+            const farmIds = Object.keys(metadata);
+            const totalTiles = farmIds.reduce((sum, id) => sum + (Number(metadata[id]) || 0), 0);
+
             if (!navigator.onLine) {
-                // Offline - verificar se tem mapa baixado
-                openDB().then(db => {
-                    const tx = db.transaction(TILE_STORE, 'readonly');
-                    const store = tx.objectStore(TILE_STORE);
-                    const request = store.count();
-                    request.onsuccess = () => {
-                        const count = request.result;
-                        if (count > 0) {
-                            statusEl.innerHTML = '<span class="offline-chip mapa-offline"><i class="fa-solid fa-map"></i> Mapa offline (' + count + ' tiles)</span>';
-                        } else {
-                            statusEl.innerHTML = '<span class="offline-chip offline"><i class="fa-solid fa-wifi"></i> Offline</span>';
-                        }
-                        statusEl.style.display = 'inline-flex';
-                    };
-                }).catch(() => {
+                if (farmIds.length) {
+                    statusEl.innerHTML = `<span class="offline-chip mapa-offline"><i class="fa-solid fa-map"></i> Mapas offline disponíveis (${farmIds.length} fazenda${farmIds.length > 1 ? 's' : ''}) - ${totalTiles} tiles</span>`;
+                } else {
                     statusEl.innerHTML = '<span class="offline-chip offline"><i class="fa-solid fa-wifi"></i> Offline</span>';
-                    statusEl.style.display = 'inline-flex';
-                });
+                }
+                statusEl.style.display = 'inline-flex';
             } else {
-                // Online - verificar se tem mapa baixado paraAvisar
-                openDB().then(db => {
-                    const tx = db.transaction(TILE_STORE, 'readonly');
-                    const store = tx.objectStore(TILE_STORE);
-                    const request = store.count();
-                    request.onsuccess = () => {
-                        const count = request.result;
-                        if (count > 0) {
-                            statusEl.innerHTML = '<span class="offline-chip mapa-offline"><i class="fa-solid fa-check"></i> Mapa offline disponível (' + count + ' tiles)</span>';
-                            statusEl.style.display = 'inline-flex';
-                            // Esconder após 5 segundos
-                            setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
-                        } else {
-                            statusEl.style.display = 'none';
-                        }
-                    };
-                }).catch(() => {
+                if (farmIds.length) {
+                    statusEl.innerHTML = `<span class="offline-chip mapa-offline"><i class="fa-solid fa-check"></i> Mapas offline disponíveis (${farmIds.length} fazenda${farmIds.length > 1 ? 's' : ''})</span>`;
+                    statusEl.style.display = 'inline-flex';
+                    setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+                } else {
                     statusEl.style.display = 'none';
-                });
+                }
             }
         }
-        
+
         // Verificar ao carregar e quando mudar online/offline
         window.addEventListener('online', getOfflineStatus);
         window.addEventListener('offline', getOfflineStatus);
         getOfflineStatus();
-        
+
         // Verificar a cada 30 segundos também
         setInterval(getOfflineStatus, 30000);
-        
+
         // ============ VERIFICAR BOTÕES OFFLINE AO CARREGAR ============
         function verificarBotoesOffline() {
-            openDB().then(db => {
-                const tx = db.transaction(TILE_STORE, 'readonly');
-                const store = tx.objectStore(TILE_STORE);
-                const request = store.count();
-                request.onsuccess = () => {
-                    const total = request.result;
-                    console.log('Tiles offline encontrados:', total);
-                    if (total > 0) {
-                        // Atualizar todos os botões de offline
-                        document.querySelectorAll('[id^="btn-offline-"]').forEach(btn => {
-                            btn.innerHTML = '<i class="fa-solid fa-check"></i> ✓';
-                            btn.classList.remove('btn-secondary');
-                            btn.classList.add('btn-success');
-                            btn.title = 'Mapa offline disponível (' + total + ' tiles)';
-                        });
-                    } else {
-                        // Sem tiles - garantir que está sem downloaded
-                        document.querySelectorAll('[id^="btn-offline-"]').forEach(btn => {
-                            btn.innerHTML = '<i class="fa-solid fa-download"></i> ⬇';
-                            btn.classList.remove('btn-success');
-                            btn.classList.add('btn-secondary');
-                            btn.title = 'Baixar mapa offline';
-                            btn.disabled = false;
-                        });
-                    }
-                };
-            }).catch(err => {
-                console.log('Erro ao verificar offline:', err);
+            const metadata = getOfflineMetadata();
+            document.querySelectorAll('[id^="btn-offline-"]').forEach(btn => {
+                const fazendaId = btn.id.replace('btn-offline-', '');
+                if (metadata[fazendaId]) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> ✓';
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-success');
+                    btn.title = 'Mapa offline disponível';
+                    btn.disabled = false;
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-download"></i> ⬇';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-secondary');
+                    btn.title = 'Baixar mapa offline';
+                    btn.disabled = false;
+                }
             });
         }
-        
+
         // Verificar ao carregar a página (após DOM pronto)
         document.addEventListener('DOMContentLoaded', verificarBotoesOffline);
     </script>

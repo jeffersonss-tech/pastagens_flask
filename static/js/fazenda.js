@@ -16,6 +16,11 @@ window.OFFLINE_DB_VERSION = OFFLINE_DB_VERSION;
 window.OFFLINE_TILE_STORE = OFFLINE_TILE_STORE;
 window.OFFLINE_QUEUE_STORE = OFFLINE_QUEUE_STORE;
 
+function buildOfflineTileKey(url) {
+    const id = typeof fazendaId !== 'undefined' && fazendaId ? String(fazendaId) : 'global';
+    return `${id}::${url}`;
+}
+
 let piquetesOfflinePendentes = [];
 
 function openOfflineQueueDB() {
@@ -299,16 +304,28 @@ function initMap() {
             
             try {
                 const tx = db.transaction(OFFLINE_TILE_STORE, 'readonly');
-                const store = tx.objectStore('tiles');
-                const getRequest = store.get(url);
+                const store = tx.objectStore(OFFLINE_TILE_STORE);
+                const key = buildOfflineTileKey(url);
+                const getRequest = store.get(key);
                 getRequest.onsuccess = function() {
-                    // CORREÇÃO: getRequest.result já é o Blob
                     if (getRequest.result) {
                         tile.src = URL.createObjectURL(getRequest.result);
+                        done(null, tile);
                     } else {
-                        tile.src = url;
+                        const legacyRequest = store.get(url);
+                        legacyRequest.onsuccess = () => {
+                            if (legacyRequest.result) {
+                                tile.src = URL.createObjectURL(legacyRequest.result);
+                            } else {
+                                tile.src = url;
+                            }
+                            done(null, tile);
+                        };
+                        legacyRequest.onerror = () => {
+                            tile.src = url;
+                            done(null, tile);
+                        };
                     }
-                    done(null, tile);
                 };
                 getRequest.onerror = () => {
                     tile.src = url;
