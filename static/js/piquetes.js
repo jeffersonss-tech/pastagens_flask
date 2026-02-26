@@ -1332,13 +1332,36 @@ document.addEventListener('visibilitychange', () => {
     if (!document.hidden) manterMapaPiquetesAlinhado();
 });
 
+let offlineSyncWatcher = null;
+
+function startOfflineSyncWatcher() {
+    if (offlineSyncWatcher) clearInterval(offlineSyncWatcher);
+    offlineSyncWatcher = setInterval(() => {
+        if (navigator.onLine) syncOfflinePiquetes();
+    }, 30000);
+}
+
+function stopOfflineSyncWatcher() {
+    if (offlineSyncWatcher) {
+        clearInterval(offlineSyncWatcher);
+        offlineSyncWatcher = null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     refreshOfflineQueueIndicator();
     syncOfflinePiquetes();
+    startOfflineSyncWatcher();
 });
 
-window.addEventListener('online', syncOfflinePiquetes);
-window.addEventListener('offline', refreshOfflineQueueIndicator);
+window.addEventListener('online', () => {
+    syncOfflinePiquetes();
+    startOfflineSyncWatcher();
+});
+window.addEventListener('offline', () => {
+    refreshOfflineQueueIndicator();
+    stopOfflineSyncWatcher();
+});
 
 // Carregar fator climático ao iniciar (sincronizar com fazenda.js)
 if (typeof fazendaId !== 'undefined' && fazendaId) {
