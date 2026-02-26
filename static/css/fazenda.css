@@ -3,7 +3,7 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
 
 /* Sidebar */
 .sidebar {
-    width: 260px;
+    width: 192px;
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
     color: white;
     padding: 20px 0;
@@ -19,7 +19,7 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; display: flex; m
 
 /* Main content com margem para sidebar fixa */
 .main {
-    margin-left: 260px;
+    margin-left: 192px;
     flex: 1;
     min-height: 100vh;
     transition: margin-left 0.3s ease;
