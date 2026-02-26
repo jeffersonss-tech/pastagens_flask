@@ -2,6 +2,23 @@
 
 Sistema web para gestão de fazendas, piquetes, lotes e rotação inteligente de pastejo.
 
+## 🚀 Novidades (26/02/2026)
+
+### 📴 Sistema Offline (PWA)
+- **Mapas offline**: Baixe mapas de satélite antes de sair (Home → "Baixar Mapas Offline")
+- **Funciona sem internet**: Interface continua acessível offline
+- **Tiles offline**: Usa OpenStreetMap quando offline, satélite quando online
+- **Cache IndexedDB**: Salva tiles no navegador para uso offline
+- **Detecção automática**: Alterna entre online/offline automaticamente
+
+#### Como usar offline:
+1. Na Home, clique em "Baixar Mapas Offline" antes de sair
+2. Desligue a internet
+3. Acesse a fazenda - o mapa usa OSM offline
+4. Para lançar dados offline,aguarde sincronização futura
+
+---
+
 ## 🚀 Novidades (22/02/2026)
 
 ### ✅ Refatoração e limpeza
