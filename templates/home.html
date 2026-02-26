@@ -703,7 +703,10 @@
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, 1);
-                request.onerror = () => reject(request.error);
+                request.onerror = () => {
+                    console.error('Erro ao abrir IDB:', request.error);
+                    reject(request.error);
+                };
                 request.onsuccess = () => resolve(request.result);
                 request.onupgradeneeded = (e) => {
                     const db = e.target.result;
@@ -779,6 +782,13 @@
             const opcoesEl = document.getElementById('modal-opcoes-download');
             const apagarEl = document.getElementById('modal-opcoes-apagar');
             
+            // Mostrar loading enquanto verifica
+            statusEl.innerHTML = '<div style="text-align: center; padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Verificando...</div>';
+            statusEl.style.display = 'block';
+            textoEl.style.display = 'none';
+            opcoesEl.style.display = 'none';
+            apagarEl.style.display = 'none';
+            
             try {
                 const db = await openDB();
                 const tx = db.transaction(STORE_NAME, 'readonly');
@@ -800,7 +810,16 @@
                         apagarEl.style.display = 'none';
                     }
                 };
+                
+                request.onerror = () => {
+                    console.error('Erro ao contar tiles:', request.error);
+                    statusEl.style.display = 'none';
+                    textoEl.style.display = 'block';
+                    opcoesEl.style.display = 'flex';
+                    apagarEl.style.display = 'none';
+                };
             } catch (e) {
+                console.error('Erro ao abrir DB:', e);
                 statusEl.style.display = 'none';
                 textoEl.style.display = 'block';
                 opcoesEl.style.display = 'flex';
