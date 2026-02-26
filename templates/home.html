@@ -816,10 +816,37 @@
             try {
                 for (let i = 0; i < zoomLevels.length; i++) {
                     const z = zoomLevels[i];
-                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Zoom ${z}...`;
+                    const statusMsg = `<i class="fa-solid fa-spinner fa-spin"></i> Zoom ${z}...`;
+                    if (btn) btn.innerHTML = statusMsg;
                     
+                    // Toast de progresso
                     const tiles = getTilesInBounds(lat, lng, raioGraus, z);
                     let salvos = 0;
+                    
+                    // Toast inicial de progresso
+                    const toastId = 'toast-progress';
+                    let toastEl = document.getElementById(toastId);
+                    if (!toastEl) {
+                        toastEl = document.createElement('div');
+                        toastEl.id = toastId;
+                        toastEl.style.cssText = `
+                            position: fixed;
+                            bottom: 20px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: #17a2b8;
+                            color: white;
+                            padding: 15px 25px;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            font-weight: bold;
+                            z-index: 10000;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        `;
+                        document.body.appendChild(toastEl);
+                    }
+                    toastEl.textContent = `⬇ Baixando Zoom ${z}: 0/${tiles.length}`;
+                    toastEl.style.display = 'block';
                     
                     for (let j = 0; j < tiles.length; j++) {
                         const tile = tiles[j];
@@ -833,8 +860,10 @@
                             }
                             salvos++;
                             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${z}: ${salvos}/${tiles.length}`;
+                            document.getElementById('toast-progress').textContent = `⬇ Baixando Zoom ${z}: ${salvos}/${tiles.length}`;
                         } catch (e) {
                             salvos++;
+                            document.getElementById('toast-progress').textContent = `⬇ Baixando Zoom ${z}: ${salvos}/${tiles.length}`;
                         }
                     }
                     
@@ -844,6 +873,10 @@
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo!';
                 btn.classList.remove('btn-secondary');
                 btn.classList.add('btn-success');
+                
+                // Remover toast de progresso
+                const toastProgress = document.getElementById('toast-progress');
+                if (toastProgress) toastProgress.remove();
                 
                 // Contar total de tiles salvos
                 openDB().then(db => {
