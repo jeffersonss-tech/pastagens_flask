@@ -239,7 +239,7 @@ async function syncOfflinePiquetes() {
 // Maps e Desenho
 function initMapPiquetes() {
     if (!mapPiquetes) {
-        mapPiquetes = L.map('map-piquetes', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
+        mapPiquetes = L.map('map-piquetes', {minZoom: 13, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
         
         const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Esri'
@@ -304,7 +304,7 @@ function initMapDesenho() {
         if (mapDesenho) setTimeout(() => mapDesenho.invalidateSize(), 200);
         return;
     }
-    mapDesenho = L.map('map-desenho', {minZoom: 10, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
+    mapDesenho = L.map('map-desenho', {minZoom: 13, maxZoom: 17}).setView([mapaLat, mapaLng], 15);
     
     const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Esri'
