@@ -461,7 +461,7 @@
     <!-- Modal Escolher Raio Offline -->
     <div class="modal" id="modalRaioOffline">
         <div class="modal-content">
-            <h3><i class="fa-solid fa-download"></i> Baixar Mapa Offline</h3>
+            <h3><i class="fa-solid fa-download"></i> Mapa Offline</h3>
             <div id="modal-offline-status" style="display: none; margin-bottom: 15px;">
                 <!-- Status inserido via JS -->
             </div>
@@ -479,6 +479,16 @@
                 </button>
                 <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 15)">
                     <strong>15 km</strong> — Muito grande, ~400 tiles
+                </button>
+            </div>
+            
+            <!-- Botão para apagar mapa offline -->
+            <div id="modal-opcoes-apagar" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <p style="color: #666; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fa-solid fa-info-circle"></i> Já existe um mapa offline baixado. Deseja apagar e baixar novamente?
+                </p>
+                <button class="btn btn-danger" onclick="apagarMapasOffline()" style="width: 100%;">
+                    <i class="fa-solid fa-trash"></i> Apagar Mapas Offline
                 </button>
             </div>
             
@@ -767,6 +777,7 @@
             const statusEl = document.getElementById('modal-offline-status');
             const textoEl = document.getElementById('modal-offline-texto');
             const opcoesEl = document.getElementById('modal-opcoes-download');
+            const apagarEl = document.getElementById('modal-opcoes-apagar');
             
             try {
                 const db = await openDB();
@@ -780,20 +791,47 @@
                         statusEl.innerHTML = '<div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 6px; text-align: center;"><i class="fa-solid fa-check-circle"></i> <strong> Mapa offline disponível</strong><br><small>' + total + ' tiles salvos</small></div>';
                         statusEl.style.display = 'block';
                         textoEl.style.display = 'none';
-                        opcoesEl.style.display = 'none';
+                        opcoesEl.style.display = 'flex';
+                        apagarEl.style.display = 'block';
                     } else {
                         statusEl.style.display = 'none';
                         textoEl.style.display = 'block';
                         opcoesEl.style.display = 'flex';
+                        apagarEl.style.display = 'none';
                     }
                 };
             } catch (e) {
                 statusEl.style.display = 'none';
                 textoEl.style.display = 'block';
                 opcoesEl.style.display = 'flex';
+                apagarEl.style.display = 'none';
             }
             
             document.getElementById('modalRaioOffline').classList.add('active');
+        }
+        
+        async function apagarMapasOffline() {
+            if (!confirm('Tem certeza que deseja apagar todos os mapas offline salvos?')) return;
+            
+            try {
+                const db = await openDB();
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.clear();
+                
+                request.onsuccess = () => {
+                    mostrarToast('✅ Mapas offline apagados!', 'success');
+                    getOfflineStatus();
+                    verificarBotoesOffline();
+                    fecharModal('modalRaioOffline');
+                };
+                
+                request.onerror = () => {
+                    alert('Erro ao apagar mapas offline');
+                };
+            } catch (e) {
+                alert('Erro ao apagar: ' + e.message);
+            }
         }
         
         async function baixarMapaOffline(lat, lng, raioKm) {
