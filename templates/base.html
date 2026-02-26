@@ -27,6 +27,41 @@
                     .catch((err) => console.log('Erro ao registrar SW:', err));
             });
         }
+
+        // Monitorar Status da Conexão
+        function updateOnlineStatus() {
+            const offlineAlert = document.getElementById('sidebar-offline-alert');
+            if (!offlineAlert) return;
+            
+            // Tenta fazer um fetch no próprio servidor (ignora o cache do Service Worker)
+            // Se o servidor estiver OFF, o fetch vai falhar mesmo com WiFi ligado
+            fetch('/api/data-teste?check_server=' + Date.now(), { 
+                method: 'HEAD', 
+                cache: 'no-store' 
+            })
+            .then((resp) => {
+                // Se respondeu qualquer coisa do servidor, oculta o alerta
+                offlineAlert.style.display = 'none';
+            })
+            .catch(() => {
+                // Se falhou o fetch (servidor desligado ou sem internet)
+                offlineAlert.style.display = 'block';
+                if (navigator.onLine) {
+                    offlineAlert.innerHTML = '<i class="fa-solid fa-server"></i> SERVIDOR FORA DO AR';
+                    offlineAlert.style.background = '#fd7e14'; // Laranja para servidor off
+                } else {
+                    offlineAlert.innerHTML = '<i class="fa-solid fa-wifi-slash"></i> ATENÇÃO!<br>VOCÊ ESTÁ OFFLINE';
+                    offlineAlert.style.background = '#dc3545'; // Vermelho para internet off
+                }
+            });
+        }
+
+        window.addEventListener('online',  updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        // Verificar periodicamente (a cada 30s para ser menos intrusivo)
+        setInterval(updateOnlineStatus, 30000);
+        // Primeira verificação ao carregar
+        document.addEventListener('DOMContentLoaded', updateOnlineStatus);
     </script>
 </head>
 <body>
@@ -38,6 +73,19 @@
         <div class="sidebar-header">
             <img src="/static/icon/PastoFlow-logo.png" alt="PastoFlow" style="width: 120px; margin-bottom: 10px;">
             <span>{{ fazenda.nome if fazenda else 'PastoFlow' }}</span>
+            
+            <!-- Aviso de Offline -->
+            <div id="sidebar-offline-alert" style="display: none; background: #dc3545; color: white; padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 0.85rem; text-align: center; font-weight: bold; animation: pulse 2s infinite;">
+                <i class="fa-solid fa-wifi-slash"></i> ATENÇÃO!<br>VOCÊ ESTÁ OFFLINE
+            </div>
+            <style>
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.6; }
+                    100% { opacity: 1; }
+                }
+            </style>
+
             <div id="data-teste-display" class="data-teste modo-real">
                 <div class="data-teste-label">Data do Sistema</div>
                 <div class="data-teste-valor" id="data-teste-valor">Carregando...</div>

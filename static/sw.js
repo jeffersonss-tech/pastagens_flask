@@ -1,5 +1,5 @@
-// Service Worker para PastoFlow (v3)
-const CACHE_NAME = 'pastoflow-v3';
+// Service Worker para PastoFlow (v5)
+const CACHE_NAME = 'pastoflow-v5';
 
 // Arquivos para pré-cachear
 const PRECACHE_URLS = [
@@ -52,8 +52,8 @@ self.addEventListener('fetch', (e) => {
     // Ignora requisições de outros domínios
     if (url.origin !== location.origin) return;
 
-    // Ignora requisições que não sejam GET
-    if (e.request.method !== 'GET') return;
+    // Ignora requisições que não sejam GET ou que tenham parâmetro check_server
+    if (e.request.method !== 'GET' || url.search.includes('check_server')) return;
 
     const isApi = url.pathname.startsWith('/api/');
     const isMainPage = url.pathname === '/' || 

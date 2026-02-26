@@ -126,17 +126,21 @@ function atualizarPesoMedioEdit() {
 // Inicialização
 window.addEventListener('load', function() {
     fetch('/api/data-teste')
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error('Offline/Server Error');
+            return r.json();
+        })
         .then(data => {
             if (data.modo === 'teste' && data.data) dataTeste = new Date(data.data + 'T12:00:00');
         })
         .catch((err) => {
-            console.error('Erro ao buscar data-teste:', err);
+            console.warn('Usando data local (offline):', err);
             dataTeste = null;
         })
         .finally(() => {
             carregarLotesComDataTeste();
-            setInterval(() => carregarLotesComDataTeste(), 30000);
+            // Aumentar intervalo para 1 minuto quando offline ou reduzir frequência
+            setInterval(() => carregarLotesComDataTeste(), 60000);
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) carregarLotesComDataTeste();
             });
@@ -145,7 +149,10 @@ window.addEventListener('load', function() {
 
 function carregarLotesComDataTeste() {
     fetch('/api/data-teste')
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error('API Error');
+            return r.json();
+        })
         .then(data => {
             if (data.modo === 'teste' && data.data) dataTeste = new Date(data.data + 'T12:00:00');
             else dataTeste = null;
