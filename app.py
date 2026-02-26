@@ -18,6 +18,11 @@ database.init_db()
 criar_api_fazendas(app)
 app.register_blueprint(api_categorias)  # Registrar API de categorias
 
+# ============ SERVICE WORKER (PWA) ============
+@app.route('/sw.js')
+def serve_sw():
+    return app.send_static_file('sw.js')
+
 # ============ API DATA ============
 @app.route('/api/data-teste')
 def api_data_teste():

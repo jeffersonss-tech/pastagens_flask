@@ -1,0 +1,21 @@
+{
+  "name": "PastoFlow - Gestão de Pastagens",
+  "short_name": "PastoFlow",
+  "description": "Sistema de gestão inteligente de pastagens e lotação animal.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2c3e50",
+  "theme_color": "#27ae60",
+  "icons": [
+    {
+      "src": "/static/icon/PastoFlow-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icon/PastoFlow-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
