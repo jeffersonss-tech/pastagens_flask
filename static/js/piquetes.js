@@ -779,7 +779,7 @@ function geoLocalizacaoMapaPiquetes() {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 if (!mapPiquetes) {
-                    mapPiquetes = L.map('map-piquetes', {minZoom: 10, maxZoom: 17}).setView([lat, lng], 16);
+                    mapPiquetes = L.map('map-piquetes', {minZoom: 13, maxZoom: 17}).setView([lat, lng], 16);
                     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution: 'Esri'}).addTo(mapPiquetes);
                 } else {
                     mapPiquetes.setView([lat, lng], 16);
