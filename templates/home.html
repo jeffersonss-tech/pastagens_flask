@@ -6,6 +6,8 @@
     <title>Minhas Fazendas - PastoFlow</title>
     <link rel="icon" type="image/x-icon" href="/static/icon/PastoFlow-logo.ico">
     <script src="https://kit.fontawesome.com/4e87c7f296.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -35,6 +37,7 @@
         .btn-primary { background: #00d9ff; color: #1a1a2e; font-weight: bold; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-warning { background: #ffc107; color: #212529; }
+        .btn-success { background: #28a745; color: white; }
         .btn-sm { padding: 5px 10px; font-size: 12px; }
         
         .container { max-width: 1200px; margin: 0 auto; padding: 30px; }
@@ -188,6 +191,35 @@
             padding: 20px;
         }
         .warning-text strong { display: block; margin-bottom: 10px; font-size: 16px; }
+        
+        /* Offline status */
+        .offline-chip {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .offline-chip.offline {
+            background: #dc3545;
+            color: white;
+        }
+        .offline-chip.mapa-offline {
+            background: #28a745;
+            color: white;
+        }
+        
+        /* Toast animations */
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(20px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -204,6 +236,9 @@
             <div id="data-teste-display" class="data-teste-display modo-real">
                 <span class="data-teste-label">Data: </span>
                 <span class="data-teste-valor" id="data-teste-valor">Carregando...</span>
+            </div>
+            <div id="offline-status" style="margin-left: 15px; display: none;">
+                <!-- Avisos de offline inseridos via JS -->
             </div>
         </div>
         <div class="user-info">
@@ -257,6 +292,11 @@
                     <p style="font-size: 12px; color: #999;"><i class="fa-solid fa-location-dot"></i> {{ f.latitude_sede }}, {{ f.longitude_sede }}</p>
                     {% endif %}
                     <a href="{{ url_for('fazenda', id=f.id) }}" class="fazenda-link">Abrir →</a>
+                    {% if f.latitude_sede and f.longitude_sede %}
+                    <button id="btn-offline-{{ f.id }}" class="btn btn-sm btn-secondary" style="margin-left: 8px;" onclick="mostrarOpcoesOffline({{ f.latitude_sede }}, {{ f.longitude_sede }}, {{ f.id }})" title="Baixar mapa offline">
+                        <i class="fa-solid fa-download"></i> ⬇
+                    </button>
+                    {% endif %}
                     {% if usuario.role in ['admin', 'gerente'] %}
                     <div class="fazenda-actions">
                         <button class="btn btn-warning btn-sm" onclick="abrirModalEditar({{ f.id }})"><i class="fa-solid fa-pen"></i> Editar</button>
@@ -414,6 +454,36 @@
             <div class="modal-buttons">
                 <button class="btn btn-warning" onclick="salvarEdicao()">Salvar Alterações</button>
                 <button class="btn btn-secondary" onclick="fecharModal('modalEditar')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Escolher Raio Offline -->
+    <div class="modal" id="modalRaioOffline">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-download"></i> Baixar Mapa Offline</h3>
+            <div id="modal-offline-status" style="display: none; margin-bottom: 15px;">
+                <!-- Status inserido via JS -->
+            </div>
+            <p style="color: #666; margin-bottom: 20px;" id="modal-offline-texto">Escolha o raio de download. Áreas maiores usam mais armazenamento e demoram mais.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;" id="modal-opcoes-download">
+                <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 2)">
+                    <strong>2 km</strong> — Rápido, ~4 tiles — <span style="color: #28a745;">Leve</span>
+                </button>
+                <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 5)">
+                    <strong>5 km</strong> — Médio, ~25 tiles
+                </button>
+                <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 10)">
+                    <strong>10 km</strong> — Grande, ~100 tiles
+                </button>
+                <button class="btn btn-secondary" onclick="baixarMapaOffline(window._raioOffline.lat, window._raioOffline.lng, 15)">
+                    <strong>15 km</strong> — Muito grande, ~400 tiles
+                </button>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="fecharModal('modalRaioOffline')">Fechar</button>
             </div>
         </div>
     </div>
@@ -614,6 +684,311 @@
         // Carregar data ao iniciar
         carregarDataTeste();
         carregarClimaFazendas();
+        
+        // ============ MAPA OFFLINE ============
+        // IndexedDB para salvar tiles
+        const DB_NAME = 'PastoFlowOffline';
+        const STORE_NAME = 'tiles';
+        
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+            });
+        }
+        
+        function saveTile(url, blob) {
+            return new Promise((resolve, reject) => {
+                openDB().then(db => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    store.put(blob, url);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                }).catch(reject);
+            });
+        }
+        
+        function getTile(url) {
+            return new Promise((resolve, reject) => {
+                openDB().then(db => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.get(url);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                }).catch(reject);
+            });
+        }
+        
+        // Converter lat/lng para tile x,y
+        function latLngToTile(lat, lng, zoom) {
+            const n = Math.pow(2, zoom);
+            const x = Math.floor((lng + 180) / 360 * n);
+            const latRad = lat * Math.PI / 180;
+            const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
+            return { x, y };
+        }
+        
+        // Calcular bounds em tiles (30km = ~0.27 graus)
+        function getTilesInBounds(lat, lng, raioGraus, zoom) {
+            const center = latLngToTile(lat, lng, zoom);
+            const n = Math.pow(2, zoom);
+            // Converter raio em km para tiles (aprox)
+            const tilesPorGrau = n / 360;
+            const raioTiles = Math.ceil(raioGraus * tilesPorGrau);
+            
+            const tiles = [];
+            for (let x = center.x - raioTiles; x <= center.x + raioTiles; x++) {
+                for (let y = center.y - raioTiles; y <= center.y + raioTiles; y++) {
+                    if (x >= 0 && x < n && y >= 0 && y < n) {
+                        // Verificar se está dentro do círculo
+                        const dist = Math.sqrt(Math.pow(x - center.x, 2) + Math.pow(y - center.y, 2));
+                        if (dist <= raioTiles) {
+                            tiles.push({ x, y });
+                        }
+                    }
+                }
+            }
+            return tiles;
+        }
+        
+        async function mostrarOpcoesOffline(lat, lng, fazendaId) {
+            window._raioOffline = { lat, lng, fazendaId };
+            
+            // Verificar se já tem tiles baixados
+            const statusEl = document.getElementById('modal-offline-status');
+            const textoEl = document.getElementById('modal-offline-texto');
+            const opcoesEl = document.getElementById('modal-opcoes-download');
+            
+            try {
+                const db = await openDB();
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.count();
+                
+                request.onsuccess = () => {
+                    const total = request.result;
+                    if (total > 0) {
+                        statusEl.innerHTML = '<div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 6px; text-align: center;"><i class="fa-solid fa-check-circle"></i> <strong> Mapa offline disponível</strong><br><small>' + total + ' tiles salvos</small></div>';
+                        statusEl.style.display = 'block';
+                        textoEl.style.display = 'none';
+                        opcoesEl.style.display = 'none';
+                    } else {
+                        statusEl.style.display = 'none';
+                        textoEl.style.display = 'block';
+                        opcoesEl.style.display = 'flex';
+                    }
+                };
+            } catch (e) {
+                statusEl.style.display = 'none';
+                textoEl.style.display = 'block';
+                opcoesEl.style.display = 'flex';
+            }
+            
+            document.getElementById('modalRaioOffline').classList.add('active');
+        }
+        
+        async function baixarMapaOffline(lat, lng, raioKm) {
+            const btn = event.target.closest('button');
+            const originalHtml = btn ? btn.innerHTML : '<i class="fa-solid fa-download"></i> ⬇';
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Baixando...';
+                btn.disabled = true;
+            }
+            
+            fecharModal('modalRaioOffline');
+            
+            // Mostrar toast de início
+            mostrarToast('⬇ Iniciando download do mapa offline (' + raioKm + 'km)...', 'info');
+            
+            // Converter km para graus (aprox)
+            const raioGraus = raioKm / 111;
+            const zoomLevels = [17]; // Só zoom 17
+            
+            try {
+                for (let i = 0; i < zoomLevels.length; i++) {
+                    const z = zoomLevels[i];
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Zoom ${z}...`;
+                    
+                    const tiles = getTilesInBounds(lat, lng, raioGraus, z);
+                    let salvos = 0;
+                    
+                    for (let j = 0; j < tiles.length; j++) {
+                        const tile = tiles[j];
+                        const url = `https://tile.openstreetmap.org/${z}/${tile.x}/${tile.y}.png`;
+                        
+                        try {
+                            const resp = await fetch(url);
+                            if (resp.ok) {
+                                const blob = await resp.blob();
+                                await saveTile(url, blob);
+                            }
+                            salvos++;
+                            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${z}: ${salvos}/${tiles.length}`;
+                        } catch (e) {
+                            salvos++;
+                        }
+                    }
+                    
+                    await new Promise(r => setTimeout(r, 500));
+                }
+                
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo!';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-success');
+                
+                // Contar total de tiles salvos
+                openDB().then(db => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.count();
+                    request.onsuccess = () => {
+                        const total = request.result;
+                        mostrarToast('✅ Mapa offline salvo! (' + total + ' tiles disponíveis)', 'success');
+                        getOfflineStatus();
+                    };
+                });
+                
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao baixar: ' + e.message);
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                return;
+            }
+            
+            // O setTimeout original foi removido - agora só volta ao normal no alert
+        }
+        
+        // ============ TOAST NOTIFICATIONS ============
+        function mostrarToast(mensagem, tipo) {
+            // Remover toast anterior se existir
+            const existing = document.getElementById('toast-notification');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.id = 'toast-notification';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${tipo === 'success' ? '#28a745' : '#17a2b8'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideUp 0.3s ease;
+            `;
+            toast.textContent = mensagem;
+            document.body.appendChild(toast);
+            
+            // Auto remover após 4 segundos
+            setTimeout(() => {
+                toast.style.animation = 'slideDown 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+        
+        // ============ DETECÇÃO OFFLINE ============
+        function getOfflineStatus() {
+            const statusEl = document.getElementById('offline-status');
+            if (!navigator.onLine) {
+                // Offline - verificar se tem mapa baixado
+                openDB().then(db => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.count();
+                    request.onsuccess = () => {
+                        const count = request.result;
+                        if (count > 0) {
+                            statusEl.innerHTML = '<span class="offline-chip mapa-offline"><i class="fa-solid fa-map"></i> Mapa offline (' + count + ' tiles)</span>';
+                        } else {
+                            statusEl.innerHTML = '<span class="offline-chip offline"><i class="fa-solid fa-wifi"></i> Offline</span>';
+                        }
+                        statusEl.style.display = 'inline-flex';
+                    };
+                }).catch(() => {
+                    statusEl.innerHTML = '<span class="offline-chip offline"><i class="fa-solid fa-wifi"></i> Offline</span>';
+                    statusEl.style.display = 'inline-flex';
+                });
+            } else {
+                // Online - verificar se tem mapa baixado paraAvisar
+                openDB().then(db => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.count();
+                    request.onsuccess = () => {
+                        const count = request.result;
+                        if (count > 0) {
+                            statusEl.innerHTML = '<span class="offline-chip mapa-offline"><i class="fa-solid fa-check"></i> Mapa offline disponível (' + count + ' tiles)</span>';
+                            statusEl.style.display = 'inline-flex';
+                            // Esconder após 5 segundos
+                            setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+                        } else {
+                            statusEl.style.display = 'none';
+                        }
+                    };
+                }).catch(() => {
+                    statusEl.style.display = 'none';
+                });
+            }
+        }
+        
+        // Verificar ao carregar e quando mudar online/offline
+        window.addEventListener('online', getOfflineStatus);
+        window.addEventListener('offline', getOfflineStatus);
+        getOfflineStatus();
+        
+        // Verificar a cada 30 segundos também
+        setInterval(getOfflineStatus, 30000);
+        
+        // ============ VERIFICAR BOTÕES OFFLINE AO CARREGAR ============
+        function verificarBotoesOffline() {
+            openDB().then(db => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.count();
+                request.onsuccess = () => {
+                    const total = request.result;
+                    console.log('Tiles offline encontrados:', total);
+                    if (total > 0) {
+                        // Atualizar todos os botões de offline
+                        document.querySelectorAll('[id^="btn-offline-"]').forEach(btn => {
+                            btn.innerHTML = '<i class="fa-solid fa-check"></i> ✓';
+                            btn.classList.remove('btn-secondary');
+                            btn.classList.add('btn-success');
+                            btn.title = 'Mapa offline disponível (' + total + ' tiles)';
+                        });
+                    } else {
+                        // Sem tiles - garantir que está sem downloaded
+                        document.querySelectorAll('[id^="btn-offline-"]').forEach(btn => {
+                            btn.innerHTML = '<i class="fa-solid fa-download"></i> ⬇';
+                            btn.classList.remove('btn-success');
+                            btn.classList.add('btn-secondary');
+                            btn.title = 'Baixar mapa offline';
+                            btn.disabled = false;
+                        });
+                    }
+                };
+            }).catch(err => {
+                console.log('Erro ao verificar offline:', err);
+            });
+        }
+        
+        // Verificar ao carregar a página (após DOM pronto)
+        document.addEventListener('DOMContentLoaded', verificarBotoesOffline);
     </script>
 </body>
 </html>
