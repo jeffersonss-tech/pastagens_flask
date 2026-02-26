@@ -114,9 +114,15 @@
             <li class="menu-item" onclick="showSection('relatorios')">
                 <i class="fa-solid fa-chart-line"></i> <span>Relatórios</span>
             </li>
+            <li class="menu-item" onclick="window.location.reload()" title="Recarregar página">
+                <i class="fa-solid fa-arrows-rotate"></i> <span>Recarregar</span>
+            </li>
             {% else %}
             <li class="menu-item active" onclick="window.location.href='/'">
                 <i class="fa-solid fa-house"></i> <span>Home</span>
+            </li>
+            <li class="menu-item" onclick="window.location.reload()" title="Recarregar página">
+                <i class="fa-solid fa-arrows-rotate"></i> <span>Recarregar</span>
             </li>
             {% endif %}
         </ul>
