@@ -99,10 +99,10 @@
         </div>
         <ul class="menu">
             {% if fazenda %}
-            <li class="menu-item {% if request.endpoint == 'fazenda' %}active{% endif %}" onclick="showSection('dashboard')">
+            <li class="menu-item {% if request.endpoint == 'fazenda' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}#dashboard'">
                 <i class="fa-solid fa-gauge-high"></i> <span>Dashboard</span>
             </li>
-            <li class="menu-item" onclick="showSection('piquetes')">
+            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#piquetes'">
                 <i class="fa-solid fa-map-location-dot"></i> <span>Piquetes</span>
             </li>
             <li class="menu-item {% if request.endpoint == 'lotes' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/lotes'">
@@ -111,7 +111,7 @@
             <li class="menu-item {% if request.endpoint == 'rotacao' %}active{% endif %}" onclick="window.location.href='/fazenda/{{ fazenda.id }}/rotacao'">
                 <i class="fa-solid fa-brain"></i> <span>IA Rotação</span>
             </li>
-            <li class="menu-item" onclick="showSection('relatorios')">
+            <li class="menu-item" onclick="window.location.href='/fazenda/{{ fazenda.id }}#relatorios'">
                 <i class="fa-solid fa-chart-line"></i> <span>Relatórios</span>
             </li>
             {% else %}
