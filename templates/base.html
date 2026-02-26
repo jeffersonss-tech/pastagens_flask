@@ -84,6 +84,30 @@
                     50% { opacity: 0.6; }
                     100% { opacity: 1; }
                 }
+                .sidebar-reload-footer {
+                    margin: 72px 0 0;
+                    display: flex;
+                    justify-content: center;
+                    padding: 6px 0;
+                    border-top: 1px solid rgba(255,255,255,0.1);
+                }
+                .sidebar-reload-button {
+                    background: linear-gradient(135deg, #ffc107, #fd7e14);
+                    color: #1a1a2e;
+                    border: none;
+                    padding: 4px 10px;
+                    font-size: 0.7rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                }
+                .sidebar-reload-button:hover {
+                    transform: translateY(-1px);
+                }
+                .sidebar-reload-button i {
+                    margin-right: 4px;
+                }
             </style>
 
             <div id="data-teste-display" class="data-teste modo-real">
@@ -114,18 +138,18 @@
             <li class="menu-item" onclick="showSection('relatorios')">
                 <i class="fa-solid fa-chart-line"></i> <span>Relatórios</span>
             </li>
-            <li class="menu-item" onclick="window.location.reload()" title="Recarregar página">
-                <i class="fa-solid fa-arrows-rotate"></i> <span>Recarregar</span>
-            </li>
             {% else %}
             <li class="menu-item active" onclick="window.location.href='/'">
                 <i class="fa-solid fa-house"></i> <span>Home</span>
             </li>
-            <li class="menu-item" onclick="window.location.reload()" title="Recarregar página">
-                <i class="fa-solid fa-arrows-rotate"></i> <span>Recarregar</span>
-            </li>
             {% endif %}
         </ul>
+        <div class="sidebar-reload-footer">
+            <button type="button" class="sidebar-reload-button" onclick="window.location.reload();" title="Recarregar página">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Recarregar</span>
+            </button>
+        </div>
     </div>
     
     <!-- Main -->
