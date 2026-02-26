@@ -2,127 +2,70 @@
 
 Sistema web para gestão de fazendas, piquetes, lotes e rotação inteligente de pastejo.
 
-## 🚀 Novidades (26/02/2026)
+## 🚀 Novidades recentes (26/02/2026)
 
-### 📴 Sistema Offline (PWA)
-- **Mapas offline**: Baixe mapas de satélite antes de sair (Home → "Baixar Mapas Offline")
-- **Funciona sem internet**: Interface continua acessível offline
-- **Tiles offline**: Usa OpenStreetMap quando offline, satélite quando online
-- **Cache IndexedDB**: Salva tiles no navegador para uso offline
-- **Detecção automática**: Alterna entre online/offline automaticamente
+### 📴 Experiência offline robusta (PWA)
+- **Mapas por fazenda**: cada fazenda baixa tiles próprios (`PastoFlowOffline_<fazendaId>`) com chaves `fazendaId::url`, evitando que duas fazendas compartilhem o mesmo cache.
+- **Fila de intenção offline**: piquetes criados sem internet ficam salvos em IndexedDB (`offlinePiquetes`) e são sincronizados automaticamente assim que o navegador detecta conexão (checagem a cada 30s + evento `online`).
+- **Indicador visual**: badge na interface e cards/mapas destacam os piquetes pendentes (cinza) sem precisar recarregar a página.
+- **Fallback de recarga**: botão "Recarregar" na Home/Sidebar detecta offline e exibe um toast em vez de tentar baixar assets inexistentes.
 
-#### Como usar offline:
-1. Na Home, clique em "Baixar Mapas Offline" antes de sair
-2. Desligue a internet
-3. Acesse a fazenda - o mapa usa OSM offline
-4. Para lançar dados offline, aguarde sincronização futura
-- Ao cadastrar piquetes sem conexão, os dados ficam em uma fila local e um badge na tela informa quantos registros aguardam sincronização automática ao reconectar.
+### 🌐 Botões "Recarregar" espalhados
+- **Sidebar**: botão estilizado, no rodapé, reduz o texto ao colapsar e agora exibe só o ícone quando a barra fica estreita.
+- **Home**: botão no header com gradiente e ícone que mostra aviso quando você está offline e evita o reload que quebra assets.
 
----
-
-## 🚀 Novidades (22/02/2026)
-
-### ✅ Refatoração e limpeza
-- CSS do `admin/dashboard.html` externalizado para `static/css/admin.css`.
-- Limpeza de arquivos legados para `_deprecated/` (templates/scripts/ícones não usados).
-- Organização de estrutura e manutenção preventiva sem remoções destrutivas.
-
-### 🌿 Catálogo de capins (novo)
-- Seleção de capim no modal de piquete agora é **agrupada por tipo**:
-  - Brachiaria
-  - Panicum
-  - Cynodon
-  - Outros
-- Catálogo técnico atualizado com parâmetros por cultivar:
-  - altura de entrada/saída
-  - crescimento base (cm/dia)
-  - fator de consumo
-  - lotação sugerida
-- Compatibilidade mantida para nomes legados (`Brachiaria`, `Capim Aruana`, `Natalino`).
-
-### 🌦️ Clima inteligente - Fase 1
-- Implementada integração real com **Open-Meteo** em `services/clima_service.py`.
-- Adicionado **cache local** em SQLite (`clima_cache`) com TTL.
-- Fallback robusto em cascata:
-  1. cache
-  2. API real
-  3. simulação
-  4. condição normal segura
-- Integração no cálculo de altura estimada (recuperação) no backend.
-- Endpoint novo: `GET /api/clima/condicao-atual`.
-
-### 🧪 Clima manual por fazenda (para testes)
-- Nova configuração no cadastro/edição de fazenda:
-  - `clima_modo`: `automatico` ou `manual`
-  - `condicao_climatica_manual`: `seca`, `normal`, `chuvoso`
-- Quando em manual, o sistema força a condição definida na fazenda.
-
-### 🧭 UI de clima no sistema
-- Sidebar mostra condição climática atual (quando há fazenda selecionada).
-- Tela de piquetes mostra condição climática no topo.
-- Tela “Minhas Fazendas” mostra clima por card de fazenda.
-- Correção de carregamento em páginas de **lotes** e **rotação** (conflito de `window.onload`).
-
-### 🗺️ Mapa de piquetes
-- Melhorias de estabilidade de renderização (realinhamento com `invalidateSize`).
-- Limites de zoom padronizados no modal de criação de piquete:
-  - `minZoom: 10`
-  - `maxZoom: 17`
-
-### 📋 Lotes (detalhes e status)
-- Modal de detalhes de lote aprimorado com:
-  - dias técnicos
-  - dias passados
-  - dias restantes
-  - saída prevista
-  - peso total estimado
-  - UA total
-  - consumo base
-  - consumo estimado (quando possível)
-  - altura estimada do capim
-- Correções de formatação de datas (ISO + BR) para evitar `NaN/NaN/NaN`.
-- Normalização visual de status:
-  - `EM_OCUPACAO` exibido como `EM OCUPAÇÃO`
-  - status “Aguardando Alocação” ajustado para visual branco (`⚪`).
-- Filtro de status da tela de lotes atualizado para os status reais do fluxo.
+### 📦 Ajustes visuais e usabilidade
+- **Sidebar compacta**: largura reduzida para 192 px (toolbar e margin-left ajustados), economizando espaço.
+- **Botão recarregar responsivo**: encolhe bastante quando a sidebar está colapsada para acompanhar o layout.
 
 ---
 
-## Funcionalidades
+## 🔧 Funcionalidades
 
 ### 🏠 Gestão de Fazendas
-- CRUD completo com coordenadas da sede (GPS).
-- Múltiplas fazendas por usuário.
-- Modo climático por fazenda (automático/manual).
+- CRUD completo com coordenadas da sede (GPS);
+- Multiplas fazendas por usuário;
+- Modo climático por fazenda (automático/manual) com override técnico.
 
-### 🗺️ Piquetes
-- Desenho de polígonos no mapa (Leaflet).
-- Cálculo automático de área.
-- Parâmetros técnicos por capim.
-- Crescimento/recuperação influenciados por clima.
+### 🗺️ Piquetes e mapas
+- Desenho de polígonos no mapa (Leaflet) com cálculo automático de área;
+- Streaming de dados offline com indicadores de status e sincronização automática;
+- Mapas offline via IndexedDB (tiles de satélite) e fallback OpenStreetMap para cenários sem conexão.
 
-### 🐄 Lotes
-- Cadastro com validações de peso.
-- Sugestão de piquetes aptos.
-- Status técnico de ocupação com dias restantes.
-- Modal de detalhes completo para decisão operacional.
+### 🐄 Lotes e rotação
+- Cadastro com validações de peso e status técnico (dias técnicos, dias ocupação, saída prevista);
+- IA de rotação prioriza qualidade do pasto e alerta quando lote está pronto para mudança;
+- Modal de detalhes e filtros atualizados para refletir os status reais do fluxo operacional.
 
-### 🔄 IA de Rotação
-- Priorização técnica de piquetes.
-- Alertas de saída imediata.
-- Recomendações para reduzir degradação de pasto.
+### 🌦️ Clima
+- Integração com Open-Meteo + cache local (`clima_cache` em SQLite);
+- Fallback em cascata: cache → API → simulação → condição segura;
+- Endpoint `GET /api/clima/condicao-atual` e visualização na sidebar, home e piquetes;
+- Modo manual by farm para testes e simulações.
 
-## Stack Tecnológica
+---
+
+## 🧰 Infraestrutura offline/multiprojetos
+
+1. **Tiles por fazenda**: baixe mapas offline na home, cada fazenda registra seus tiles e metadados no `localStorage` (`PastoFlowOfflineFarms`).
+2. **Queue local**: piquetes offline entram na fila `offlinePiquetes`; o contador exibe quantos ainda precisam sincronizar.
+3. **Sincronização automática**: evento `online` + watcher a cada 30 s tentam reenviar os payloads para `/api/piquetes` assim que a conexão retorna.
+4. **Reload seguro**: botão da home usa `handleHomeReload()` para não forçar reload offline; botão da sidebar mantém `window.location.reload()` para cenários de troubleshooting.
+5. **Indicadores**: o mapa (dashboard/piquetes) desenha tanto registros online quanto offline, com badges/colorização específica.
+
+---
+
+## 📦 Stack Tecnológica
 
 - **Backend:** Flask (Python)
-- **Banco de Dados:** SQLite
-- **Frontend:** HTML, CSS, JavaScript
-- **Mapas:** Leaflet.js
-- **Clima:** Open-Meteo + cache local
+- **Banco:** SQLite
+- **Frontend:** HTML, CSS, JavaScript, Leaflet
+- **Offline:** IndexedDB + service worker + sync em cache
+- **Clima:** Open-Meteo com cache local
 
-## Estrutura do Projeto
+## 🧭 Estrutura do projeto
 
-```text
+```
 pastagens_flask/
 ├── app.py
 ├── database.py
@@ -136,11 +79,10 @@ pastagens_flask/
 ├── templates/
 │   ├── base.html
 │   └── modals/
-├── _deprecated/
-└── simular_data.py
+└── memory/ (daily notes)
 ```
 
-## Autor
+## 📞 Contato
 
 **Jeferson Silva Santos**
 - GitHub: [@jeffersonss-tech](https://github.com/jeffersonss-tech)
