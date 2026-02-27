@@ -1206,10 +1206,17 @@ async function salvarPiquete() {
             body: JSON.stringify(payload)
         });
         if (!response.ok) {
-            // 4xx não deve enfileirar offline; mostrar erro
+            // 4xx não deve enfileirar offline; mostrar erro amigável
             if (response.status >= 400 && response.status < 500) {
-                const mensagem = await response.text().catch(() => '');
-                throw new Error(mensagem || 'Sem permissão ou dados inválidos');
+                let mensagem = '';
+                try {
+                    const asJson = await response.json();
+                    mensagem = asJson?.error || asJson?.message || '';
+                } catch (e) {
+                    mensagem = await response.text().catch(() => '');
+                }
+                mensagem = mensagem || 'Sem permissão ou dados inválidos';
+                throw new Error(mensagem);
             }
             const mensagem = await response.text().catch(() => '');
             throw new Error(mensagem || 'Status ' + response.status);
