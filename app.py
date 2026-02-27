@@ -4,6 +4,7 @@ App Flask - PastoFlow
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import database
 import logging
+from functools import wraps
 from routes.api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
 from routes.api_categorias import api_categorias  # Módulo de APIs de categorias de animais
 from simular_data import now, get_status  # Suporte a data de teste
@@ -13,6 +14,27 @@ app = Flask(__name__)
 app.secret_key = 'pastagens_secret_key_2024'
 
 database.init_db()
+database.ensure_operador_permission_columns()
+
+def operador_perm_required(perm_key):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            if 'user_id' not in session:
+                return jsonify({'error': 'Não autorizado'}), 401
+            if not database.check_user_active():
+                session.clear()
+                return jsonify({'error': 'Sessão expirada'}), 401
+            role = session.get('role')
+            if role in ['admin', 'gerente']:
+                return f(*args, **kwargs)
+            if role != 'operador':
+                return jsonify({'error': 'Acesso negado'}), 403
+            if not database.operador_tem_permissao(session.get('user_id'), perm_key):
+                return jsonify({'error': 'Sem permissão'}), 403
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
 
 # Registrar módulos de APIs
 criar_api_fazendas(app)
@@ -299,6 +321,11 @@ def gerente_salvar_operador():
     password = data.get('password')
     fazendas_selecionadas = request.form.getlist('fazendas')
     ativo = 1 if data.get('ativo') else 0
+
+    perm_visualizacao = 1 if data.get('perm_visualizacao') else 0
+    perm_piquetes = 0 if perm_visualizacao else (1 if data.get('perm_piquetes') else 0)
+    perm_lotes = 0 if perm_visualizacao else (1 if data.get('perm_lotes') else 0)
+    perm_mover = 0 if perm_visualizacao else (1 if data.get('perm_mover') else 0)
     
     if not username:
         return "Username é obrigatório", 400
@@ -315,14 +342,14 @@ def gerente_salvar_operador():
             from werkzeug.security import generate_password_hash
             hash_pw = generate_password_hash(password)
             cursor.execute('''
-                UPDATE usuarios SET username=?, nome=?, email=?, ativo=?, password_hash=?, updated_at=?
+                UPDATE usuarios SET username=?, nome=?, email=?, ativo=?, password_hash=?, perm_visualizacao=?, perm_piquetes=?, perm_lotes=?, perm_mover_alocar_sair=?, updated_at=?
                 WHERE id=? AND role='operador'
-            ''', (username, nome, email, ativo, hash_pw, database.datetime.now().isoformat(), user_id))
+            ''', (username, nome, email, ativo, hash_pw, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover, database.datetime.now().isoformat(), user_id))
         else:
             cursor.execute('''
-                UPDATE usuarios SET username=?, nome=?, email=?, ativo=?, updated_at=?
+                UPDATE usuarios SET username=?, nome=?, email=?, ativo=?, perm_visualizacao=?, perm_piquetes=?, perm_lotes=?, perm_mover_alocar_sair=?, updated_at=?
                 WHERE id=? AND role='operador'
-            ''', (username, nome, email, ativo, database.datetime.now().isoformat(), user_id))
+            ''', (username, nome, email, ativo, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover, database.datetime.now().isoformat(), user_id))
         
         # Remove permissões antigas e adiciona as novas
         cursor.execute('DELETE FROM user_farm_permissions WHERE user_id = ?', (user_id,))
@@ -336,9 +363,9 @@ def gerente_salvar_operador():
         
         try:
             cursor.execute('''
-                INSERT INTO usuarios (username, nome, email, role, ativo, password_hash, created_at, updated_at)
-                VALUES (?, ?, ?, 'operador', ?, ?, ?, ?)
-            ''', (username, nome, email, ativo, hash_pw, database.datetime.now().isoformat(), database.datetime.now().isoformat()))
+                INSERT INTO usuarios (username, nome, email, role, ativo, password_hash, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover_alocar_sair, created_at, updated_at)
+                VALUES (?, ?, ?, 'operador', ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (username, nome, email, ativo, hash_pw, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover, database.datetime.now().isoformat(), database.datetime.now().isoformat()))
             
             operador_id = cursor.lastrowid
             
@@ -575,6 +602,7 @@ def api_lotes():
     return jsonify(lotes)
 
 @app.route('/api/lotes', methods=['POST'])
+@operador_perm_required('lotes')
 def api_criar_lote():
     """Cria um novo lote com validações técnicas."""
     if 'user_id' not in session:
@@ -635,6 +663,7 @@ def api_get_lote(id):
     return jsonify(lote)
 
 @app.route('/api/lotes/<int:id>', methods=['PUT'])
+@operador_perm_required('lotes')
 def api_put_lote(id):
     """Atualiza um lote com validações técnicas."""
     if 'user_id' not in session:
@@ -679,6 +708,7 @@ def api_put_lote(id):
         return jsonify({'error': f'Erro ao atualizar lote: {str(e)}'}), 500
 
 @app.route('/api/lotes/<int:id>', methods=['DELETE'])
+@operador_perm_required('lotes')
 def api_delete_lote(id):
     """Exclui um lote"""
     if 'user_id' not in session:
@@ -688,6 +718,7 @@ def api_delete_lote(id):
     return jsonify({'status': 'ok'})
 
 @app.route('/api/lotes/<int:id>/mover', methods=['POST'])
+@operador_perm_required('mover')
 def api_mover_lote(id):
     """Move um lote para outro piquete"""
     if 'user_id' not in session:
@@ -711,6 +742,7 @@ def api_mover_lote(id):
     return jsonify(result)
 
 @app.route('/api/lotes/<int:id>/sair', methods=['POST'])
+@operador_perm_required('mover')
 def api_registrar_saida(id):
     """Registra saída do piquete (lote fica sem piquete E piquete é liberado)"""
     if 'user_id' not in session:
@@ -806,6 +838,7 @@ def api_piquetes():
     return jsonify(piquetes)
 
 @app.route('/api/piquetes/<int:id>', methods=['DELETE'])
+@operador_perm_required('piquetes')
 def api_deletar_piquete(id):
     """Exclui um piquete"""
     if 'user_id' not in session:
@@ -854,6 +887,7 @@ def api_piquetes_disponiveis():
     return jsonify(piquetes)
 
 @app.route('/api/piquetes', methods=['POST'])
+@operador_perm_required('piquetes')
 def api_criar_piquete():
     """Cria um novo piquete"""
     if 'user_id' not in session:
@@ -911,6 +945,7 @@ def api_animais():
     return jsonify(lotes)
 
 @app.route('/api/animais', methods=['POST'])
+@operador_perm_required('lotes')
 def api_criar_animal():
     """Cria animal (agora usa lotes)"""
     if 'user_id' not in session:
@@ -944,6 +979,7 @@ def api_listar_movimentacoes():
     return jsonify(movimentacoes)
 
 @app.route('/api/movimentacoes', methods=['POST'])
+@operador_perm_required('mover')
 def api_criar_movimentacao():
     """Cria movimentação"""
     if 'user_id' not in session:
@@ -1094,6 +1130,7 @@ def api_status_piquete(id):
     return jsonify(status_info)
 
 @app.route('/api/piquetes/<int:id>/bloquear', methods=['POST'])
+@operador_perm_required('piquetes')
 def api_bloquear_piquete(id):
     """Bloqueia ou desbloqueia um piquete"""
     if 'user_id' not in session:
@@ -1107,6 +1144,7 @@ def api_bloquear_piquete(id):
     return jsonify({'status': 'ok', 'bloqueado': bloqueado})
 
 @app.route('/api/piquetes/<int:id>', methods=['PUT'])
+@operador_perm_required('piquetes')
 def api_put_piquete(id):
     """Atualiza um piquete"""
     if 'user_id' not in session:

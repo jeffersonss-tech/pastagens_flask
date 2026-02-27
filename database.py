@@ -22,6 +22,35 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+
+def ensure_operador_permission_columns():
+    """Garante que as colunas de permissão de operador existam."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'")
+    if not cursor.fetchone():
+        conn.close()
+        return
+
+    cursor.execute('PRAGMA table_info(usuarios)')
+    cols = {row[1] for row in cursor.fetchall()}
+
+    def add_if_missing(col_name, ddl):
+        if col_name not in cols:
+            cursor.execute(f"ALTER TABLE usuarios ADD COLUMN {ddl}")
+
+    add_if_missing('perm_visualizacao', 'perm_visualizacao INTEGER DEFAULT 0')
+    add_if_missing('perm_piquetes', 'perm_piquetes INTEGER DEFAULT 0')
+    add_if_missing('perm_lotes', 'perm_lotes INTEGER DEFAULT 0')
+    add_if_missing('perm_mover_alocar_sair', 'perm_mover_alocar_sair INTEGER DEFAULT 0')
+
+    conn.commit()
+    conn.close()
+
+# Executa na importação para manter schema atualizado
+ensure_operador_permission_columns()
+
 from functools import wraps
 from flask import session, redirect, url_for, abort
 import time
@@ -380,7 +409,7 @@ def verificar_usuario(username, password):
 def get_usuario(id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT id, username, nome, role, email, created_at FROM usuarios WHERE id = ?', (id,))
+    cursor.execute('SELECT id, username, nome, role, email, ativo, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover_alocar_sair, created_at FROM usuarios WHERE id = ?', (id,))
     user = cursor.fetchone()
     conn.close()
     return dict(user) if user else None
@@ -433,6 +462,38 @@ def listar_fazendas_usuario(usuario_id):
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+def get_permissoes_operador(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT ativo, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover_alocar_sair
+        FROM usuarios
+        WHERE id = ?
+    ''', (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def operador_tem_permissao(user_id, perm):
+    """
+    Verifica se um operador tem a permissão específica.
+    perm: 'piquetes' | 'lotes' | 'mover'
+    """
+    perms = get_permissoes_operador(user_id)
+    if not perms:
+        return False
+    if not perms.get('ativo'):
+        return False
+    if perms.get('perm_visualizacao'):
+        return False
+    if perm == 'piquetes':
+        return bool(perms.get('perm_piquetes'))
+    if perm == 'lotes':
+        return bool(perms.get('perm_lotes'))
+    if perm == 'mover':
+        return bool(perms.get('perm_mover_alocar_sair'))
+    return False
 
 def get_fazenda(id):
     conn = get_db()

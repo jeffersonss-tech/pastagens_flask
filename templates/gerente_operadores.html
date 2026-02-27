@@ -200,7 +200,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick="editarOperador({{ op.id }}, '{{ op.username }}', '{{ op.nome or '' }}', '{{ op.email or '' }}', '{{ op.fazendas_ids or '' }}', {{ op.ativo }})">
+                            <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick="editarOperador({{ op.id }}, {{ op.username|tojson }}, {{ (op.nome or '')|tojson }}, {{ (op.email or '')|tojson }}, {{ (op.fazendas_ids or '')|tojson }}, {{ 1 if op.ativo else 0 }}, {{ op.perm_visualizacao or 0 }}, {{ op.perm_piquetes or 0 }}, {{ op.perm_lotes or 0 }}, {{ op.perm_mover_alocar_sair or 0 }})">
                                 <i class="fa-solid fa-pen"></i> Editar
                             </button>
                             <a href="{{ url_for('gerente_toggle_operador', user_id=op.id) }}" 
@@ -266,6 +266,28 @@
                         {% endfor %}
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label>Permissões</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="perm_visualizacao" id="perm-visualizacao" onchange="togglePermissoes()">
+                            <label for="perm-visualizacao">Somente visualização (bloqueia todas as ações)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="perm_piquetes" id="perm-piquetes">
+                            <label for="perm-piquetes">Permite criar/editar piquetes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="perm_lotes" id="perm-lotes">
+                            <label for="perm-lotes">Permite criar/editar lotes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="perm_mover" id="perm-mover">
+                            <label for="perm-mover">Permite alocar/mover/sair lotes</label>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" name="ativo" id="op-ativo" checked style="width: auto; margin: 0;">
@@ -291,6 +313,12 @@
             document.getElementById('op-password').required = true;
             document.getElementById('label-senha').textContent = '(obrigatório para novo)';
             document.getElementById('op-ativo').checked = true;
+
+            document.getElementById('perm-visualizacao').checked = false;
+            document.getElementById('perm-piquetes').checked = true;
+            document.getElementById('perm-lotes').checked = true;
+            document.getElementById('perm-mover').checked = true;
+            togglePermissoes();
             
             // Desmarca todas as fazendas
             document.querySelectorAll('.op-fazenda-checkbox').forEach(cb => cb.checked = false);
@@ -298,16 +326,22 @@
             document.getElementById('modalOperador').classList.add('active');
         }
         
-        function editarOperador(id, username, nome, email, fazendasIds, ativo) {
+        function editarOperador(id, username, nome, email, fazendasIds, ativo, permVisualizacao, permPiquetes, permLotes, permMover) {
             document.getElementById('modal-titulo').textContent = 'Editar Operador';
             document.getElementById('op-id').value = id;
-            document.getElementById('op-username').value = username;
-            document.getElementById('op-nome').value = nome;
-            document.getElementById('op-email').value = email;
+            document.getElementById('op-username').value = username || '';
+            document.getElementById('op-nome').value = nome || '';
+            document.getElementById('op-email').value = email || '';
             document.getElementById('op-password').value = '';
             document.getElementById('op-password').required = false;
             document.getElementById('label-senha').textContent = '(deixe em branco para manter)';
-            document.getElementById('op-ativo').checked = ativo;
+            document.getElementById('op-ativo').checked = !!ativo;
+
+            document.getElementById('perm-visualizacao').checked = !!permVisualizacao;
+            document.getElementById('perm-piquetes').checked = !!permPiquetes;
+            document.getElementById('perm-lotes').checked = !!permLotes;
+            document.getElementById('perm-mover').checked = !!permMover;
+            togglePermissoes();
             
             // Seleciona as fazendas
             const fazendasArray = fazendasIds ? fazendasIds.split(',') : [];
@@ -316,6 +350,15 @@
             });
             
             document.getElementById('modalOperador').classList.add('active');
+        }
+        
+        function togglePermissoes() {
+            const somenteVisualizacao = document.getElementById('perm-visualizacao').checked;
+            ['perm-piquetes', 'perm-lotes', 'perm-mover'].forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = somenteVisualizacao;
+                if (somenteVisualizacao) el.checked = false;
+            });
         }
         
         function fecharModal() {
