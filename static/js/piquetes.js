@@ -1206,6 +1206,11 @@ async function salvarPiquete() {
             body: JSON.stringify(payload)
         });
         if (!response.ok) {
+            // 4xx não deve enfileirar offline; mostrar erro
+            if (response.status >= 400 && response.status < 500) {
+                const mensagem = await response.text().catch(() => '');
+                throw new Error(mensagem || 'Sem permissão ou dados inválidos');
+            }
             const mensagem = await response.text().catch(() => '');
             throw new Error(mensagem || 'Status ' + response.status);
         }
@@ -1215,16 +1220,22 @@ async function salvarPiquete() {
         loadAll();
     } catch (err) {
         console.error('Erro ao salvar piquete online:', err);
-        try {
-            await queueOfflinePiquete(payload);
-            alert('Não foi possível enviar agora. Piquete salvo offline e será sincronizado quando voltar.');
-            fecharModalPiquete();
-            if (typeof refreshPiquetesOfflineDisplay === 'function') {
-                refreshPiquetesOfflineDisplay();
+        const isAuthError = /403|401|permiss|Sem permissão|Acesso negado/i.test(err.message || '');
+        const isValidation = /400|dados inválidos/i.test(err.message || '');
+        if (!navigator.onLine || (!isAuthError && !isValidation)) {
+            try {
+                await queueOfflinePiquete(payload);
+                alert('Não foi possível enviar agora. Piquete salvo offline e será sincronizado quando voltar.');
+                fecharModalPiquete();
+                if (typeof refreshPiquetesOfflineDisplay === 'function') {
+                    refreshPiquetesOfflineDisplay();
+                }
+            } catch (queueErr) {
+                console.error('Erro ao registrar offline:', queueErr);
+                alert('Erro ao registrar offline: ' + (queueErr.message || 'IndexedDB indisponível.'));
             }
-        } catch (queueErr) {
-            console.error('Erro ao registrar offline:', queueErr);
-            alert('Erro ao registrar offline: ' + (queueErr.message || 'IndexedDB indisponível.'));
+        } else {
+            alert(err.message || 'Erro ao salvar piquete.');
         }
     } finally {
         refreshOfflineQueueIndicator();
