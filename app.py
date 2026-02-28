@@ -226,7 +226,7 @@ def admin_salvar_usuario():
         try:
             cursor.execute('''
                 INSERT INTO usuarios (username, nome, email, role, ativo, password_hash, max_fazendas, max_piquetes_por_fazenda, expiracao_data, expiracao_em_dias, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (username, nome, email, role, ativo, hash_pw, max_fazendas, max_piquetes_por_fazenda, expiracao_data, expiracao_em_dias, database.datetime.now().isoformat(), database.datetime.now().isoformat()))
         except Exception as e:
             return f"Erro ao criar usuário: {e}", 400
