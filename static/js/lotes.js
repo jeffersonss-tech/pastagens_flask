@@ -167,11 +167,18 @@ function carregarLotesComDataTeste() {
 function carregarLotes() {
     const status = document.getElementById('filtro-status').value;
     const categoria = document.getElementById('filtro-categoria').value;
+    const busca = (document.getElementById('filtro-busca-lote')?.value || '').toLowerCase();
     fetch(`/api/lotes?fazenda_id=${fazendaId}&status=${status}&categoria=${categoria}`)
         .then(r => r.json())
         .then(data => {
             // Garantir que lotes seja sempre um array para não quebrar o .filter/.map
             lotes = Array.isArray(data) ? data : [];
+            if (busca) {
+                lotes = lotes.filter(l => {
+                    const texto = `${l.nome || ''} ${l.categoria || ''}`.toLowerCase();
+                    return texto.includes(busca);
+                });
+            }
             renderizarTabela();
             atualizarStats();
         })

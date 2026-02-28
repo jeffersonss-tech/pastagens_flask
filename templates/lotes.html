@@ -30,29 +30,39 @@
 
 <!-- Filters -->
 <div class="filters">
-    <label>Status:</label>
-    <select id="filtro-status" onchange="carregarLotes()">
-        <option value="">Todos</option>
-        <option value="EM_OCUPACAO"><i class="fas fa-circle" style="color:#007bff;"></i> Em Ocupação</option>
-        <option value="ATENCAO"><i class="fas fa-circle" style="color:#fd7e14;"></i> Atenção</option>
-        <option value="RETIRAR"><i class="fas fa-circle" style="color:#dc3545;"></i> Retirar</option>
-        <option value="AGUARDANDO_ALOCACAO"><i class="fa-regular fa-circle"></i> Aguardando Alocação</option>
-    </select>
+    <div class="filter-group">
+        <label>Status:</label>
+        <select id="filtro-status" onchange="carregarLotes()">
+            <option value="">Todos</option>
+            <option value="EM_OCUPACAO"><i class="fas fa-circle" style="color:#007bff;"></i> Em Ocupação</option>
+            <option value="ATENCAO"><i class="fas fa-circle" style="color:#fd7e14;"></i> Atenção</option>
+            <option value="RETIRAR"><i class="fas fa-circle" style="color:#dc3545;"></i> Retirar</option>
+            <option value="AGUARDANDO_ALOCACAO"><i class="fa-regular fa-circle"></i> Aguardando Alocação</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>Categoria:</label>
+        <select id="filtro-categoria" onchange="carregarLotes()">
+            <option value="">Todas</option>
+            <option value="Bezerro(a)">Bezerro(a)</option>
+            <option value="Garrote / Novilho(a)">Garrote / Novilho(a)</option>
+            <option value="Boi Magro / Engorda">Boi Magro / Engorda</option>
+            <option value="Vaca">Vaca</option>
+            <option value="Touro">Touro</option>
+        </select>
+    </div>
+    <div class="filter-group" style="flex:1; min-width: 240px;">
+        <label>Buscar lote</label>
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="filtro-busca-lote" placeholder="Buscar por nome ou categoria" oninput="carregarLotes()">
+        </div>
+    </div>
 
-    <label>Categoria:</label>
-    <select id="filtro-categoria" onchange="carregarLotes()">
-        <option value="">Todas</option>
-        <option value="Bezerro(a)">Bezerro(a)</option>
-        <option value="Garrote / Novilho(a)">Garrote / Novilho(a)</option>
-        <option value="Boi Magro / Engorda">Boi Magro / Engorda</option>
-        <option value="Vaca">Vaca</option>
-        <option value="Touro">Touro</option>
-    </select>
-
-    <button class="btn-warning-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;"
-        onclick="atualizarStatus()"><i class="fas fa-rotate-right"></i> Atualizar Status</button>
-    <button class="btn-primary-lotes" style="padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer;"
-        onclick="abrirModalNovoLote()"><i class="fas fa-plus"></i> Novo Lote</button>
+    <div class="filter-actions">
+        <button class="btn-warning-lotes" onclick="atualizarStatus()"><i class="fas fa-rotate-right"></i> Atualizar Status</button>
+        <button class="btn-primary-lotes" onclick="abrirModalNovoLote()"><i class="fas fa-plus"></i> Novo Lote</button>
+    </div>
 </div>
 
 <!-- Tabela -->
