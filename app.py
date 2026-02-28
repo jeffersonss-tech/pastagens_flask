@@ -172,8 +172,23 @@ def admin_dashboard():
             return None
         return min(datas).date().isoformat()
 
+    # Primeiro calcula expiração própria
+    id_to_expira = {}
     for u in usuarios:
         u['expira_em'] = calcular_expira_em(u)
+        id_to_expira[u['id']] = u['expira_em']
+
+    # Para operadores, herdar expiração mínima dos gerentes vinculados
+    for u in usuarios:
+        if u.get('role') == 'operador' and u.get('gerentes_ids'):
+            try:
+                ids = [int(x) for x in str(u['gerentes_ids']).split(',') if x]
+            except Exception:
+                ids = []
+            exp_datas = [id_to_expira.get(i) for i in ids if id_to_expira.get(i)]
+            if exp_datas:
+                # pega a menor (mais próxima)
+                u['expira_em'] = min(exp_datas)
 
     return render_template('admin/dashboard.html', usuarios=usuarios, fazenda=None)
 
