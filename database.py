@@ -48,8 +48,35 @@ def ensure_operador_permission_columns():
     conn.commit()
     conn.close()
 
+
+def ensure_manager_limit_columns():
+    """Garante colunas de limites e expiração para gerentes."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usuarios'")
+    if not cursor.fetchone():
+        conn.close()
+        return
+
+    cursor.execute('PRAGMA table_info(usuarios)')
+    cols = {row[1] for row in cursor.fetchall()}
+
+    def add_if_missing(col_name, ddl):
+        if col_name not in cols:
+            cursor.execute(f"ALTER TABLE usuarios ADD COLUMN {ddl}")
+
+    add_if_missing('max_fazendas', 'max_fazendas INTEGER')
+    add_if_missing('max_piquetes_por_fazenda', 'max_piquetes_por_fazenda INTEGER')
+    add_if_missing('expiracao_data', 'expiracao_data TEXT')
+    add_if_missing('expiracao_em_dias', 'expiracao_em_dias INTEGER')
+
+    conn.commit()
+    conn.close()
+
 # Executa na importação para manter schema atualizado
 ensure_operador_permission_columns()
+ensure_manager_limit_columns()
 
 from functools import wraps
 from flask import session, redirect, url_for, abort
@@ -57,6 +84,70 @@ import time
 
 # Tempo em segundos entre verificações de ativo
 ATIVO_CHECK_INTERVAL = 60  # 1 minuto
+
+
+def calcular_data_expiracao(user_row):
+    """Retorna datetime de expiração ou None."""
+    from datetime import datetime, timedelta
+    datas = []
+    if user_row.get('expiracao_data'):
+        try:
+            datas.append(datetime.fromisoformat(user_row['expiracao_data']))
+        except Exception:
+            pass
+    if user_row.get('expiracao_em_dias') is not None:
+        try:
+            base = datetime.fromisoformat(user_row['created_at']) if user_row.get('created_at') else datetime.now()
+            datas.append(base + timedelta(days=int(user_row['expiracao_em_dias'])))
+        except Exception:
+            pass
+    if not datas:
+        return None
+    return min(datas)
+
+
+def desativar_gerente_e_operadores(gerente_id):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Desativa gerente
+    cursor.execute('UPDATE usuarios SET ativo = 0, updated_at = ? WHERE id = ? AND role = "gerente"', (datetime.now().isoformat(), gerente_id))
+
+    # Desativar operadores vinculados às fazendas do gerente
+    cursor.execute('SELECT id FROM fazendas WHERE usuario_id = ?', (gerente_id,))
+    fazendas = [row['id'] for row in cursor.fetchall()]
+    if fazendas:
+        placeholders = ','.join(['?'] * len(fazendas))
+        cursor.execute(f'''
+            UPDATE usuarios
+            SET ativo = 0, updated_at = ?
+            WHERE role = 'operador' AND id IN (
+                SELECT DISTINCT user_id FROM user_farm_permissions WHERE farm_id IN ({placeholders})
+            )
+        ''', [datetime.now().isoformat()] + fazendas)
+
+    conn.commit()
+    conn.close()
+
+
+def verificar_expiracao_usuario(user_id):
+    """Se expirado, desativa gerente e operadores vinculados. Retorna bool ativo após checagem."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, role, ativo, expiracao_data, expiracao_em_dias, created_at FROM usuarios WHERE id = ?', (user_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return False
+    user = dict(row)
+    exp_dt = calcular_data_expiracao(user)
+    ativo = bool(user.get('ativo'))
+    if exp_dt and datetime.now() >= exp_dt and ativo and user.get('role') == 'gerente':
+        conn.close()
+        desativar_gerente_e_operadores(user_id)
+        return False
+    conn.close()
+    return ativo
 
 
 def check_user_active():
@@ -69,14 +160,8 @@ def check_user_active():
     if time.time() - last_check < ATIVO_CHECK_INTERVAL:
         return session.get('ativo_verified', False)
     
-    # Faz a verificação no banco
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT ativo FROM usuarios WHERE id = ?', (session.get('user_id'),))
-    result = cursor.fetchone()
-    conn.close()
-    
-    is_active = result and result['ativo']
+    # Faz a verificação no banco E expiração
+    is_active = verificar_expiracao_usuario(session.get('user_id'))
     
     # Salva resultado e timestamp na sessão
     session['ativo_verified'] = is_active
@@ -409,7 +494,7 @@ def verificar_usuario(username, password):
 def get_usuario(id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT id, username, nome, role, email, ativo, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover_alocar_sair, created_at FROM usuarios WHERE id = ?', (id,))
+    cursor.execute('SELECT id, username, nome, role, email, ativo, perm_visualizacao, perm_piquetes, perm_lotes, perm_mover_alocar_sair, max_fazendas, max_piquetes_por_fazenda, expiracao_data, expiracao_em_dias, created_at FROM usuarios WHERE id = ?', (id,))
     user = cursor.fetchone()
     conn.close()
     return dict(user) if user else None

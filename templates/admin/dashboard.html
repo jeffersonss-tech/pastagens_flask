@@ -139,7 +139,7 @@
 
 <!-- Modal Simples (CSS Puro) -->
 <div id="modalUsuario" class="modal-overlay" style="display: none;">
-    <div class="modal-box">
+    <div class="modal-box" style="max-height: 80vh; overflow-y: auto; width: 720px; max-width: 95%;">
         <div class="modal-header">
             <h3 id="modal-titulo">Novo Usuário</h3>
             <button onclick="fecharModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
@@ -162,7 +162,7 @@
                 <div class="row mb-3">
                     <div class="col-6">
                         <label class="form-label">Papel (Role)</label>
-                        <select name="role" id="user-role" class="form-control">
+                        <select name="role" id="user-role" class="form-control" onchange="toggleCamposGerente()">
                             <option value="user">Usuário</option>
                             <option value="operador">Operador</option>
                             <option value="gerente" selected>Gerente</option>
@@ -172,6 +172,29 @@
                     <div class="col-6">
                         <label class="form-label" id="label-pass">Senha *</label>
                         <input type="password" name="password" id="user-password" class="form-control" required>
+                    </div>
+                </div>
+
+                <div id="campos-gerente" style="display: block;">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Máx. fazendas</label>
+                            <input type="number" min="0" name="max_fazendas" id="user-max-fazendas" class="form-control" placeholder="Sem limite se vazio">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Máx. piquetes por fazenda</label>
+                            <input type="number" min="0" name="max_piquetes_por_fazenda" id="user-max-piquetes" class="form-control" placeholder="Sem limite se vazio">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Data limite (desativa na data)</label>
+                            <input type="date" name="expiracao_data" id="user-exp-data" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Desativar em (dias)</label>
+                            <input type="number" min="0" name="expiracao_em_dias" id="user-exp-dias" class="form-control" placeholder="Ex: 30" oninput="calcularExpiracaoPorDias()">
+                        </div>
                     </div>
                 </div>
                 <div class="form-check">
@@ -201,6 +224,11 @@
         document.getElementById('label-pass').textContent = 'Senha *';
         document.getElementById('user-ativo').checked = true;
         document.getElementById('btn-excluir').style.display = 'none';
+        document.getElementById('user-max-fazendas').value = '';
+        document.getElementById('user-max-piquetes').value = '';
+        document.getElementById('user-exp-data').value = '';
+        document.getElementById('user-exp-dias').value = '';
+        toggleCamposGerente();
         
         document.getElementById('modalUsuario').style.display = 'flex';
     }
@@ -216,6 +244,14 @@
         document.getElementById('user-password').required = false;
         document.getElementById('label-pass').textContent = 'Senha (deixe em branco)';
         document.getElementById('user-ativo').checked = (user.ativo === 1 || user.ativo === true);
+
+        // Limites para gerente
+        document.getElementById('user-max-fazendas').value = user.max_fazendas ?? '';
+        document.getElementById('user-max-piquetes').value = user.max_piquetes_por_fazenda ?? '';
+        document.getElementById('user-exp-data').value = user.expiracao_data ? String(user.expiracao_data).slice(0,10) : '';
+        document.getElementById('user-exp-dias').value = user.expiracao_em_dias ?? '';
+        calcularExpiracaoPorDias();
+        toggleCamposGerente();
         
         // Mostrar botão excluir apenas para edição
         document.getElementById('btn-excluir').style.display = 'block';
@@ -229,6 +265,33 @@
         
         if (confirm(`Tem certeza que deseja EXCLUIR o usuário "${username}"? Esta ação não pode ser desfeita!`)) {
             window.location.href = '/admin/usuario/excluir/' + userId;
+        }
+    }
+
+    function toggleCamposGerente() {
+        const role = document.getElementById('user-role').value;
+        const campos = document.getElementById('campos-gerente');
+        if (role === 'gerente') {
+            campos.style.display = 'block';
+        } else {
+            campos.style.display = 'none';
+            document.getElementById('user-max-fazendas').value = '';
+            document.getElementById('user-max-piquetes').value = '';
+            document.getElementById('user-exp-data').value = '';
+            document.getElementById('user-exp-dias').value = '';
+        }
+    }
+
+    function calcularExpiracaoPorDias() {
+        const diasStr = document.getElementById('user-exp-dias').value;
+        const dias = parseInt(diasStr, 10);
+        if (!isNaN(dias) && dias >= 0) {
+            const hoje = new Date();
+            hoje.setDate(hoje.getDate() + dias);
+            const yyyy = hoje.getFullYear();
+            const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoje.getDate()).padStart(2, '0');
+            document.getElementById('user-exp-data').value = `${yyyy}-${mm}-${dd}`;
         }
     }
 

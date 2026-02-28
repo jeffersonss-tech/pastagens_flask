@@ -15,6 +15,7 @@ app.secret_key = 'pastagens_secret_key_2024'
 
 database.init_db()
 database.ensure_operador_permission_columns()
+database.ensure_manager_limit_columns()
 
 def operador_perm_required(perm_key):
     def decorator(f):
@@ -140,6 +141,7 @@ def admin_dashboard():
     # Busca usuários e adiciona info de vinculado a (para operadores)
     cursor.execute('''
         SELECT u.id, u.username, u.nome, u.role, u.ativo, u.email,
+               u.max_fazendas, u.max_piquetes_por_fazenda, u.expiracao_data, u.expiracao_em_dias,
                GROUP_CONCAT(DISTINCT g.username) as gerentes_vinculados,
                GROUP_CONCAT(DISTINCT g.id) as gerentes_ids
         FROM usuarios u
@@ -180,6 +182,26 @@ def admin_salvar_usuario():
     password = data.get('password')
     ativo = 1 if data.get('ativo') else 0
 
+    # Limites para gerente
+    def parse_int_or_none(value):
+        if value is None or value == '':
+            return None
+        try:
+            return int(value)
+        except ValueError:
+            return None
+
+    max_fazendas = parse_int_or_none(data.get('max_fazendas'))
+    max_piquetes_por_fazenda = parse_int_or_none(data.get('max_piquetes_por_fazenda'))
+    expiracao_data = data.get('expiracao_data') or None
+    expiracao_em_dias = parse_int_or_none(data.get('expiracao_em_dias'))
+
+    if role != 'gerente':
+        max_fazendas = None
+        max_piquetes_por_fazenda = None
+        expiracao_data = None
+        expiracao_em_dias = None
+
     conn = database.get_db()
     cursor = conn.cursor()
 
@@ -189,23 +211,23 @@ def admin_salvar_usuario():
             from werkzeug.security import generate_password_hash
             hash_pw = generate_password_hash(password)
             cursor.execute('''
-                UPDATE usuarios SET username=?, nome=?, email=?, role=?, ativo=?, password_hash=?, updated_at=?
+                UPDATE usuarios SET username=?, nome=?, email=?, role=?, ativo=?, password_hash=?, max_fazendas=?, max_piquetes_por_fazenda=?, expiracao_data=?, expiracao_em_dias=?, updated_at=?
                 WHERE id=?
-            ''', (username, nome, email, role, ativo, hash_pw, database.datetime.now().isoformat(), user_id))
+            ''', (username, nome, email, role, ativo, hash_pw, max_fazendas, max_piquetes_por_fazenda, expiracao_data, expiracao_em_dias, database.datetime.now().isoformat(), user_id))
         else:
             cursor.execute('''
-                UPDATE usuarios SET username=?, nome=?, email=?, role=?, ativo=?, updated_at=?
+                UPDATE usuarios SET username=?, nome=?, email=?, role=?, ativo=?, max_fazendas=?, max_piquetes_por_fazenda=?, expiracao_data=?, expiracao_em_dias=?, updated_at=?
                 WHERE id=?
-            ''', (username, nome, email, role, ativo, database.datetime.now().isoformat(), user_id))
+            ''', (username, nome, email, role, ativo, max_fazendas, max_piquetes_por_fazenda, expiracao_data, expiracao_em_dias, database.datetime.now().isoformat(), user_id))
     else:
         # Insert
         from werkzeug.security import generate_password_hash
         hash_pw = generate_password_hash(password or '123456') # Senha padrão se não informar
         try:
             cursor.execute('''
-                INSERT INTO usuarios (username, nome, email, role, ativo, password_hash, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (username, nome, email, role, ativo, hash_pw, database.datetime.now().isoformat(), database.datetime.now().isoformat()))
+                INSERT INTO usuarios (username, nome, email, role, ativo, password_hash, max_fazendas, max_piquetes_por_fazenda, expiracao_data, expiracao_em_dias, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (username, nome, email, role, ativo, hash_pw, max_fazendas, max_piquetes_por_fazenda, expiracao_data, expiracao_em_dias, database.datetime.now().isoformat(), database.datetime.now().isoformat()))
         except Exception as e:
             return f"Erro ao criar usuário: {e}", 400
 
@@ -538,6 +560,22 @@ def api_criar_fazenda():
         return jsonify({'error': 'Apenas gerentes podem criar fazendas'}), 403
     
     data = request.json
+
+    # Respeitar limite de fazendas do gerente
+    if session.get('role') == 'gerente':
+        conn = database.get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT max_fazendas FROM usuarios WHERE id = ?', (session['user_id'],))
+        row = cursor.fetchone()
+        max_fazendas = row['max_fazendas'] if row else None
+        if max_fazendas is not None:
+            cursor.execute('SELECT COUNT(*) as total FROM fazendas WHERE usuario_id = ? AND ativo = 1', (session['user_id'],))
+            total = cursor.fetchone()['total']
+            if total >= max_fazendas:
+                conn.close()
+                return jsonify({'error': f'Limite de fazendas atingido ({max_fazendas}).'}), 403
+        conn.close()
+    
     fazenda_id = database.criar_fazenda(
         session['user_id'],
         data.get('nome'),
@@ -895,6 +933,24 @@ def api_criar_piquete():
     
     data = request.json
     fazenda_id = session.get('fazenda_id')
+
+    # Respeitar limite de piquetes por fazenda (do gerente dono da fazenda)
+    if fazenda_id:
+        conn = database.get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT usuario_id FROM fazendas WHERE id = ?', (fazenda_id,))
+        fz = cursor.fetchone()
+        if fz:
+            owner_id = fz['usuario_id']
+            cursor.execute('SELECT role, max_piquetes_por_fazenda FROM usuarios WHERE id = ?', (owner_id,))
+            owner = cursor.fetchone()
+            if owner and owner['role'] == 'gerente' and owner['max_piquetes_por_fazenda'] is not None:
+                cursor.execute('SELECT COUNT(*) as total FROM piquetes WHERE fazenda_id = ? AND ativo = 1', (fazenda_id,))
+                total = cursor.fetchone()['total']
+                if total >= owner['max_piquetes_por_fazenda']:
+                    conn.close()
+                    return jsonify({'error': f'Limite de piquetes por fazenda atingido ({owner["max_piquetes_por_fazenda"]}).'}), 403
+        conn.close()
     
     # Validar suplementação
     percentual_sup = data.get('percentual_suplementacao', 0) or 0
