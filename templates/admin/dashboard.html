@@ -64,6 +64,7 @@
                             <th style="text-align: center;">Usuário</th>
                             <th style="text-align: center;">Role</th>
                             <th style="text-align: center;">Vínculo</th>
+                            <th style="text-align: center;">Expira em</th>
                             <th style="text-align: center;">Status</th>
                             <th class="px-4" style="text-align: center;">Ações</th>
                         </tr>
@@ -99,6 +100,13 @@
                                 <span class="badge bg-danger">Admin Sistema</span>
                                 {% else %}
                                 <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                {% if u.expira_em %}
+                                <span class="badge bg-warning text-dark">{{ u.expira_em }}</span>
+                                {% else %}
+                                <span class="text-muted small">Sem expiração</span>
                                 {% endif %}
                             </td>
                             <td style="text-align: center;">

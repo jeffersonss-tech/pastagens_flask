@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import database
 import logging
 from functools import wraps
+from datetime import datetime, timedelta
 from routes.api_fazendas import criar_api_fazendas  # Módulo de APIs de fazendas
 from routes.api_categorias import api_categorias  # Módulo de APIs de categorias de animais
 from simular_data import now, get_status  # Suporte a data de teste
@@ -153,6 +154,27 @@ def admin_dashboard():
     ''')
     usuarios = [dict(r) for r in cursor.fetchall()]
     conn.close()
+
+    def calcular_expira_em(u):
+        datas = []
+        if u.get('expiracao_data'):
+            try:
+                datas.append(datetime.fromisoformat(str(u['expiracao_data'])))
+            except Exception:
+                pass
+        if u.get('expiracao_em_dias') is not None:
+            try:
+                base = datetime.fromisoformat(str(u.get('created_at'))) if u.get('created_at') else datetime.now()
+                datas.append(base + timedelta(days=int(u['expiracao_em_dias'])))
+            except Exception:
+                pass
+        if not datas:
+            return None
+        return min(datas).date().isoformat()
+
+    for u in usuarios:
+        u['expira_em'] = calcular_expira_em(u)
+
     return render_template('admin/dashboard.html', usuarios=usuarios, fazenda=None)
 
 
