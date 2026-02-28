@@ -71,10 +71,15 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
 }
 .table-header h2 { font-size: 1.1rem; color: #1a1a2e; }
 
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
-th { background: #f8f9fa; font-size: 0.85rem; color: #666; font-weight: 500; }
-tr:hover { background: #f8f9fa; }
+.table-wrapper {
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.scrollable-lotes table { width: 100%; border-collapse: collapse; }
+.scrollable-lotes th, .scrollable-lotes td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
+.scrollable-lotes th { background: #f8f9fa; font-size: 0.85rem; color: #666; font-weight: 500; position: sticky; top: 0; z-index: 2; }
+.scrollable-lotes tr:hover { background: #f8f9fa; }
 
 /* Status Badges */
 .status-badge {
