@@ -200,7 +200,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick="editarOperador({{ op.id }}, {{ op.username|tojson }}, {{ (op.nome or '')|tojson }}, {{ (op.email or '')|tojson }}, {{ (op.fazendas_ids or '')|tojson }}, {{ 1 if op.ativo else 0 }}, {{ op.perm_visualizacao or 0 }}, {{ op.perm_piquetes or 0 }}, {{ op.perm_lotes or 0 }}, {{ op.perm_mover_alocar_sair or 0 }})">
+                            <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick='editarOperador({{ op|tojson }})'>
                                 <i class="fa-solid fa-pen"></i> Editar
                             </button>
                             <a href="{{ url_for('gerente_toggle_operador', user_id=op.id) }}" 
@@ -326,25 +326,25 @@
             document.getElementById('modalOperador').classList.add('active');
         }
         
-        function editarOperador(id, username, nome, email, fazendasIds, ativo, permVisualizacao, permPiquetes, permLotes, permMover) {
+        function editarOperador(op) {
             document.getElementById('modal-titulo').textContent = 'Editar Operador';
-            document.getElementById('op-id').value = id;
-            document.getElementById('op-username').value = username || '';
-            document.getElementById('op-nome').value = nome || '';
-            document.getElementById('op-email').value = email || '';
+            document.getElementById('op-id').value = op.id;
+            document.getElementById('op-username').value = op.username || '';
+            document.getElementById('op-nome').value = op.nome || '';
+            document.getElementById('op-email').value = op.email || '';
             document.getElementById('op-password').value = '';
             document.getElementById('op-password').required = false;
             document.getElementById('label-senha').textContent = '(deixe em branco para manter)';
-            document.getElementById('op-ativo').checked = !!ativo;
+            document.getElementById('op-ativo').checked = !!op.ativo;
 
-            document.getElementById('perm-visualizacao').checked = !!permVisualizacao;
-            document.getElementById('perm-piquetes').checked = !!permPiquetes;
-            document.getElementById('perm-lotes').checked = !!permLotes;
-            document.getElementById('perm-mover').checked = !!permMover;
+            document.getElementById('perm-visualizacao').checked = !!op.perm_visualizacao;
+            document.getElementById('perm-piquetes').checked = !!op.perm_piquetes;
+            document.getElementById('perm-lotes').checked = !!op.perm_lotes;
+            document.getElementById('perm-mover').checked = !!op.perm_mover_alocar_sair;
             togglePermissoes();
             
             // Seleciona as fazendas
-            const fazendasArray = fazendasIds ? fazendasIds.split(',') : [];
+            const fazendasArray = op.fazendas_ids ? String(op.fazendas_ids).split(',') : [];
             document.querySelectorAll('.op-fazenda-checkbox').forEach(cb => {
                 cb.checked = fazendasArray.includes(cb.value);
             });

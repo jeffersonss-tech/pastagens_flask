@@ -1097,8 +1097,14 @@ def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
             consumo_diario = consumo_base * (ua_ha / 2)
             
             # Aplicar suplementação (ração via cocho) - ajuste pós-processamento
-            percentual_sup = piquete.get('percentual_suplementacao') or 0
-            possui_cocho = piquete.get('possui_cocho') or 0
+            try:
+                percentual_sup = piquete['percentual_suplementacao']
+            except Exception:
+                percentual_sup = 0
+            try:
+                possui_cocho = piquete['possui_cocho']
+            except Exception:
+                possui_cocho = 0
             if possui_cocho and percentual_sup > 0:
                 consumo_diario = aplicar_suplementacao(consumo_diario, percentual_sup)
             
