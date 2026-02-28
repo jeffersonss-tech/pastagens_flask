@@ -50,14 +50,34 @@
     <!-- Tabela de Usuários -->
     <div class="card shadow-sm border-0 bg-white">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold">Gestão de Contas</h5>
+            <div>
+                <h5 class="mb-1 fw-bold">Gestão de Contas</h5>
+                <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2" style="background:#f8f9fa;border:1px solid #e5e5e5;border-radius:12px;padding:10px;">
+                    <input type="text" id="filtro-busca" class="form-control form-control-sm" placeholder="Buscar por usuário, nome ou email" style="max-width: 260px;" oninput="aplicarFiltroUsuarios()">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <select id="filtro-role" class="form-select form-select-sm" style="min-width: 160px;" onchange="aplicarFiltroUsuarios()">
+                            <option value="">Todas as roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="gerente">Gerente</option>
+                            <option value="operador">Operador</option>
+                            <option value="user">Usuário</option>
+                        </select>
+                        <select id="filtro-status" class="form-select form-select-sm" style="min-width: 160px;" onchange="aplicarFiltroUsuarios()">
+                            <option value="">Status: Todos</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                        <button class="btn btn-outline-light border btn-sm" onclick="resetFiltroUsuarios()" title="Limpar filtros"><i class="fas fa-rotate-left"></i></button>
+                    </div>
+                </div>
+            </div>
             <button class="btn btn-primary px-3 d-flex align-items-center" onclick="abrirModalUsuario()">
                 <i class="fas fa-plus-circle me-2"></i> Novo Usuário
             </button>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="text-align: center; vertical-align: middle;">
+                <table id="tabela-usuarios" class="table table-hover align-middle mb-0" style="text-align: center; vertical-align: middle;">
                     <thead class="bg-light text-muted small text-uppercase">
                         <tr>
                             <th class="px-4 py-3" style="text-align: center;">ID</th>
@@ -71,7 +91,7 @@
                     </thead>
                     <tbody>
                         {% for u in usuarios %}
-                        <tr>
+                        <tr class="linha-usuario" data-role="{{ u.role }}" data-status="{{ 'ativo' if u.ativo else 'inativo' }}" data-text="{{ (u.username ~ ' ' ~ (u.nome or '') ~ ' ' ~ (u.email or ''))|lower }}">
                             <td class="px-4 text-muted small" style="text-align: center;">#{{ u.id }}</td>
                             <td style="text-align: left;">
                                 <div class="d-flex align-items-center" style="justify-content: flex-start;">
@@ -312,6 +332,32 @@
         if (e.target === this) {
             fecharModal();
         }
+    });
+
+    function aplicarFiltroUsuarios() {
+        const busca = (document.getElementById('filtro-busca').value || '').toLowerCase();
+        const role = document.getElementById('filtro-role').value;
+        const status = document.getElementById('filtro-status').value;
+        document.querySelectorAll('#tabela-usuarios tbody tr.linha-usuario').forEach(tr => {
+            const text = tr.dataset.text || '';
+            const r = tr.dataset.role || '';
+            const s = tr.dataset.status || '';
+            const matchBusca = !busca || text.includes(busca);
+            const matchRole = !role || r === role;
+            const matchStatus = !status || s === status;
+            tr.style.display = (matchBusca && matchRole && matchStatus) ? '' : 'none';
+        });
+    }
+
+    function resetFiltroUsuarios() {
+        document.getElementById('filtro-busca').value = '';
+        document.getElementById('filtro-role').value = '';
+        document.getElementById('filtro-status').value = '';
+        aplicarFiltroUsuarios();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        aplicarFiltroUsuarios();
     });
 </script>
 {% endblock %}
