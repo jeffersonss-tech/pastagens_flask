@@ -45,6 +45,23 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
         .card h2 { color: #1a1a2e; margin-bottom: 20px; }
+
+        .table-wrapper { overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; min-width: 760px; }
+
+        /* Mobile tweaks */
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .header { padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 8px; }
+            .user-info { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+            .card { padding: 18px; }
+            .card h2 { font-size: 1.05rem; }
+            .table { min-width: 100%; }
+            .table th, .table td { padding: 10px; font-size: 0.9rem; }
+            .btn { width: 100%; justify-content: center; }
+            .btn.btn-warning.btn-sm { width: auto; }
+            .modal-content { width: 95vw !important; max-height: 90vh; overflow-y: auto; }
+        }
         
         .back-link {
             display: inline-block;
@@ -156,7 +173,7 @@
         <a href="{{ url_for('home') }}" class="back-link">← Voltar para Minhas Fazendas</a>
         
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap;">
                 <h2><i class="fa-solid fa-users"></i> Gerenciamento de Operadores</h2>
                 <button class="btn btn-primary" onclick="abrirModalNovo()">
                     <i class="fa-solid fa-user-plus"></i> Novo Operador
@@ -164,61 +181,63 @@
             </div>
             
             {% if operadores %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Usuário</th>
-                        <th>Nome</th>
-                        <th>E-mail</th>
-                        <th>Fazendas</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for op in operadores %}
-                    <tr>
-                        <td>#{{ op.id }}</td>
-                        <td><strong>{{ op.username }}</strong></td>
-                        <td>{{ op.nome or '-' }}</td>
-                        <td>{{ op.email or '-' }}</td>
-                        <td>
-                            {% if op.fazendas_ids %}
-                            <span class="badge" style="background: #e3f2fd; color: #0d47a1;">
-                                {{ op.fazendas_ids.split(',')|length }} fazenda(s)
-                            </span>
-                            {% else %}
-                            -
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if op.ativo %}
-                            <span class="badge badge-ativo">Ativo</span>
-                            {% else %}
-                            <span class="badge badge-inativo">Inativo</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick='editarOperador({{ op|tojson }})'>
-                                <i class="fa-solid fa-pen"></i> Editar
-                            </button>
-                            <a href="{{ url_for('gerente_toggle_operador', user_id=op.id) }}" 
-                               class="btn btn-sm {{ 'btn-danger' if op.ativo else 'btn-success' }}"
-                               style="margin-right: 5px;"
-                               onclick="return confirm('{{ 'Desativar' if op.ativo else 'Ativar' }} operador?')">
-                                <i class="fa-solid {{ 'fa-ban' if op.ativo else 'fa-check' }}"></i>
-                            </a>
-                            <a href="{{ url_for('gerente_excluir_operador', user_id=op.id) }}" 
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Excluir operador \'{{ op.username }}\'? Esta ação não pode ser desfeita!')">
-                                <i class="fa-solid fa-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th>Nome</th>
+                            <th>E-mail</th>
+                            <th>Fazendas</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in operadores %}
+                        <tr>
+                            <td>#{{ op.id }}</td>
+                            <td><strong>{{ op.username }}</strong></td>
+                            <td>{{ op.nome or '-' }}</td>
+                            <td>{{ op.email or '-' }}</td>
+                            <td>
+                                {% if op.fazendas_ids %}
+                                <span class="badge" style="background: #e3f2fd; color: #0d47a1;">
+                                    {{ op.fazendas_ids.split(',')|length }} fazenda(s)
+                                </span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if op.ativo %}
+                                <span class="badge badge-ativo">Ativo</span>
+                                {% else %}
+                                <span class="badge badge-inativo">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" style="margin-right: 5px;" onclick='editarOperador({{ op|tojson }})'>
+                                    <i class="fa-solid fa-pen"></i> Editar
+                                </button>
+                                <a href="{{ url_for('gerente_toggle_operador', user_id=op.id) }}" 
+                                   class="btn btn-sm {{ 'btn-danger' if op.ativo else 'btn-success' }}"
+                                   style="margin-right: 5px;"
+                                   onclick="return confirm('{{ 'Desativar' if op.ativo else 'Ativar' }} operador?')">
+                                    <i class="fa-solid {{ 'fa-ban' if op.ativo else 'fa-check' }}"></i>
+                                </a>
+                                <a href="{{ url_for('gerente_excluir_operador', user_id=op.id) }}" 
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Excluir operador \'{{ op.username }}\'? Esta ação não pode ser desfeita!')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
             <div class="empty-state">
                 <p style="font-size: 18px; margin-bottom: 10px;">Nenhum operador cadastrado.</p>
