@@ -106,25 +106,25 @@ def calcular_data_expiracao(user_row):
     return min(datas)
 
 
-def desativar_gerente_e_operadores(gerente_id):
+def desativar_gerente_e_operadores(gerente_id, desativar=True):
     conn = get_db()
     cursor = conn.cursor()
 
-    # Desativa gerente
-    cursor.execute('UPDATE usuarios SET ativo = 0, updated_at = ? WHERE id = ? AND role = "gerente"', (datetime.now().isoformat(), gerente_id))
+    # Desativa/ativa gerente
+    cursor.execute('UPDATE usuarios SET ativo = ?, updated_at = ? WHERE id = ? AND role = "gerente"', (0 if desativar else 1, datetime.now().isoformat(), gerente_id))
 
-    # Desativar operadores vinculados às fazendas do gerente
+    # Desativar/ativar operadores vinculados às fazendas do gerente
     cursor.execute('SELECT id FROM fazendas WHERE usuario_id = ?', (gerente_id,))
     fazendas = [row['id'] for row in cursor.fetchall()]
     if fazendas:
         placeholders = ','.join(['?'] * len(fazendas))
         cursor.execute(f'''
             UPDATE usuarios
-            SET ativo = 0, updated_at = ?
+            SET ativo = ?, updated_at = ?
             WHERE role = 'operador' AND id IN (
                 SELECT DISTINCT user_id FROM user_farm_permissions WHERE farm_id IN ({placeholders})
             )
-        ''', [datetime.now().isoformat()] + fazendas)
+        ''', [0 if desativar else 1, datetime.now().isoformat()] + fazendas)
 
     conn.commit()
     conn.close()

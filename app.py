@@ -275,12 +275,26 @@ def admin_salvar_usuario():
 @app.route('/admin/usuario/toggle/<int:user_id>')
 @database.role_required('admin')
 def admin_toggle_usuario(user_id):
-    """Ativa/Desativa usuário"""
+    """Ativa/Desativa usuário e operadores do gerente (se for gerente)."""
     conn = database.get_db()
     cursor = conn.cursor()
-    cursor.execute('UPDATE usuarios SET ativo = NOT ativo WHERE id = ?', (user_id,))
-    conn.commit()
-    conn.close()
+    cursor.execute('SELECT role, ativo FROM usuarios WHERE id = ?', (user_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return redirect(url_for('admin_dashboard'))
+    role = row['role']
+    ativo_atual = row['ativo']
+    novo_status = 0 if ativo_atual else 1
+
+    if role == 'gerente':
+        conn.close()
+        database.desativar_gerente_e_operadores(user_id, desativar=(novo_status == 0))
+    else:
+        cursor.execute('UPDATE usuarios SET ativo = ?, updated_at = ? WHERE id = ?', (novo_status, database.datetime.now().isoformat(), user_id))
+        conn.commit()
+        conn.close()
+
     return redirect(url_for('admin_dashboard'))
 
 
