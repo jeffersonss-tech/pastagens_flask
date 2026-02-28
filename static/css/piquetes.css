@@ -4,6 +4,36 @@
 #piquetes-section { display: none; }
 #piquetes-section.active { display: block; }
 
+/* Modais de piquete - responsivo */
+.piquete-modal {
+    width: 600px;
+    max-width: 98vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding-right: 12px;
+}
+@media (max-width: 768px) {
+    .piquete-modal {
+        width: 95vw;
+    }
+}
+
+.piquete-tech-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.piquete-adv-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+@media (max-width: 768px) {
+    .piquete-tech-grid { grid-template-columns: 1fr; }
+    .piquete-adv-grid { grid-template-columns: 1fr; }
+}
+
 /* Grid de Piquetes (Cards) */
 .piquetes-grid { 
     display: grid; 
