@@ -1215,11 +1215,15 @@ async function salvarPiquete() {
                 } catch (e) {
                     mensagem = await response.text().catch(() => '');
                 }
-                mensagem = mensagem || 'Sem permissão ou dados inválidos';
-                throw new Error(mensagem);
+                mensagem = mensagem || 'Erro de validação ou permissão';
+                const err = new Error(mensagem);
+                err.isClientError = true;
+                throw err;
             }
             const mensagem = await response.text().catch(() => '');
-            throw new Error(mensagem || 'Status ' + response.status);
+            const err = new Error(mensagem || 'Status ' + response.status);
+            err.isClientError = response.status >= 400 && response.status < 500;
+            throw err;
         }
         await response.json();
         alert('Piquete salvo!');
@@ -1227,9 +1231,10 @@ async function salvarPiquete() {
         loadAll();
     } catch (err) {
         console.error('Erro ao salvar piquete online:', err);
+        const isClientError = err?.isClientError === true;
         const isAuthError = /403|401|permiss|Sem permissão|Acesso negado/i.test(err.message || '');
-        const isValidation = /400|dados inválidos/i.test(err.message || '');
-        if (!navigator.onLine || (!isAuthError && !isValidation)) {
+        const isValidation = /400|dados inválidos|Limite/i.test(err.message || '');
+        if (!navigator.onLine || (!isClientError && !isAuthError && !isValidation)) {
             try {
                 await queueOfflinePiquete(payload);
                 alert('Não foi possível enviar agora. Piquete salvo offline e será sincronizado quando voltar.');
