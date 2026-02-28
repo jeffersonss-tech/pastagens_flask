@@ -4,6 +4,10 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
 /* Content */
 .content { padding: 25px; }
 
+@media (max-width: 768px) {
+    .content { padding: 14px; }
+}
+
 /* Stats Cards */
 .stats-row {
     display: grid;
@@ -24,6 +28,16 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
 .stat-card-lotes.saida strong { color: #dc3545; }
 .stat-card-lotes.disponivel strong { color: #28a745; }
 .stat-card-lotes span { color: #666; font-size: 0.85rem; }
+
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .stat-card-lotes { padding: 14px; }
+    .stat-card-lotes strong { font-size: 1.6rem; }
+    .stat-card-lotes span { font-size: 0.8rem; }
+}
 
 /* Filters */
 .filters {
@@ -78,6 +92,12 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
     cursor: pointer;
     font-size: 0.85rem;
 }
+
+@media (max-width: 768px) {
+    .filters { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); padding: 12px; }
+    .filter-actions { justify-content: flex-start; }
+    .filter-actions button { padding: 8px 12px; }
+}
 .btn-primary-lotes { background: #00d9ff; color: #1a1a2e; }
 .btn-success-lotes { background: #28a745; color: white; }
 .btn-warning-lotes { background: #ffc107; color: #333; }
@@ -102,12 +122,24 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
 .table-wrapper {
     max-height: 520px;
     overflow-y: auto;
+    overflow-x: auto;
 }
 
-.scrollable-lotes table { width: 100%; border-collapse: collapse; }
+.scrollable-lotes table { width: 100%; border-collapse: collapse; min-width: 720px; }
 .scrollable-lotes th, .scrollable-lotes td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
 .scrollable-lotes th { background: #f8f9fa; font-size: 0.85rem; color: #666; font-weight: 500; position: sticky; top: 0; z-index: 2; }
 .scrollable-lotes tr:hover { background: #f8f9fa; }
+
+@media (max-width: 768px) {
+    .content { padding: 12px; }
+    .filters { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; padding: 12px; }
+    .table-container { border-radius: 10px; }
+    .table-header { padding: 12px; }
+    .table-wrapper { max-height: none; }
+    .scrollable-lotes table { min-width: 100%; }
+    .scrollable-lotes th, .scrollable-lotes td { padding: 10px 12px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
 
 /* Status Badges */
 .status-badge {
