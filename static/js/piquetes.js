@@ -1315,7 +1315,19 @@ function salvarEdicaoPiquete() {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(bodyObj)
-    }).then(r => r.json()).then(data => {
+    }).then(async r => {
+        if (!r.ok) {
+            let msg = 'Erro ao atualizar';
+            try {
+                const js = await r.json();
+                msg = js?.error || js?.message || msg;
+            } catch (e) {
+                msg = (await r.text().catch(() => '')) || msg;
+            }
+            throw new Error(msg);
+        }
+        return r.json();
+    }).then(data => {
         if (data.status === 'ok') {
             alert('Piquete atualizado!');
             fecharModalEditarPiquete();
@@ -1323,6 +1335,8 @@ function salvarEdicaoPiquete() {
         } else {
             alert('Erro ao atualizar!');
         }
+    }).catch(err => {
+        alert(err.message || 'Erro ao atualizar!');
     });
 }
 
@@ -1331,7 +1345,20 @@ function excluirPiquete() {
     if (!id) return;
     if (!confirm('Tem certeza que deseja excluir este piquete?')) return;
     fetch('/api/piquetes/' + id, { method: 'DELETE' })
-        .then(r => r.json()).then(data => {
+        .then(async r => {
+            if (!r.ok) {
+                let msg = 'Erro ao excluir';
+                try {
+                    const js = await r.json();
+                    msg = js?.error || js?.message || msg;
+                } catch (e) {
+                    msg = (await r.text().catch(() => '')) || msg;
+                }
+                throw new Error(msg);
+            }
+            return r.json();
+        })
+        .then(data => {
             if (data.status === 'ok') {
                 alert('Piquete excluído!');
                 fecharModalEditarPiquete();
@@ -1339,7 +1366,8 @@ function excluirPiquete() {
             } else {
                 alert('Erro ao excluir!');
             }
-        });
+        })
+        .catch(err => alert(err.message || 'Erro ao excluir!'));
 }
 
 window.addEventListener('resize', () => {

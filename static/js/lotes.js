@@ -306,7 +306,7 @@ function abrirModalNovoLote() {
     carregarPiquetesSelect();
 }
 
-function salvarLote() {
+async function salvarLote() {
     const nome = document.getElementById('lote-nome').value;
     if (!nome) return alert('Digite o nome do lote!');
     const categoria = document.getElementById('lote-categoria').value;
@@ -322,13 +322,21 @@ function salvarLote() {
         payload.peso_medio = window.personalizadoParams.peso_medio;
         payload.consumo_base = window.personalizadoParams.consumo_base;
     }
-    fetch('/api/lotes', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-    }).then(r => r.json()).then(data => {
+    try {
+        const r = await fetch('/api/lotes', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        if (!r.ok) {
+            const msg = await parseErrorResponse(r, 'Erro ao criar lote');
+            throw new Error(msg);
+        }
+        const data = await r.json();
         if (data.status === 'ok') { fecharModal('modal-lote'); carregarLotes(); alert('Lote criado com sucesso!'); }
-    });
+    } catch (err) {
+        alert(err.message || 'Erro ao criar lote');
+    }
 }
 
 function abrirModalMover(loteId, nome) {
@@ -364,6 +372,16 @@ function abrirModalMover(loteId, nome) {
         });
 }
 
+async function parseErrorResponse(response, fallback = 'Erro') {
+    try {
+        const js = await response.json();
+        return js?.error || js?.message || fallback;
+    } catch (e) {
+        const txt = await response.text().catch(() => '');
+        return txt || fallback;
+    }
+}
+
 let piqueteSelecionado = null;
 function selecionarPiquete(id, el) {
     document.querySelectorAll('.sugestao-item').forEach(i => i.classList.remove('selecionado'));
@@ -371,21 +389,38 @@ function selecionarPiquete(id, el) {
     piqueteSelecionado = id;
 }
 
-function confirmarMovimentacao() {
+async function confirmarMovimentacao() {
     if (!piqueteSelecionado) return alert('Selecione um piquete!');
-    fetch(`/api/lotes/${document.getElementById('mover-lote-id').value}/mover?fazenda_id=${fazendaId}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ piquete_destino_id: piqueteSelecionado })
-    }).then(r => r.json()).then(data => {
+    try {
+        const r = await fetch(`/api/lotes/${document.getElementById('mover-lote-id').value}/mover?fazenda_id=${fazendaId}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ piquete_destino_id: piqueteSelecionado })
+        });
+        if (!r.ok) {
+            const msg = await parseErrorResponse(r, 'Erro ao mover lote');
+            throw new Error(msg);
+        }
+        const data = await r.json();
         if (data.status === 'ok') { fecharModal('modal-mover'); carregarLotes(); alert('Lote movido!'); piqueteSelecionado = null; }
-    });
+    } catch (err) {
+        alert(err.message || 'Erro ao mover lote');
+    }
 }
 
-function registrarSaida(loteId) {
+async function registrarSaida(loteId) {
     if (!confirm('Registrar saída do lote?')) return;
-    fetch(`/api/lotes/${loteId}/sair?fazenda_id=${fazendaId}`, {method: 'POST'})
-        .then(r => r.json()).then(data => { if (data.status === 'ok') carregarLotes(); });
+    try {
+        const r = await fetch(`/api/lotes/${loteId}/sair?fazenda_id=${fazendaId}`, {method: 'POST'});
+        if (!r.ok) {
+            const msg = await parseErrorResponse(r, 'Erro ao registrar saída');
+            throw new Error(msg);
+        }
+        const data = await r.json();
+        if (data.status === 'ok') carregarLotes();
+    } catch (err) {
+        alert(err.message || 'Erro ao registrar saída');
+    }
 }
 
 function abrirModalEditar(loteId) {
@@ -521,7 +556,7 @@ function abrirModalDetalhes(loteId) {
     document.getElementById('modal-detalhes').classList.add('active');
 }
 
-function salvarEdicaoLote() {
+async function salvarEdicaoLote() {
     const id = document.getElementById('edit-lote-id').value;
     const payload = {
         nome: document.getElementById('edit-lote-nome').value,
@@ -530,18 +565,47 @@ function salvarEdicaoLote() {
         peso_medio: parseFloat(document.getElementById('edit-lote-peso').value) || 0,
         piquete_atual_id: document.getElementById('edit-lote-piquete').value || null
     };
-    fetch(`/api/lotes/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
-        .then(r => r.json()).then(data => { if (data.status === 'ok') { fecharModal('modal-editar'); carregarLotes(); alert('Lote atualizado!'); } });
+    try {
+        const r = await fetch(`/api/lotes/${id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+        if (!r.ok) {
+            const msg = await parseErrorResponse(r, 'Erro ao atualizar lote');
+            throw new Error(msg);
+        }
+        const data = await r.json();
+        if (data.status === 'ok') { fecharModal('modal-editar'); carregarLotes(); alert('Lote atualizado!'); }
+    } catch (err) {
+        alert(err.message || 'Erro ao atualizar lote');
+    }
 }
 
-function excluirLote() {
+async function excluirLote() {
     const id = document.getElementById('edit-lote-id').value;
     if (!confirm(`Excluir lote?`)) return;
-    fetch(`/api/lotes/${id}`, {method: 'DELETE'}).then(r => r.json()).then(data => { if (data.status === 'ok') { fecharModal('modal-editar'); carregarLotes(); } });
+    try {
+        const r = await fetch(`/api/lotes/${id}`, {method: 'DELETE'});
+        if (!r.ok) {
+            const msg = await parseErrorResponse(r, 'Erro ao excluir lote');
+            throw new Error(msg);
+        }
+        const data = await r.json();
+        if (data.status === 'ok') { fecharModal('modal-editar'); carregarLotes(); }
+    } catch (err) {
+        alert(err.message || 'Erro ao excluir lote');
+    }
 }
 
-function atualizarStatus() {
-    fetch(`/api/lotes/atualizar-status?fazenda_id=${fazendaId}`, {method: 'POST'}).then(r => r.json()).then(data => { if (data.status === 'ok') carregarLotes(); });
+async function atualizarStatus() {
+    try {
+        const r = await fetch(`/api/lotes/atualizar-status?fazenda_id=${fazendaId}`, {method: 'POST'});
+        if (!r.ok) {
+            const msg = await parseErrorResponse(r, 'Erro ao atualizar status');
+            throw new Error(msg);
+        }
+        const data = await r.json();
+        if (data.status === 'ok') carregarLotes();
+    } catch (err) {
+        alert(err.message || 'Erro ao atualizar status');
+    }
 }
 
 function abrirModalTodosPiquetes(loteId) {
