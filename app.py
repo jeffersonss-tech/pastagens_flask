@@ -301,18 +301,46 @@ def admin_toggle_usuario(user_id):
 @app.route('/admin/usuario/excluir/<int:user_id>')
 @database.role_required('admin')
 def admin_excluir_usuario(user_id):
-    """Exclui um usuário"""
+    """Exclui um usuário. Se for gerente, exclui operadores vinculados às suas fazendas."""
     # Não permite excluir a si mesmo
     if user_id == session.get('user_id'):
         return "Não é possível excluir seu próprio usuário", 400
     
     conn = database.get_db()
     cursor = conn.cursor()
-    
-    # Remove permissões primeiro
-    cursor.execute('DELETE FROM user_farm_permissions WHERE user_id = ?', (user_id,))
-    # Remove o usuário
-    cursor.execute('DELETE FROM usuarios WHERE id = ?', (user_id,))
+
+    # Identificar role
+    cursor.execute('SELECT role FROM usuarios WHERE id = ?', (user_id,))
+    row = cursor.fetchone()
+    role = row['role'] if row else None
+
+    if role == 'gerente':
+        # Buscar fazendas do gerente
+        cursor.execute('SELECT id FROM fazendas WHERE usuario_id = ?', (user_id,))
+        fazendas = [r['id'] for r in cursor.fetchall()]
+        if fazendas:
+            placeholders = ','.join(['?'] * len(fazendas))
+            # Operadores vinculados a essas fazendas
+            cursor.execute(f'''
+                SELECT DISTINCT user_id FROM user_farm_permissions
+                WHERE farm_id IN ({placeholders})
+            ''', fazendas)
+            operadores_ids = [r['user_id'] for r in cursor.fetchall()]
+            if operadores_ids:
+                op_placeholders = ','.join(['?'] * len(operadores_ids))
+                # Remove permissões dos operadores
+                cursor.execute(f'DELETE FROM user_farm_permissions WHERE user_id IN ({op_placeholders})', operadores_ids)
+                # Exclui operadores
+                cursor.execute(f'DELETE FROM usuarios WHERE id IN ({op_placeholders}) AND role = "operador"', operadores_ids)
+        # Remove permissões do gerente
+        cursor.execute('DELETE FROM user_farm_permissions WHERE user_id = ?', (user_id,))
+        # Exclui gerente
+        cursor.execute('DELETE FROM usuarios WHERE id = ? AND role = "gerente"', (user_id,))
+    else:
+        # Remove permissões primeiro
+        cursor.execute('DELETE FROM user_farm_permissions WHERE user_id = ?', (user_id,))
+        # Remove o usuário
+        cursor.execute('DELETE FROM usuarios WHERE id = ?', (user_id,))
     
     conn.commit()
     conn.close()
