@@ -727,7 +727,7 @@ function mostrarPiquete(id) {
         const sinal = diff >= 0 ? '+' : '';
         estimativaInfo = `<p style="color:#6c757d;font-size:0.85rem;margin-top:5px;"><strong>Estimativa do sistema:</strong> ${p.altura_estimada} cm (${sinal}${diff.toFixed(1)} cm)</p>`;
     } else if (!temReal && p.altura_estimada !== null) {
-        estimativaInfo = `<p style="color:#fd7e14;font-size:0.85rem;margin-top:5px;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Valor estimado</strong> - <a href="#" onclick="fecharModal('modal-ver-piquete'); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color:#007bff;">Atualizar medição</a></p>`;
+        estimativaInfo = `<p style="color:#fd7e14;font-size:0.85rem;margin-top:5px;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Valor estimado</strong> - <a href="#" onclick="fecharModalVerPiquete(); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color:#007bff;">Atualizar medição</a></p>`;
     }
     document.getElementById('info-piquete').innerHTML = `
         <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">

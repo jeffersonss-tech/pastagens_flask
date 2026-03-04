@@ -619,7 +619,7 @@ function renderPiquetesCards() {
                 } else {
                     badgeClass = 'badge-yellow';
                     badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> PRECISA MEDIR';
-                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${alturaMostrada}cm (estimada) - <a href="#" onclick="fecharModal('modal-ver-piquete'); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color: #007bff;">Atualizar medição</a></small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${alturaMostrada}cm (estimada) - <a href="#" onclick="fecharModalVerPiquete(); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color: #007bff;">Atualizar medição</a></small>`;
                 }
             } else if (p.estado === 'ocupado') {
                 const diasTecnicos = p.dias_tecnicos || 30;
