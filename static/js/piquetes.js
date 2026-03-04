@@ -650,7 +650,7 @@ function mostrarPiquete(id) {
     if (!temAlgumaAltura) {
         estadoTexto = '<i class="fa-solid fa-triangle-exclamation"></i> Aguardando Altura';
         estadoBadge = 'badge-orange';
-        alturaInfo = `<p style="color:#fd7e14;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Altura não calculada</strong><br>É necessário informar a altura inicial</p>`;
+        alturaInfo = `<p style=\"color:#fd7e14;\"><strong><i class=\"fa-solid fa-triangle-exclamation\"></i> Altura não calculada</strong><br>É necessário informar a altura inicial</p>`;
     } else if (p.estado === 'ocupado') {
         estadoTexto = '<i class="fa-solid fa-circle" style="color:#007bff;"></i> Em Ocupação';
         estadoBadge = 'badge-blue';
@@ -659,11 +659,23 @@ function mostrarPiquete(id) {
     } else if (p.altura_estimada >= p.altura_entrada) {
         estadoTexto = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
         estadoBadge = 'badge-green';
-        alturaInfo = `<p><strong>Altura Atual:</strong> ${p.altura_estimada} cm ${alturaBadge}</p>`;
+        const linhasAltura = [];
+        if (p.altura_estimada !== null && p.altura_estimada !== undefined) {
+            linhasAltura.push(`<p><strong>Altura Estimada:</strong> ${p.altura_estimada} cm <span style=\"background:#fd7e14;color:white;padding:2px 8px;border-radius:10px;font-size:0.75rem;margin-left:5px;\"><i class=\"fa-solid fa-ruler-combined\"></i> ESTIMADA</span></p>`);
+        }
+        if (temReal) {
+            linhasAltura.push(`<p><strong>Altura Medida:</strong> ${p.altura_real_medida} cm <span style=\"background:#28a745;color:white;padding:2px 8px;border-radius:10px;font-size:0.75rem;margin-left:5px;\"><i class=\"fa-solid fa-ruler-vertical\"></i> MEDIDA</span></p>`);
+        }
+        alturaInfo = linhasAltura.join('');
     } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
         estadoTexto = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
         estadoBadge = 'badge-green';
-        alturaInfo = `<p><strong>Altura Atual:</strong> ${p.altura_real_medida} cm ${alturaBadge}</p>`;
+        const linhasAltura = [];
+        linhasAltura.push(`<p><strong>Altura Medida:</strong> ${p.altura_real_medida} cm <span style=\"background:#28a745;color:white;padding:2px 8px;border-radius:10px;font-size:0.75rem;margin-left:5px;\"><i class=\"fa-solid fa-ruler-vertical\"></i> MEDIDA</span></p>`);
+        if (p.altura_estimada !== null && p.altura_estimada !== undefined) {
+            linhasAltura.push(`<p style=\"color:#6c757d;\"><strong>Altura Estimada:</strong> ${p.altura_estimada} cm <span style=\"background:#fd7e14;color:white;padding:2px 8px;border-radius:10px;font-size:0.75rem;margin-left:5px;\"><i class=\"fa-solid fa-ruler-combined\"></i> ESTIMADA</span></p>`);
+        }
+        alturaInfo = linhasAltura.join('');
     } else {
         estadoTexto = '<i class="fa-solid fa-rotate-right"></i> Recuperando';
         estadoBadge = 'badge-yellow';
