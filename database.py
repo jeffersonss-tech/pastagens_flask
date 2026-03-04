@@ -1522,7 +1522,7 @@ def listar_piquetes(fazenda_id=None):
     # Buscar contagem de animais e dados do lote por piquete
     cursor.execute('''
         SELECT l.piquete_atual_id, COUNT(*) as total_lotes, SUM(l.quantidade) as total_animais,
-               l.id as lote_id, l.data_entrada, l.dias_tecnicos, l.data_saida_prevista,
+               l.id as lote_id, l.nome as lote_nome, l.data_entrada, l.dias_tecnicos, l.data_saida_prevista,
                l.categoria, l.peso_medio, l.consumo_base
         FROM lotes l
         WHERE l.ativo = 1 AND l.piquete_atual_id IS NOT NULL
@@ -1541,6 +1541,7 @@ def listar_piquetes(fazenda_id=None):
             row_dict['lotes_no_piquete'] = lote_info['total_lotes']
             row_dict['animais_no_piquete'] = lote_info['total_animais']
             row_dict['lote_id'] = lote_info['lote_id']
+            row_dict['lote_nome'] = lote_info.get('lote_nome')
             row_dict['dias_tecnicos'] = lote_info['dias_tecnicos']
             row_dict['data_saida_prevista'] = lote_info['data_saida_prevista']
             
@@ -1574,6 +1575,7 @@ def listar_piquetes(fazenda_id=None):
             row_dict['animais_no_piquete'] = 0
             row_dict['dias_no_piquete'] = 0
             row_dict['lote_id'] = None
+            row_dict['lote_nome'] = None
             row_dict['dias_tecnicos'] = None
             row_dict['data_saida_prevista'] = None
             row_dict['dias_ate_saida'] = None

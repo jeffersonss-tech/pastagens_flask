@@ -729,11 +729,16 @@ function mostrarPiquete(id) {
     } else if (!temReal && p.altura_estimada !== null) {
         estimativaInfo = `<p style="color:#fd7e14;font-size:0.85rem;margin-top:5px;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Valor estimado</strong> - <a href="#" onclick="fecharModalVerPiquete(); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color:#007bff;">Atualizar medição</a></p>`;
     }
+    const loteInfo = (p.estado === 'ocupado' && (p.lote_nome || p.lote_id))
+        ? `<p><strong>Lote atual:</strong> ${p.lote_nome || 'Lote #' + p.lote_id} ${p.lote_id ? `(ID: ${p.lote_id})` : ''}</p>`
+        : '';
+
     document.getElementById('info-piquete').innerHTML = `
         <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
             <h4 style="margin-bottom: 10px; color: #1976d2;"><i class="fa-solid fa-map-location-dot"></i> ${p.nome}</h4>
             <p><strong>Área:</strong> ${p.area || 0} hectares</p>
             <p><strong>Capim:</strong> ${p.capim || 'N/I'}</p>
+            ${loteInfo}
             <p><strong>Estado:</strong> <span class="badge ${estadoBadge}" style="color: white;">${estadoTexto}</span></p>
             ${diasInfo}
         </div>
