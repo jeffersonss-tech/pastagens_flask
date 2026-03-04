@@ -526,7 +526,7 @@ function drawAllPiquetesOnMap() {
                     <strong style="font-size:14px;">${p.nome}</strong><br>
                     <span class="badge ${badgeClass}" style="font-size:0.7rem;">${badgeText}</span><br>
                     <p style="margin:5px 0;"><i class="fa-solid fa-ruler-combined"></i> ${p.area || 0} hectares | <i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
-                    ${p.animais_no_piquete > 0 ? `<p style="color:#007bff;margin:5px 0;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animal(is)</strong></p>` : ''}
+                    ${p.animais_no_piquete > 0 ? `<p style="color:#007bff;margin:5px 0;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animais</strong></p>` : ''}
                     ${p.altura_real_medida ? `<p style="color:#28a745;margin:5px 0;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_real_medida}cm (medida)</p>` : ''}
                     ${p.data_medicao ? `<p style="color:#999;font-size:0.75rem;margin:5px 0;"><i class="fa-regular fa-calendar"></i> ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</p>` : ''}
                     ${statusInfo ? `<p style="margin:5px 0;">${statusInfo}</p>` : ''}
@@ -705,7 +705,7 @@ function renderPiquetesCards() {
                 <h4>${p.nome}</h4>
                 <p><i class="fa-solid fa-ruler-combined"></i> ${p.area || 0} hectares</p>
                 <p><i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
-                ${animaisNoPiquete ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animal(is)</strong></p>` : ''}
+                ${animaisNoPiquete ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animais</strong></p>` : ''}
                 ${p.dias_tecnicos ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-chart-simple"></i> ${p.dias_tecnicos} dias técnicos</strong></p>` : ''}
                 <span class="badge ${badgeClass}">${badgeText}</span>
                 ${statusInfo ? `<br>${statusInfo}` : ''}

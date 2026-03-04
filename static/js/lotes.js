@@ -270,7 +270,7 @@ function renderizarTabela() {
                 return `<button class="btn-edit" onclick="abrirModalEditar(${lote.id})"><i class="fa-solid fa-pen"></i> Edit</button>`;
             })();
             
-            return `<tr><td style="cursor: pointer;" onclick="abrirModalDetalhes(${lote.id})"><strong style="color: #007bff;">${lote.nome}</strong><br><small style="color: #666;">${lote.categoria || '-'} • ${lote.quantidade || 0} animai(s)</small></td><td>${piqueteInfo}</td><td>${diasHtml}</td><td>${statusBadge}</td><td>${proximoHtml}</td><td>${actions}</td></tr>`;
+            return `<tr><td style="cursor: pointer;" onclick="abrirModalDetalhes(${lote.id})"><strong style="color: #007bff;">${lote.nome}</strong><br><small style="color: #666;">${lote.categoria || '-'} • ${lote.quantidade || 0} animais</small></td><td>${piqueteInfo}</td><td>${diasHtml}</td><td>${statusBadge}</td><td>${proximoHtml}</td><td>${actions}</td></tr>`;
         }).join('');
     });
 }
