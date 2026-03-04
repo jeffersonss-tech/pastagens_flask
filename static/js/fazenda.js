@@ -470,8 +470,8 @@ function drawAllPiquetesOnMap() {
                 } else {
                     badgeClass = 'badge-yellow';
                     badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> PRECISA MEDIR';
-                    statusInfo = `<small style="color: #fd7e14;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
-                    avisoMedicao = `<br><small style="color:#fd7e14;"><i class="fa-solid fa-ruler-combined"></i> ${p.altura_estimada}cm estimada</small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
+                    avisoMedicao = `<br><small style="color: #007bff;"><i class="fa-solid fa-ruler-combined"></i> ${p.altura_estimada}cm estimada</small>`;
                 }
             } else if (p.estado === 'ocupado') {
                 badgeClass = 'badge-blue';
@@ -619,7 +619,7 @@ function renderPiquetesCards() {
                 } else {
                     badgeClass = 'badge-yellow';
                     badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> PRECISA MEDIR';
-                    statusInfo = `<small style="color: #fd7e14;"><i class="fa-solid fa-ruler-vertical"></i> ${alturaMostrada}cm (estimada) - <a href="#" onclick="fecharModal('modal-ver-piquete'); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color:#007bff;">Atualizar medição</a></small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${alturaMostrada}cm (estimada) - <a href="#" onclick="fecharModal('modal-ver-piquete'); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color: #007bff;">Atualizar medição</a></small>`;
                 }
             } else if (p.estado === 'ocupado') {
                 const diasTecnicos = p.dias_tecnicos || 30;
@@ -644,7 +644,7 @@ function renderPiquetesCards() {
             } else if (p.altura_estimada >= p.altura_entrada) {
                 badgeClass = 'badge-green';
                 badgeText = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
-                statusInfo = `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
+                statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
             } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
                 badgeClass = 'badge-green';
                 badgeText = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';

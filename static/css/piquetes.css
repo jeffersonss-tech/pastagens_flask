@@ -58,7 +58,7 @@
 .piquete-card.ocupado { border-left-color: #dc3545; background: #fff5f5; }
 .piquete-card.recuperando { border-left-color: #fd7e14; background: #fff8f0; }
 .piquete-card.disponivel { border-left-color: #28a745; background: #f0fff4; }
-.piquete-card.sem-altura { border-left-color: #ffc107; background: #fffdf0; }
+.piquete-card.sem-altura { border-left-color: #1a1301; background: #fffdf0; }
 
 .piquete-card h4 { color: #1a1a2e; margin-bottom: 8px; }
 .piquete-card p { color: #666; font-size: 0.85rem; margin-bottom: 5px; }

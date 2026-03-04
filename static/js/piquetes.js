@@ -504,13 +504,13 @@ async function drawAllPiquetes() {
                 } else {
                     badgeClass = 'badge-yellow';
                     badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> PRECISA MEDIR';
-                    statusInfo = `<small style="color: #fd7e14;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
                     avisoMedicao = `<br><small style="color:#fd7e14;"><i class="fa-solid fa-ruler-combined"></i> Altura estimada: ${p.altura_estimada}cm</small>`;
                 }
             } else if (p.estado === 'ocupado') {
                 badgeClass = 'badge-blue';
                 badgeText = '<i class="fa-solid fa-circle"></i> Em Ocupação';
-                statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada || '?'}cm (est.)</small>`;
+                statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada || '?'}cm (estimada)</small>`;
             } else if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) {
                 badgeClass = 'badge-green';
                 badgeText = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
