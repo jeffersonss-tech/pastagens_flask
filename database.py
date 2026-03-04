@@ -1541,7 +1541,7 @@ def listar_piquetes(fazenda_id=None):
             row_dict['lotes_no_piquete'] = lote_info['total_lotes']
             row_dict['animais_no_piquete'] = lote_info['total_animais']
             row_dict['lote_id'] = lote_info['lote_id']
-            row_dict['lote_nome'] = lote_info.get('lote_nome')
+            row_dict['lote_nome'] = lote_info['lote_nome']
             row_dict['dias_tecnicos'] = lote_info['dias_tecnicos']
             row_dict['data_saida_prevista'] = lote_info['data_saida_prevista']
             
