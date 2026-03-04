@@ -514,9 +514,13 @@ async function drawAllPiquetes() {
             } else if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) {
                 badgeClass = 'badge-green';
                 badgeText = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
-                const valorAltura = p.altura_real_medida || p.altura_estimada;
-                const fonteLabel = (temReal && p.altura_real_medida !== null) ? '(medida)' : '(estimada)';
-                statusInfo = `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${valorAltura}cm ${fonteLabel}</small>`;
+                const alturaEstimada = p.altura_estimada;
+                const alturaMedida = temReal ? p.altura_real_medida : null;
+                if (alturaEstimada !== null && alturaEstimada !== undefined) {
+                    statusInfo = `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${alturaEstimada}cm (estimada)</small>`;
+                } else if (alturaMedida !== null && alturaMedida !== undefined) {
+                    statusInfo = `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${alturaMedida}cm (medida)</small>`;
+                }
             } else {
                 badgeClass = 'badge-orange';
                 badgeText = '<i class="fa-solid fa-rotate-right"></i> Recuperando';
