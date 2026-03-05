@@ -82,6 +82,18 @@
     color: #1a1a2e !important;
 }
 
+/* Scroll interno por grupo de cards */
+#lista-saida,
+#lista-proximo,
+#lista-ocupacao,
+#lista-apto,
+#lista-descanso,
+#lista-bloqueado {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
 /* Cards de Piquetes */
 .piquete-card {
     display: flex;
@@ -168,3 +180,67 @@
 }
 .btn-rotacao-primary { background: #00d9ff; color: #1a1a2e; }
 .btn-rotacao-warning { background: #ffc107; color: #333; }
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    .resumo-gerais { grid-template-columns: repeat(4, 1fr); }
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 900px) {
+    .resumo-gerais { grid-template-columns: repeat(3, 1fr); }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .content { padding: 15px; }
+    .actions-row { flex-direction: column; }
+    .actions-row .btn-rotacao { width: 100%; }
+}
+
+@media (max-width: 640px) {
+    .content { padding-top: 80px; }
+    /* Transformar cards superiores em carrossel horizontal compacto */
+    .resumo-gerais,
+    .stats-row {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 8px;
+        scrollbar-width: thin;
+    }
+    .resumo-gerais::-webkit-scrollbar,
+    .stats-row::-webkit-scrollbar { height: 6px; }
+    .resumo-gerais::-webkit-scrollbar-thumb,
+    .stats-row::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    .resumo-box,
+    .stat-box {
+        min-width: 150px;
+        padding: 12px;
+        flex: 0 0 auto;
+    }
+    .resumo-box strong { font-size: 1.2rem; }
+    .stat-box strong { font-size: 1.3rem; }
+
+    /* Scroll interno mais baixo em mobile para listas de piquetes */
+    #lista-saida,
+    #lista-proximo,
+    #lista-ocupacao,
+    #lista-apto,
+    #lista-descanso,
+    #lista-bloqueado {
+        max-height: 360px;
+    }
+
+    .piquete-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .acao { text-align: left; min-width: auto; width: 100%; }
+    .piquete-meta { flex-wrap: wrap; }
+    .progress { width: 100%; }
+    .section { padding: 15px; }
+    .legend { padding: 10px; }
+}
+
+@media (max-width: 480px) {
+    .resumo-gerais { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr; }
+    .resumo-box strong { font-size: 1.3rem; }
+    .stat-box strong { font-size: 1.4rem; }
+    .section h2 { font-size: 1.1rem; }
+}
