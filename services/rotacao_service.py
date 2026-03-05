@@ -2,7 +2,8 @@
 """Serviço de Rotação de Piquetes"""
 import sqlite3
 import os
-
+from datetime import datetime
+from simular_data import now as data_teste_now
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "pastagens.db")
 
@@ -94,7 +95,7 @@ def calcular_prioridade_rotacao(fazenda_id):
                p.altura_real_medida, p.altura_estimada, p.data_medicao,
                p.condicao_climatica, p.dias_descanso_min,
                COALESCE(SUM(l.quantidade), 0) as total_animais,
-               GROUP_CONCAT(DISTINCT l.nome || '|' || COALESCE(l.categoria, '') || '|' || COALESCE(l.quantidade, 0)) as lotes_info
+               GROUP_CONCAT(DISTINCT l.nome || '|' || COALESCE(l.categoria, '') || '|' || COALESCE(l.quantidade, 0) || '|' || COALESCE(l.data_entrada, '')) as lotes_info
         FROM piquetes p
         LEFT JOIN lotes l ON p.id = l.piquete_atual_id AND l.ativo = 1
         WHERE p.fazenda_id = ? AND p.ativo = 1
@@ -110,18 +111,35 @@ def calcular_prioridade_rotacao(fazenda_id):
         
         # Parsear info dos lotes
         lotes_list = []
+        datas_entrada = []
         if p.get('lotes_info'):
             for lote_str in p['lotes_info'].split(','):
                 parts = lote_str.split('|')
                 if len(parts) >= 3:
                     try:
-                        lotes_list.append({
+                        lote_obj = {
                             'nome': parts[0] if parts[0] else None,
                             'categoria': parts[1] if parts[1] else None,
                             'quantidade': int(parts[2]) if parts[2] else 0
-                        })
+                        }
+                        if len(parts) >= 4 and parts[3]:
+                            lote_obj['data_entrada'] = parts[3]
+                            try:
+                                datas_entrada.append(datetime.fromisoformat(parts[3].replace('Z', '+00:00').replace('+00:00', '')))
+                            except Exception:
+                                pass
+                        lotes_list.append(lote_obj)
                     except (ValueError, IndexError):
                         pass
+        
+        # Calcular dias de ocupação pelo lote (preferencial). Fallback: campo do piquete
+        dias_ocupacao_calc = int(p.get('dias_ocupacao') or 0)
+        if datas_entrada:
+            try:
+                dias_ocupacao_calc = max(0, (data_teste_now() - min(datas_entrada)).days)
+            except Exception:
+                pass
+        p['dias_ocupacao'] = dias_ocupacao_calc
         
         # Calcular altura_estimada APENAS se já teve medição (data_medicao existe)
         if p.get('altura_estimada') is None and p.get('data_medicao'):
