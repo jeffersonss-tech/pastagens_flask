@@ -42,6 +42,9 @@ function atualizar() {
             document.getElementById('count-proximo').textContent = counts['PROXIMO_SAIDA'];
             document.getElementById('count-saida').textContent = counts['SAIDA_IMEDIATA'];
             document.getElementById('count-bloqueado').textContent = counts['BLOQUEADO'];
+            // Garantir que o card "Prontos" acompanhe os aptos calculados na rotação
+            const prontosCard = document.getElementById('prontos');
+            if (prontosCard) prontosCard.textContent = counts['APTO_ENTRADA'];
             
             const porStatus = {
                 'SAIDA_IMEDIATA': 'lista-saida',
