@@ -554,6 +554,10 @@ async function drawAllPiquetes() {
                 }
             }
 
+            const loteLinha = (p.estado === 'ocupado' && (p.lote_nome || p.lote_id))
+                ? `<p style=\"margin:5px 0; color:#004085;\"><i class=\"fa-solid fa-box\"></i> Lote: ${p.lote_nome || ('#' + p.lote_id)}</p>`
+                : '';
+
             L.polygon(coords, {
                 color: corPoligono,
                 weight: 3,
@@ -564,6 +568,7 @@ async function drawAllPiquetes() {
                     <strong style="font-size:14px;">${p.nome}</strong><br>
                     <span class="badge ${badgeClass}" style="font-size:0.7rem;">${badgeText}</span><br>
                     <p style="margin:5px 0;"><i class="fa-solid fa-ruler-combined"></i> ${p.area || 0} hectares | <i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
+                    ${loteLinha}
                     ${p.animais_no_piquete > 0 ? `<p style="color:#007bff;margin:5px 0;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animais</strong></p>` : ''}
                     ${p.altura_real_medida ? `<p style="color:#28a745;margin:5px 0;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_real_medida}cm (medida)</p>` : ''}
                     ${p.data_medicao ? `<p style="color:#999;font-size:0.75rem;margin:5px 0;"><i class="fa-regular fa-calendar"></i> ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</p>` : ''}
