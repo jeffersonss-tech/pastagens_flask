@@ -1,6 +1,7 @@
 // PastoFlow - Lógica específica da seção de Piquetes
 
 var mapPiquetes = null;
+var mapPiquetesLayers = {};
 
 const offlineConfig = {
     dbName: window.OFFLINE_DB_NAME || 'PastoFlowOffline',
@@ -430,6 +431,8 @@ async function drawAllPiquetes() {
         }
     });
 
+    mapPiquetesLayers = {};
+
     display.forEach(p => {
         if (!p.geometria) return;
         try {
@@ -558,7 +561,7 @@ async function drawAllPiquetes() {
                 ? `<p style=\"margin:5px 0; color:#004085;\"><i class=\"fa-solid fa-box\"></i> Lote: ${p.lote_nome || ('#' + p.lote_id)}</p>`
                 : '';
 
-            L.polygon(coords, {
+            const polygon = L.polygon(coords, {
                 color: corPoligono,
                 weight: 3,
                 fill: true,
@@ -583,18 +586,68 @@ async function drawAllPiquetes() {
                 let latSum = 0, lngSum = 0;
                 coords.forEach(c => { latSum += c[0]; lngSum += c[1]; });
                 const centerLat = latSum / coords.length;
-                const centerLng = lngSum / coords.length;
+                const centerLng = coords.length ? (lngSum / coords.length) : 0;
                 const label = L.divIcon({
                     className: 'piquete-label',
                     html: `<div style="background:rgba(255,255,255,0.9);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;color:#1a1a2e;text-shadow:1px 1px 0 #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);">${p.nome}</div>`,
                     iconSize: [80, 20],
                     iconAnchor: [40, 10]
                 });
-                L.marker([centerLat, centerLng], {icon: label}).addTo(mapPiquetes);
+                const labelMarker = L.marker([centerLat, centerLng], {icon: label}).addTo(mapPiquetes);
+                mapPiquetesLayers[p.id] = { polygon, labelMarker, color: corPoligono, opacity: fillOpacityPoligono };
+            } else {
+                mapPiquetesLayers[p.id] = { polygon, labelMarker: null, color: corPoligono, opacity: fillOpacityPoligono };
             }
+
+            polygon.on('mouseover', () => highlightPiqueteCard(p.id));
+            polygon.on('mouseout', () => unhighlightPiqueteCard(p.id));
         } catch (e) {
             console.log('Erro ao desenhar poligono no mapa de piquetes', p.id, e);
         }
+    });
+
+    attachPiqueteCardHover();
+}
+
+function highlightPiqueteCard(id) {
+    const card = document.querySelector(`#lista-piquetes [data-id="${id}"]`);
+    if (card) {
+        card.classList.add('highlight');
+        card.style.boxShadow = '0 0 0 2px #0d6efd, 0 6px 14px rgba(13,110,253,0.25)';
+    }
+
+    const layerInfo = mapPiquetesLayers[id];
+    if (layerInfo?.polygon) {
+        layerInfo.polygon.setStyle({ color: '#0d6efd', weight: 5, fillOpacity: Math.min(0.65, (layerInfo.opacity || 0.4) + 0.2) });
+    }
+}
+
+function unhighlightPiqueteCard(id) {
+    const card = document.querySelector(`#lista-piquetes [data-id="${id}"]`);
+    if (card) {
+        card.classList.remove('highlight');
+        card.style.boxShadow = '';
+    }
+
+    const layerInfo = mapPiquetesLayers[id];
+    if (layerInfo?.polygon) {
+        layerInfo.polygon.setStyle({ color: layerInfo.color, weight: 3, fillOpacity: layerInfo.opacity || 0.4 });
+    }
+}
+
+function attachPiqueteCardHover() {
+    const cards = document.querySelectorAll('#lista-piquetes [data-id]');
+    cards.forEach(card => {
+        card.onmouseenter = () => {
+            const id = card.getAttribute('data-id');
+            if (!id) return;
+            highlightPiqueteCard(id);
+        };
+        card.onmouseleave = () => {
+            const id = card.getAttribute('data-id');
+            if (!id) return;
+            unhighlightPiqueteCard(id);
+        };
     });
 }
 

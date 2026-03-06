@@ -752,7 +752,7 @@ function renderPiquetesCards() {
         const diasDescansoData = (p.dias_descanso || 0);
 
         return `
-            <div class="${cardClass}" ${clickAttr} data-capim="${capimData}" data-dias-descanso="${diasDescansoData}" style="cursor:${isOffline ? 'default' : 'pointer'}">
+            <div class="${cardClass}" ${clickAttr} data-id="${p.id}" data-capim="${capimData}" data-dias-descanso="${diasDescansoData}" style="cursor:${isOffline ? 'default' : 'pointer'}">
                 <h4>${p.nome}</h4>
                 <p><i class="fa-solid fa-ruler-combined"></i> ${fmtArea(p.area)}</p>
                 <p><i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
