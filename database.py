@@ -74,9 +74,30 @@ def ensure_manager_limit_columns():
     conn.commit()
     conn.close()
 
+
+def ensure_movimentacoes_user_column():
+    """Garante que a coluna usuario_id exista na tabela movimentacoes."""
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='movimentacoes'")
+    if not cursor.fetchone():
+        conn.close()
+        return
+
+    cursor.execute('PRAGMA table_info(movimentacoes)')
+    cols = {row[1] for row in cursor.fetchall()}
+
+    if 'usuario_id' not in cols:
+        cursor.execute("ALTER TABLE movimentacoes ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id)")
+
+    conn.commit()
+    conn.close()
+
 # Executa na importação para manter schema atualizado
 ensure_operador_permission_columns()
 ensure_manager_limit_columns()
+ensure_movimentacoes_user_column()
 
 from functools import wraps
 from flask import session, redirect, url_for, abort
@@ -375,6 +396,7 @@ def init_db():
             lote_id INTEGER,
             piquete_origem_id INTEGER,
             piquete_destino_id INTEGER,
+            usuario_id INTEGER,
             data_movimentacao TEXT,
             quantidade INTEGER DEFAULT 0,
             tipo TEXT DEFAULT 'movimentacao',
@@ -383,7 +405,8 @@ def init_db():
             created_at TEXT,
             FOREIGN KEY (lote_id) REFERENCES lotes(id),
             FOREIGN KEY (piquete_origem_id) REFERENCES piquetes(id),
-            FOREIGN KEY (piquete_destino_id) REFERENCES piquetes(id)
+            FOREIGN KEY (piquete_destino_id) REFERENCES piquetes(id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         )
     ''')
     
@@ -1133,7 +1156,7 @@ def atualizar_status_lotes(fazenda_id):
     conn.commit()
     conn.close()
 
-def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
+def mover_lote(lote_id, piquete_destino_id, usuario_id, quantidade=None, motivo=None):
     """
     Move um lote para outro piquete.
     Calcula automaticamente: dias_tecnicos e data_saida_prevista
@@ -1153,9 +1176,9 @@ def mover_lote(lote_id, piquete_destino_id, quantidade=None, motivo=None):
     
     # Criar registro de movimentação
     cursor.execute('''
-        INSERT INTO movimentacoes (lote_id, piquete_origem_id, piquete_destino_id, data_movimentacao, quantidade, tipo, motivo, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (lote_id, piquete_origem_id, piquete_destino_id, datetime.now().isoformat(), 
+        INSERT INTO movimentacoes (lote_id, piquete_origem_id, piquete_destino_id, usuario_id, data_movimentacao, quantidade, tipo, motivo, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (lote_id, piquete_origem_id, piquete_destino_id, usuario_id, datetime.now().isoformat(), 
           quantidade or lote['quantidade'], 'movimentacao', motivo, datetime.now().isoformat()))
     
     # Buscar dados do piquete de destino
@@ -1831,22 +1854,26 @@ def listar_movimentacoes(fazenda_id=None):
     
     if fazenda_id:
         cursor.execute('''
-            SELECT m.*, l.nome as lote_nome, p1.nome as origem_nome, p2.nome as destino_nome
+            SELECT m.*, l.nome as lote_nome, p1.nome as origem_nome, p2.nome as destino_nome,
+                   u.nome as usuario_nome
             FROM movimentacoes m
             LEFT JOIN lotes l ON m.lote_id = l.id
             LEFT JOIN piquetes p1 ON m.piquete_origem_id = p1.id
             LEFT JOIN piquetes p2 ON m.piquete_destino_id = p2.id
+            LEFT JOIN usuarios u ON m.usuario_id = u.id
             WHERE l.fazenda_id = ?
             ORDER BY m.data_movimentacao DESC
             LIMIT 100
         ''', (fazenda_id,))
     else:
         cursor.execute('''
-            SELECT m.*, l.nome as lote_nome, p1.nome as origem_nome, p2.nome as destino_nome
+            SELECT m.*, l.nome as lote_nome, p1.nome as origem_nome, p2.nome as destino_nome,
+                   u.nome as usuario_nome
             FROM movimentacoes m
             LEFT JOIN lotes l ON m.lote_id = l.id
             LEFT JOIN piquetes p1 ON m.piquete_origem_id = p1.id
             LEFT JOIN piquetes p2 ON m.piquete_destino_id = p2.id
+            LEFT JOIN usuarios u ON m.usuario_id = u.id
             ORDER BY m.data_movimentacao DESC
             LIMIT 100
         ''')

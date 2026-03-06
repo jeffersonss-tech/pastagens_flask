@@ -807,7 +807,7 @@ function renderPiquetesCards() {
         const ultMov = document.getElementById('ultimas-mov');
         if (ultMov) {
             ultMov.innerHTML = movimentacoes.slice(0, 5).map(m => `
-                <tr><td>${m.animal_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td></tr>
+                <tr><td>${m.animal_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.usuario_nome || '-'}</td></tr>
             `).join('');
         }
     });

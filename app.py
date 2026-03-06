@@ -17,6 +17,7 @@ app.secret_key = 'pastagens_secret_key_2024'
 database.init_db()
 database.ensure_operador_permission_columns()
 database.ensure_manager_limit_columns()
+database.ensure_movimentacoes_user_column()
 
 def operador_perm_required(perm_key):
     def decorator(f):
@@ -845,6 +846,7 @@ def api_mover_lote(id):
     result = database.mover_lote(
         id,
         data['piquete_destino_id'],
+        session.get('user_id'),
         data.get('quantidade'),
         data.get('motivo')
     )
@@ -883,9 +885,9 @@ def api_registrar_saida(id):
     
     # Criar movimentação de saída
     cursor.execute('''
-        INSERT INTO movimentacoes (lote_id, piquete_origem_id, data_movimentacao, tipo, created_at)
+        INSERT INTO movimentacoes (lote_id, piquete_origem_id, usuario_id, data_movimentacao, tipo, created_at)
         VALUES (?, ?, ?, 'saida', ?)
-    ''', (id, piquete_origem_id, datetime.now().isoformat(), datetime.now().isoformat()))
+    ''', (id, piquete_origem_id, session.get('user_id'), datetime.now().isoformat(), datetime.now().isoformat()))
     
     # Atualizar lote - sem piquete = AGUARDANDO_ALOCACAO
     cursor.execute('''
@@ -1126,6 +1128,7 @@ def api_criar_movimentacao():
     result = database.mover_lote(
         data.get('animal_id'),  # Agora é lote_id
         data.get('piquete_destino_id'),
+        session.get('user_id'),
         data.get('quantidade'),
         data.get('motivo')
     )
