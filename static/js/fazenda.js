@@ -795,15 +795,162 @@ function renderPiquetesCards() {
         }
     });
     
-    fetch('/api/movimentacoes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
-        // Garantir que movimentacoes seja sempre um array
-        const movimentacoes = Array.isArray(data) ? data : [];
+    let movimentacoesCache = [];
+
+    function normalizarTexto(valor) {
+        return String(valor || '').toLowerCase();
+    }
+
+    let ordenarDirecao = 'desc';
+
+    function ordenarMovimentacoes(lista) {
+        const campo = document.getElementById('ordenar-por')?.value || 'data_movimentacao';
+        const fator = ordenarDirecao === 'asc' ? 1 : -1;
+
+        return [...lista].sort((a, b) => {
+            const va = a[campo] ?? '';
+            const vb = b[campo] ?? '';
+
+            if (campo === 'data_movimentacao') {
+                return (new Date(va) - new Date(vb)) * fator;
+            }
+
+            return String(va).localeCompare(String(vb), 'pt-BR', { sensitivity: 'base' }) * fator;
+        });
+    }
+
+    function getActiveChipValue(containerId) {
+        const container = document.getElementById(containerId);
+        const active = container?.querySelector('.chip.active');
+        return active ? active.getAttribute('data-value') : '';
+    }
+
+    function filtrarMovimentacoes(lista) {
+        const fLote = normalizarTexto(document.getElementById('filtro-lote')?.value);
+        const fOrigem = normalizarTexto(document.getElementById('filtro-origem')?.value);
+        const fDestino = normalizarTexto(document.getElementById('filtro-destino')?.value);
+        const fUsuario = normalizarTexto(document.getElementById('filtro-usuario')?.value);
+        const fMotivo = normalizarTexto(document.getElementById('filtro-motivo')?.value);
+        const fTipo = normalizarTexto(getActiveChipValue('chips-tipo'));
+        const fPeriodo = getActiveChipValue('chips-periodo');
+
+        return lista.filter(m => {
+            if (fLote && normalizarTexto(m.lote_nome) !== fLote) return false;
+            if (fOrigem && normalizarTexto(m.origem_nome) !== fOrigem) return false;
+            if (fDestino && normalizarTexto(m.destino_nome) !== fDestino) return false;
+            if (fUsuario && normalizarTexto(m.usuario_nome) !== fUsuario) return false;
+            if (fMotivo && normalizarTexto(m.motivo) !== fMotivo) return false;
+            if (fTipo && normalizarTexto(m.tipo) !== fTipo) return false;
+
+            if (fPeriodo) {
+                const dias = parseInt(fPeriodo, 10);
+                if (!Number.isNaN(dias)) {
+                    const dataMov = new Date(m.data_movimentacao);
+                    const limite = new Date();
+                    limite.setHours(0, 0, 0, 0);
+                    limite.setDate(limite.getDate() - (dias - 1));
+                    if (dataMov < limite) return false;
+                }
+            }
+
+            return true;
+        });
+    }
+
+    function renderUltimasMovimentacoes() {
         const ultMov = document.getElementById('ultimas-mov');
-        if (ultMov) {
-            ultMov.innerHTML = movimentacoes.slice(0, 5).map(m => `
-                <tr><td>${m.lote_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.usuario_nome || '-'}</td></tr>
-            `).join('');
+        if (!ultMov) return;
+
+        const filtradas = filtrarMovimentacoes(movimentacoesCache);
+        const ordenadas = ordenarMovimentacoes(filtradas);
+
+        ultMov.innerHTML = ordenadas.slice(0, 20).map(m => `
+            <tr><td>${m.lote_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.usuario_nome || '-'}</td></tr>
+        `).join('');
+    }
+
+    function atualizarSelect(id, valores, placeholder) {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const unique = Array.from(new Set(valores.filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'));
+        select.innerHTML = `<option value="">${placeholder}</option>` + unique.map(v => `<option value="${v}">${v}</option>`).join('');
+    }
+
+    function bindChips(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                renderUltimasMovimentacoes();
+            });
+        });
+    }
+
+    function bindMovimentacoesFilters() {
+        const ids = [
+            'filtro-lote',
+            'filtro-origem',
+            'filtro-destino',
+            'filtro-usuario',
+            'filtro-motivo',
+            'ordenar-por'
+        ];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', renderUltimasMovimentacoes);
+                el.addEventListener('change', renderUltimasMovimentacoes);
+            }
+        });
+
+        bindChips('chips-tipo');
+        bindChips('chips-periodo');
+
+        const ordenarBtn = document.getElementById('ordenar-btn');
+        if (ordenarBtn) {
+            ordenarBtn.addEventListener('click', () => {
+                ordenarDirecao = ordenarDirecao === 'asc' ? 'desc' : 'asc';
+                ordenarBtn.textContent = `Ordenar: ${ordenarDirecao === 'asc' ? 'Asc' : 'Desc'}`;
+                renderUltimasMovimentacoes();
+            });
         }
+
+        const limparBtn = document.getElementById('limpar-filtros');
+        if (limparBtn) {
+            limparBtn.addEventListener('click', () => {
+                ['filtro-lote','filtro-origem','filtro-destino','filtro-usuario','filtro-motivo'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                document.getElementById('ordenar-por').value = 'data_movimentacao';
+                ordenarDirecao = 'desc';
+                const ordenarBtn = document.getElementById('ordenar-btn');
+                if (ordenarBtn) ordenarBtn.textContent = 'Ordenar: Desc';
+
+                document.querySelectorAll('#chips-tipo .chip').forEach((c, idx) => {
+                    c.classList.toggle('active', idx === 0);
+                });
+                document.querySelectorAll('#chips-periodo .chip').forEach((c, idx) => {
+                    c.classList.toggle('active', idx === 0);
+                });
+                renderUltimasMovimentacoes();
+            });
+        }
+    }
+
+    fetch('/api/movimentacoes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
+        movimentacoesCache = Array.isArray(data) ? data : [];
+
+        atualizarSelect('filtro-lote', movimentacoesCache.map(m => m.lote_nome), 'Lote (todos)');
+        atualizarSelect('filtro-origem', movimentacoesCache.map(m => m.origem_nome), 'Origem (todas)');
+        atualizarSelect('filtro-destino', movimentacoesCache.map(m => m.destino_nome), 'Destino (todos)');
+        atualizarSelect('filtro-usuario', movimentacoesCache.map(m => m.usuario_nome), 'Usuário (todos)');
+        atualizarSelect('filtro-motivo', movimentacoesCache.map(m => m.motivo), 'Motivo (todos)');
+
+        bindMovimentacoesFilters();
+        renderUltimasMovimentacoes();
     });
     
     fetch('/api/piquetes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {

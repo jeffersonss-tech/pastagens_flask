@@ -45,6 +45,63 @@
             </div>
             <div class="card">
                 <h3><i class="fa-solid fa-clock-rotate-left"></i> Últimas Movimentações</h3>
+
+                <style>
+                    .mov-filters { display:flex; flex-direction:column; gap:8px; margin:10px 0 12px; }
+                    .mov-filters .row { display:flex; flex-wrap:wrap; gap:8px; }
+                    .mov-input { position:relative; min-width:170px; flex:1; }
+                    .mov-input i { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#888; }
+                    .mov-input input, .mov-input select { width:100%; padding:8px 10px 8px 30px; border:1px solid #ddd; border-radius:8px; background:#fff; }
+                    .chip-group { display:flex; flex-wrap:wrap; gap:6px; }
+                    .chip { padding:6px 10px; border:1px solid #ddd; border-radius:16px; cursor:pointer; background:#f7f7f7; font-size:0.85rem; }
+                    .chip.active { background:#198754; color:#fff; border-color:#198754; }
+                    .chip.secondary.active { background:#0d6efd; border-color:#0d6efd; }
+                    .mov-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+                    .mov-actions select { padding:8px 10px; border:1px solid #ddd; border-radius:8px; }
+                    .mov-actions button { padding:8px 12px; border:none; border-radius:8px; cursor:pointer; }
+                    .btn-order { background:#0d6efd; color:#fff; }
+                    .btn-clear { background:#f1f1f1; }
+                </style>
+
+                <div class="mov-filters">
+                    <div class="row">
+                        <div class="mov-input"><i class="fa-solid fa-tag"></i><select id="filtro-lote"></select></div>
+                        <div class="mov-input"><i class="fa-solid fa-location-dot"></i><select id="filtro-origem"></select></div>
+                        <div class="mov-input"><i class="fa-solid fa-location-arrow"></i><select id="filtro-destino"></select></div>
+                        <div class="mov-input"><i class="fa-solid fa-user"></i><select id="filtro-usuario"></select></div>
+                        <div class="mov-input"><i class="fa-solid fa-comment"></i><select id="filtro-motivo"></select></div>
+                    </div>
+
+                    <div class="row" style="justify-content:space-between;">
+                        <div class="chip-group" id="chips-tipo">
+                            <span class="chip secondary active" data-value="">Todos</span>
+                            <span class="chip secondary" data-value="movimentacao">Movimentação</span>
+                            <span class="chip secondary" data-value="saida">Saída</span>
+                        </div>
+                        <div class="chip-group" id="chips-periodo">
+                            <span class="chip active" data-value="">Tudo</span>
+                            <span class="chip" data-value="1">Hoje</span>
+                            <span class="chip" data-value="7">7 dias</span>
+                            <span class="chip" data-value="30">30 dias</span>
+                        </div>
+                    </div>
+
+                    <div class="row mov-actions">
+                        <select id="ordenar-por">
+                            <option value="data_movimentacao">Data</option>
+                            <option value="lote_nome">Lote</option>
+                            <option value="origem_nome">Origem</option>
+                            <option value="destino_nome">Destino</option>
+                            <option value="usuario_nome">Usuário</option>
+                            <option value="tipo">Tipo</option>
+                            <option value="motivo">Motivo</option>
+                        </select>
+                        <button id="ordenar-btn" class="btn-order">Ordenar: Desc</button>
+                        <button id="limpar-filtros" class="btn-clear">Limpar filtros</button>
+                    </div>
+                </div>
+
+
                 <table class="data-table">
                     <thead>
                         <tr><th>Lote</th><th>De</th><th>Para</th><th>Data</th><th>Usuário</th></tr>
