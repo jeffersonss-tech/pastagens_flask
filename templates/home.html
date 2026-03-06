@@ -328,7 +328,7 @@
                     <a href="{{ url_for('fazenda', id=f.id) }}" class="fazenda-link">Abrir →</a>
                     {% if f.latitude_sede and f.longitude_sede %}
                     <button id="btn-offline-{{ f.id }}" class="btn btn-sm btn-secondary" style="margin-left: 8px;" onclick="mostrarOpcoesOffline({{ f.latitude_sede }}, {{ f.longitude_sede }}, {{ f.id }})" title="Baixar mapa offline">
-                        <i class="fa-solid fa-download"></i> ⬇
+                        <i class="fa-solid fa-download"></i>
                     </button>
                     {% endif %}
                     {% if usuario.role in ['admin', 'gerente'] %}
