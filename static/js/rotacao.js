@@ -81,6 +81,10 @@ function renderCard(item) {
     const fmtAltura = (v) => (v || v === 0) ? `${Number(v).toFixed(1)} cm` : '-';
     const fmtLotacao = (total, area) => (total && area > 0) ? `${((total * 450 / area) / 1000).toFixed(2)} UA/ha` : '0.00 UA/ha';
 
+    const dataMedicao = item.data_medicao ? new Date(item.data_medicao) : null;
+    const diasDesdeMedicao = dataMedicao ? Math.max(0, Math.floor((new Date() - dataMedicao) / (1000 * 60 * 60 * 24))) : null;
+    const dataMedicaoTexto = dataMedicao ? `${dataMedicao.toLocaleDateString('pt-BR')}${diasDesdeMedicao !== null ? ` • há ${diasDesdeMedicao} dias` : ''}` : null;
+
     const lotacao = fmtLotacao(totalAnimais, item.area);
     const animaisBadge = temLotes ? `<span style="background: #007bff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 5px;"><i class="fa-solid fa-cow"></i> ${totalAnimais}</span>` : '';
 
@@ -117,7 +121,7 @@ function renderCard(item) {
             <div class="piquete-meta" style="margin-top: 5px;">
                 ${item.altura_real_medida ? `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(item.altura_real_medida)} (MEDIDA)</span>` : ''}
                 <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-combined"></i> Est: ${fmtAltura(item.altura_estimada || 0)}</span>
-                ${item.data_medicao ? `<span style="font-size: 0.7rem; color: #666; margin-left: 5px;">(Medido: ${new Date(item.data_medicao).toLocaleDateString('pt-BR')})</span>` : ''}
+                ${dataMedicaoTexto ? `<span style="font-size: 0.7rem; color: #666; margin-left: 5px;">Última medição: ${dataMedicaoTexto}</span>` : ''}
             </div>
             ${loteInfoHTML}
         </div>
