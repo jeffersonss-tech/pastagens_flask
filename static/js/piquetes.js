@@ -1453,13 +1453,25 @@ if (typeof fazendaId !== 'undefined' && fazendaId) {
 function filtrarPiquetes() {
     const termo = document.getElementById('buscar-piquete').value.toLowerCase();
     const statusFiltro = document.getElementById('filtro-status-piquete').value;
+    const capimFiltro = document.getElementById('filtro-capim-piquete')?.value.toLowerCase() || '';
+    const diasMin = parseInt(document.getElementById('filtro-dias-descanso')?.value, 10);
     
     const cards = document.querySelectorAll('#lista-piquetes > div');
     cards.forEach(card => {
         const nome = card.querySelector('h4')?.textContent.toLowerCase() || '';
         const texto = card.textContent.toLowerCase();
+        const capimCard = (card.getAttribute('data-capim') || '').toLowerCase();
+        const diasDescansoCard = parseInt(card.getAttribute('data-dias-descanso') || '0', 10);
         
         let mostrar = nome.includes(termo);
+
+        if (mostrar && capimFiltro) {
+            if (capimCard !== capimFiltro) mostrar = false;
+        }
+
+        if (mostrar && !isNaN(diasMin)) {
+            if (diasDescansoCard < diasMin) mostrar = false;
+        }
         
         if (mostrar && statusFiltro) {
             if (statusFiltro === 'ocupado' && !texto.includes('em occupac') && !texto.includes('em ocupa') && !texto.includes('retirar')) {
@@ -1475,4 +1487,21 @@ function filtrarPiquetes() {
         
         card.style.display = mostrar ? '' : 'none';
     });
+}
+
+function atualizarFiltroCapim() {
+    const select = document.getElementById('filtro-capim-piquete');
+    if (!select) return;
+
+    const valorAtual = select.value;
+    const capins = new Set();
+    const cards = document.querySelectorAll('#lista-piquetes > div');
+    cards.forEach(card => {
+        const capim = (card.getAttribute('data-capim') || '').trim();
+        if (capim) capins.add(capim);
+    });
+
+    const ordenados = Array.from(capins).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    select.innerHTML = '<option value="">Todos os capins</option>' + ordenados.map(c => `<option value="${c}">${c}</option>`).join('');
+    if (valorAtual) select.value = valorAtual;
 }

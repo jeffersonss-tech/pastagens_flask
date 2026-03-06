@@ -17,6 +17,13 @@
                 <option value="recuperando">Recuperando</option>
                 <option value="sem_altura">Sem Altura</option>
             </select>
+            <select id="filtro-capim-piquete" onchange="filtrarPiquetes()"
+                    style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px; min-width: 160px;">
+                <option value="">Todos os capins</option>
+            </select>
+            <input type="number" id="filtro-dias-descanso" placeholder="Dias de descanso (mín.)"
+                   style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px; width: 180px;"
+                   oninput="filtrarPiquetes()">
         </div>
         
         <button class="btn btn-success" onclick="abrirModalPiquete()"><i class="fa-solid fa-plus"></i> Novo Piquete</button>

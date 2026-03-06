@@ -565,6 +565,9 @@ function loadAll() {
         })
         .then(() => {
             renderPiquetesCards();
+            if (typeof atualizarFiltroCapim === 'function') {
+                atualizarFiltroCapim();
+            }
             if (typeof drawAllPiquetes === 'function') {
                 drawAllPiquetes();
             }
@@ -700,8 +703,11 @@ function renderPiquetesCards() {
                     <button class="btn btn-sm" style="background:#6c757d;color:white" onclick="event.stopPropagation(); mostrarPiquete(${p.id})"><i class="fa-solid fa-eye"></i> Ver</button>
                 </div>`;
 
+        const capimData = (p.capim || '').toLowerCase();
+        const diasDescansoData = (p.dias_descanso || 0);
+
         return `
-            <div class="${cardClass}" ${clickAttr} style="cursor:${isOffline ? 'default' : 'pointer'}">
+            <div class="${cardClass}" ${clickAttr} data-capim="${capimData}" data-dias-descanso="${diasDescansoData}" style="cursor:${isOffline ? 'default' : 'pointer'}">
                 <h4>${p.nome}</h4>
                 <p><i class="fa-solid fa-ruler-combined"></i> ${p.area || 0} hectares</p>
                 <p><i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
