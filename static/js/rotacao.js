@@ -52,7 +52,9 @@ function atualizar() {
                 'EM_OCUPACAO': 'lista-ocupacao',
                 'APTO_ENTRADA': 'lista-apto',
                 'EM_DESCANSO': 'lista-descanso',
-                'BLOQUEADO': 'lista-bloqueado'
+                'BLOQUEADO': 'lista-bloqueado',
+                'ABAIXO_MINIMO': 'lista-abaixo',
+                'SEM_ALTURA': 'lista-sem_altura'
             };
             
             Object.keys(porStatus).forEach(status => {
@@ -74,10 +76,14 @@ function renderCard(item) {
     const statusClass = s.status.toLowerCase();
     const temLotes = item.lotes_no_piquete && item.lotes_no_piquete.length > 0;
     const totalAnimais = temLotes ? item.lotes_no_piquete.reduce((sum, l) => sum + l.quantidade, 0) : 0;
-    const lotacao = temLotes && item.area > 0 ? ((totalAnimais * 450 / item.area) / 1000).toFixed(2) : '0';
-    
+
+    const fmtArea = (v) => (v || v === 0) ? `${Number(v).toFixed(1)} ha` : '-';
+    const fmtAltura = (v) => (v || v === 0) ? `${Number(v).toFixed(1)} cm` : '-';
+    const fmtLotacao = (total, area) => (total && area > 0) ? `${((total * 450 / area) / 1000).toFixed(2)} UA/ha` : '0.00 UA/ha';
+
+    const lotacao = fmtLotacao(totalAnimais, item.area);
     const animaisBadge = temLotes ? `<span style="background: #007bff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 5px;"><i class="fa-solid fa-cow"></i> ${totalAnimais}</span>` : '';
-    
+
     let loteInfoHTML = '';
     if (temLotes) {
         const lotesHTML = item.lotes_no_piquete.map(l => `
@@ -86,31 +92,31 @@ function renderCard(item) {
                 ${l.categoria ? `<span style="background: #6c757d; color: white; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 5px;">${l.categoria}</span>` : ''}
                 <span style="color: #28a745; margin-left: 8px;"><i class="fa-solid fa-cow"></i> ${l.quantidade} animais</span>
             </div>`).join('');
-        
+
         loteInfoHTML = `<div style="margin-top: 8px; padding: 10px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; font-size: 0.8rem; border-left: 3px solid #007bff;">
             <div style="margin-bottom: 8px;"><strong style="color: #007bff;"><i class="fa-solid fa-layer-group"></i> Lote(s) neste piquete:</strong></div>
             ${lotesHTML}
             <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 0.75rem;">
                 <span><strong><i class="fa-solid fa-cow"></i> Total:</strong> ${totalAnimais} animais</span>
-                <span><strong><i class="fa-solid fa-ruler-combined"></i> Área:</strong> ${item.area} ha</span>
-                <span><strong><i class="fa-solid fa-chart-line"></i> Lotação:</strong> ${lotacao} UA/ha</span>
+                <span><strong><i class="fa-solid fa-ruler-combined"></i> Área:</strong> ${fmtArea(item.area)}</span>
+                <span><strong><i class="fa-solid fa-chart-line"></i> Lotação:</strong> ${lotacao}</span>
             </div>
         </div>`;
     } else {
         loteInfoHTML = '';
     }
-    
+
     return `<div class="piquete-card ${statusClass}">
         <div class="piquete-info">
             <h4>${item.nome} ${animaisBadge}</h4>
-            <p>${item.capim} • ${item.area} ha</p>
+            <p>${item.capim} • ${fmtArea(item.area)}</p>
             <div class="piquete-meta">
                 <span><i class="fa-solid fa-location-dot"></i> ${s.pergunta_1 || '-'}</span>
                 <span><i class="fa-solid fa-clock"></i> ${s.pergunta_3 || '-'}</span>
             </div>
             <div class="piquete-meta" style="margin-top: 5px;">
-                ${item.altura_real_medida ? `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-vertical"></i> ${item.altura_real_medida}cm (MEDIDA)</span>` : ''}
-                <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-combined"></i> Est: ${item.altura_estimada || 0}cm</span>
+                ${item.altura_real_medida ? `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(item.altura_real_medida)} (MEDIDA)</span>` : ''}
+                <span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;"><i class="fa-solid fa-ruler-combined"></i> Est: ${fmtAltura(item.altura_estimada || 0)}</span>
                 ${item.data_medicao ? `<span style="font-size: 0.7rem; color: #666; margin-left: 5px;">(Medido: ${new Date(item.data_medicao).toLocaleDateString('pt-BR')})</span>` : ''}
             </div>
             ${loteInfoHTML}

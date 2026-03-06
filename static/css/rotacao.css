@@ -88,7 +88,9 @@
 #lista-ocupacao,
 #lista-apto,
 #lista-descanso,
-#lista-bloqueado {
+#lista-bloqueado,
+#lista-abaixo,
+#lista-sem_altura {
     max-height: 500px;
     overflow-y: auto;
     padding-right: 6px;
@@ -113,6 +115,8 @@
 .piquete-card.proximo_saida { border-left: 5px solid #fd7e14; }
 .piquete-card.saida_imediata { border-left: 5px solid #dc3545; background: #fff5f5; }
 .piquete-card.bloqueado { border-left: 5px solid #6f42c1; opacity: 0.8; }
+.piquete-card.abaixo_minimo { border-left: 5px solid #dc3545; background: #fff5f5; }
+.piquete-card.sem_altura { border-left: 5px solid #fd7e14; background: #fff8f0; }
 
 .piquete-info h4 { margin-bottom: 5px; color: #1a1a2e; }
 .piquete-info p { color: #666; font-size: 0.85rem; }
@@ -139,10 +143,14 @@
 .status-badge.proximo_saida { background: #ffe5d0; color: #c85a17; }
 .status-badge.saida_imediata { background: #f8d7da; color: #721c24; }
 .status-badge.bloqueado { background: #e2d5f1; color: #4a2c7a; }
+.status-badge.abaixo_minimo { background: #f8d7da; color: #721c24; }
+.status-badge.sem_altura { background: #ffe5d0; color: #c85a17; }
 
 .acao-texto { font-size: 0.9rem; color: #666; }
 .acao-texto.saida_imediata { color: #dc3545; font-weight: bold; }
 .acao-texto.proximo_saida { color: #fd7e14; }
+.acao-texto.abaixo_minimo { color: #dc3545; font-weight: bold; }
+.acao-texto.sem_altura { color: #fd7e14; font-weight: bold; }
 
 .progress {
     margin-top: 8px;
@@ -225,7 +233,9 @@
     #lista-ocupacao,
     #lista-apto,
     #lista-descanso,
-    #lista-bloqueado {
+    #lista-bloqueado,
+    #lista-abaixo,
+    #lista-sem_altura {
         max-height: 360px;
     }
 
