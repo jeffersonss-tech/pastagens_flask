@@ -568,6 +568,9 @@ function loadAll() {
             if (typeof atualizarFiltroCapim === 'function') {
                 atualizarFiltroCapim();
             }
+            if (typeof renderResumoPiquetes === 'function') {
+                renderResumoPiquetes();
+            }
             if (typeof drawAllPiquetes === 'function') {
                 drawAllPiquetes();
             }
@@ -583,11 +586,45 @@ function loadAll() {
 function renderPiquetesCards() {
     const listaPiquetes = document.getElementById('lista-piquetes');
     if (!listaPiquetes) return;
-    const display = getPiquetesParaRenderizar();
+    let display = getPiquetesParaRenderizar();
     if (!display.length) {
         listaPiquetes.innerHTML = '<div class="piquete-card sem-altura" style="text-align:center;">Nenhum piquete cadastrado ainda.</div>';
         return;
     }
+
+    const prioridadePiquete = (p) => {
+        const isOffline = !!p.offlinePending;
+        if (isOffline) return 5;
+
+        const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+        const temAlgumaAltura = temReal || (p.altura_estimada !== null && p.altura_estimada !== undefined);
+        const semMedicao = !p.data_medicao && !temReal;
+
+        if (!temAlgumaAltura || semMedicao) return 4; // sem altura
+        if (p.estado === 'ocupado') return 1;
+        if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) return 3; // disponível
+        return 2; // recuperando
+    };
+
+    display = display.sort((a, b) => {
+        const pa = prioridadePiquete(a);
+        const pb = prioridadePiquete(b);
+        if (pa !== pb) return pa - pb;
+
+        const diasA = (a.dias_no_piquete || 0);
+        const diasB = (b.dias_no_piquete || 0);
+        if (pa === 1 && diasA !== diasB) return diasB - diasA; // ocupados: mais dias primeiro
+
+        const faltaA = Math.max(0, (a.altura_entrada || 0) - (a.altura_estimada || 0));
+        const faltaB = Math.max(0, (b.altura_entrada || 0) - (b.altura_estimada || 0));
+        if (pa === 2 && faltaA !== faltaB) return faltaA - faltaB; // recuperando: mais perto da meta primeiro
+
+        const areaA = a.area || 0;
+        const areaB = b.area || 0;
+        if (areaA !== areaB) return areaB - areaA; // desempate por área
+
+        return (a.nome || '').localeCompare(b.nome || '');
+    });
 
     listaPiquetes.innerHTML = display.map(p => {
         const isOffline = !!p.offlinePending;
