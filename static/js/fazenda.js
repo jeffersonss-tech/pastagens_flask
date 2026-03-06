@@ -397,6 +397,10 @@ function drawAllPiquetesOnMap() {
     });
 
     const displayPiquetes = getPiquetesParaRenderizar();
+    const fmtArea = (v) => `${Number(v || 0).toFixed(2)} ha`;
+    const fmtAltura = (v) => `${Number(v || 0).toFixed(1)} cm`;
+    const fmtDias = (v) => `${Number(v || 0)} dias`;
+
     displayPiquetes.forEach(p => {
         if (!p.geometria) return;
         try {
@@ -470,29 +474,29 @@ function drawAllPiquetesOnMap() {
                 } else {
                     badgeClass = 'badge-yellow';
                     badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> PRECISA MEDIR';
-                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
-                    avisoMedicao = `<br><small style="color: #007bff;"><i class="fa-solid fa-ruler-combined"></i> ${p.altura_estimada}cm estimada</small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_estimada)} (estimada)</small>`;
+                    avisoMedicao = `<br><small style="color: #007bff;"><i class="fa-solid fa-ruler-combined"></i> ${fmtAltura(p.altura_estimada)} estimada</small>`;
                 }
             } else if (p.estado === 'ocupado') {
                 badgeClass = 'badge-blue';
                 badgeText = '<i class="fa-solid fa-circle"></i> Em Ocupação';
-                statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada || '?'}cm (est.)</small>`;
+                statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_estimada || 0)} (est.)</small>`;
             } else if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) {
                 badgeClass = 'badge-green';
                 badgeText = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
                 const valorAltura = p.altura_real_medida || p.altura_estimada;
                 const fonteLabel = (temReal && p.altura_real_medida !== null) ? '(medida)' : '(estimada)';
-                statusInfo = `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${valorAltura}cm ${fonteLabel}</small>`;
+                statusInfo = `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(valorAltura)} ${fonteLabel}</small>`;
             } else {
                 badgeClass = 'badge-orange';
                 badgeText = '<i class="fa-solid fa-rotate-right"></i> Recuperando';
-                statusInfo = `<small style="color: #c45a00;"><i class="fa-solid fa-ruler-vertical"></i> ${Math.max(p.altura_real_medida || 0, p.altura_estimada || 0)}/${p.altura_entrada} cm ${badgeFonte}</small>`;
+                statusInfo = `<small style="color: #c45a00;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(Math.max(p.altura_real_medida || 0, p.altura_estimada || 0))}/${fmtAltura(p.altura_entrada || 0)} ${badgeFonte}</small>`;
             }
 
             if (!temAlgumaAltura) {
                 diasRestantes = '';
             } else if (p.estado === 'ocupado') {
-                diasRestantes = `<br><small style="color: #004085;"><i class="fa-solid fa-clock"></i> ${p.dias_tecnicos || 0} dias técnicos</small>`;
+                diasRestantes = `<br><small style="color: #004085;"><i class="fa-solid fa-clock"></i> ${fmtDias(p.dias_tecnicos || 0)} técnicos</small>`;
             } else if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) {
                 diasRestantes = `<br><small style="color: #155724;"><i class="fa-solid fa-check"></i> Pronto para receber!</small>`;
             } else {
@@ -500,7 +504,7 @@ function drawAllPiquetesOnMap() {
                 const crescimento = getCrescimentoComClima(p.capim);
                 const faltaCm = Math.max(0, p.altura_entrada - (p.altura_estimada || 0));
                 const diasNecessarios = Math.round(faltaCm / (crescimento || 1));
-                diasRestantes = `<br><small style="color: #856404;"><i class="fa-regular fa-calendar"></i> ~${diasNecessarios} dias necessário${diasNecessarios !== 1 ? 's' : ''} ${badgeFonte}</small><br><small style="color: #6c757d;"><i class="fa-solid fa-chart-line"></i> ${crescimento} cm/dia | Falta: ${faltaCm}cm</small>`;
+                diasRestantes = `<br><small style="color: #856404;"><i class="fa-regular fa-calendar"></i> ~${fmtDias(diasNecessarios)} necessário${diasNecessarios !== 1 ? 's' : ''} ${badgeFonte}</small><br><small style="color: #6c757d;"><i class="fa-solid fa-chart-line"></i> ${Number(crescimento).toFixed(2)} cm/dia | Falta: ${fmtAltura(faltaCm)}</small>`;
             }
 
             let avisoUrgente = '';
@@ -525,9 +529,9 @@ function drawAllPiquetesOnMap() {
                 <div style="min-width:200px;">
                     <strong style="font-size:14px;">${p.nome}</strong><br>
                     <span class="badge ${badgeClass}" style="font-size:0.7rem;">${badgeText}</span><br>
-                    <p style="margin:5px 0;"><i class="fa-solid fa-ruler-combined"></i> ${p.area || 0} hectares | <i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
+                    <p style="margin:5px 0;"><i class="fa-solid fa-ruler-combined"></i> ${fmtArea(p.area)} | <i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
                     ${p.animais_no_piquete > 0 ? `<p style="color:#007bff;margin:5px 0;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animais</strong></p>` : ''}
-                    ${p.altura_real_medida ? `<p style="color:#28a745;margin:5px 0;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_real_medida}cm (medida)</p>` : ''}
+                    ${p.altura_real_medida ? `<p style="color:#28a745;margin:5px 0;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_real_medida)} (medida)</p>` : ''}
                     ${p.data_medicao ? `<p style="color:#999;font-size:0.75rem;margin:5px 0;"><i class="fa-regular fa-calendar"></i> ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</p>` : ''}
                     ${statusInfo ? `<p style="margin:5px 0;">${statusInfo}</p>` : ''}
                     ${avisoMedicao ? `<p style="margin:5px 0;">${avisoMedicao}</p>` : ''}
@@ -634,6 +638,10 @@ function renderPiquetesCards() {
         const alturaMostrada = temReal ? p.altura_real_medida : p.altura_estimada;
         const animaisNoPiquete = p.animais_no_piquete > 0;
 
+        const fmtArea = (v) => `${Number(v || 0).toFixed(2)} ha`;
+        const fmtAltura = (v) => `${Number(v || 0).toFixed(1)} cm`;
+        const fmtDias = (v) => `${Number(v || 0)} dias`;
+
         let badgeClass = '';
         let badgeText = '';
         let statusInfo = '';
@@ -659,7 +667,7 @@ function renderPiquetesCards() {
                 } else {
                     badgeClass = 'badge-yellow';
                     badgeText = '<i class="fa-solid fa-triangle-exclamation"></i> PRECISA MEDIR';
-                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${alturaMostrada}cm (estimada) - <a href="#" onclick="fecharModalVerPiquete(); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color: #007bff;">Atualizar medição</a></small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(alturaMostrada)} (estimada) - <a href="#" onclick="fecharModalVerPiquete(); setTimeout(()=>abrirModalEditarPiquete(${p.id}),300);return false;" style="color: #007bff;">Atualizar medição</a></small>`;
                 }
             } else if (p.estado === 'ocupado') {
                 const diasTecnicos = p.dias_tecnicos || 30;
@@ -667,11 +675,11 @@ function renderPiquetesCards() {
                 if (diasOcupados >= diasTecnicos) {
                     badgeClass = 'badge-red';
                     badgeText = '<i class="fa-solid fa-circle" style="color:#dc3545;"></i> SAIDA IMEDIATA';
-                    statusInfo = `<small style="color: #dc3545;"><i class="fa-solid fa-triangle-exclamation"></i> Tempo tecnico ultrapassado!</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${diasOcupados} dias desde ocupaçao</small>`;
+                    statusInfo = `<small style="color: #dc3545;"><i class="fa-solid fa-triangle-exclamation"></i> Tempo tecnico ultrapassado!</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${fmtDias(diasOcupados)} desde ocupaçao</small>`;
                     if (animaisNoPiquete) {
                         alertaUrgente = `
                             <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; margin-top: 8px; text-align: center;">
-                                <strong style="color: #856404;"><i class="fa-solid fa-triangle-exclamation"></i> Tempo tecnico! ${diasOcupados}/${diasTecnicos} dias</strong><br>
+                                <strong style="color: #856404;"><i class="fa-solid fa-triangle-exclamation"></i> Tempo tecnico! ${fmtDias(diasOcupados)}/${fmtDias(diasTecnicos)}</strong><br>
                                 <a href="/fazenda/${fazendaId}/lotes" class="btn btn-warning btn-sm" style="margin-top: 5px; font-size: 0.8rem;"><i class="fa-solid fa-rotate-right"></i> Ir para Lotes</a>
                             </div>
                         `;
@@ -679,12 +687,12 @@ function renderPiquetesCards() {
                 } else {
                     badgeClass = 'badge-blue';
                     badgeText = '<i class="fa-solid fa-circle" style="color:#007bff;"></i> Em Ocupação';
-                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada || '?'}cm (est.)</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${diasOcupados} dias desde ocupaçao</small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_estimada || 0)} (est.)</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${fmtDias(diasOcupados)} desde ocupaçao</small>`;
                 }
             } else if (p.altura_estimada >= p.altura_entrada) {
                 badgeClass = 'badge-green';
                 badgeText = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
-                statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_estimada}cm (estimada)</small>`;
+                statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_estimada)} (estimada)</small>`;
             } else if (temReal && p.altura_real_medida >= p.altura_entrada) {
                 badgeClass = 'badge-green';
                 badgeText = '<i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível';
@@ -704,7 +712,7 @@ function renderPiquetesCards() {
                 if (!temAlgumaAltura) {
                     diasRestantes = '';
                 } else if (p.estado === 'ocupado') {
-                    diasRestantes = `<br><small style="color: #004085;"><i class="fa-solid fa-chart-simple"></i> ${p.dias_tecnicos || 0} dias técnicos</small>`;
+                    diasRestantes = `<br><small style="color: #004085;"><i class="fa-solid fa-chart-simple"></i> ${fmtDias(p.dias_tecnicos || 0)} técnicos</small>`;
                 } else if (p.altura_estimada >= p.altura_entrada) {
                     diasRestantes = `<br><small style="color: #155724;"><i class="fa-solid fa-check"></i> Pronto para receber!</small>`;
                 } else {
@@ -712,7 +720,7 @@ function renderPiquetesCards() {
                     const crescimento = getCrescimentoComClima(p.capim);
                     const faltaCm = Math.max(0, p.altura_entrada - (p.altura_estimada || 0));
                     const diasNecessarios = Math.round(faltaCm / crescimento);
-                    diasRestantes = `<br><small style="color: #856404;"><i class="fa-regular fa-calendar"></i> ~${diasNecessarios} dias necessário${diasNecessarios !== 1 ? 's' : ''} ${badgeFonte}</small><br><small style="color: #6c757d;"><i class="fa-solid fa-chart-line"></i> ${crescimento} cm/dia | Falta: ${faltaCm}cm</small>`;
+                    diasRestantes = `<br><small style="color: #856404;"><i class="fa-regular fa-calendar"></i> ~${fmtDias(diasNecessarios)} necessário${diasNecessarios !== 1 ? 's' : ''} ${badgeFonte}</small><br><small style="color: #6c757d;"><i class="fa-solid fa-chart-line"></i> ${Number(crescimento).toFixed(2)} cm/dia | Falta: ${fmtAltura(faltaCm)}</small>`;
                 }
             }
         }
@@ -746,21 +754,21 @@ function renderPiquetesCards() {
         return `
             <div class="${cardClass}" ${clickAttr} data-capim="${capimData}" data-dias-descanso="${diasDescansoData}" style="cursor:${isOffline ? 'default' : 'pointer'}">
                 <h4>${p.nome}</h4>
-                <p><i class="fa-solid fa-ruler-combined"></i> ${p.area || 0} hectares</p>
+                <p><i class="fa-solid fa-ruler-combined"></i> ${fmtArea(p.area)}</p>
                 <p><i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
                 ${animaisNoPiquete ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animais</strong></p>` : ''}
-                ${p.dias_tecnicos ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-chart-simple"></i> ${p.dias_tecnicos} dias técnicos</strong></p>` : ''}
+                ${p.dias_tecnicos ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-chart-simple"></i> ${fmtDias(p.dias_tecnicos)} técnicos</strong></p>` : ''}
                 <span class="badge ${badgeClass}">${badgeText}</span>
                 ${statusInfo ? `<br>${statusInfo}` : ''}
-                ${p.altura_real_medida ? `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${p.altura_real_medida}cm (medida)</small>` : ''}
+                ${p.altura_real_medida ? `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_real_medida)} (medida)</small>` : ''}
                 ${p.data_medicao ? `<small style="color: #999; font-size: 0.7rem;"><br><i class="fa-regular fa-calendar"></i> ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</small>` : ''}
                 ${diasRestantes}
                 ${alertaUrgente}
                 ${(p.data_saida_prevista && p.animais_no_piquete > 0 && p.dias_ate_saida !== undefined && p.dias_ate_saida !== null) ? (
                     p.dias_ate_saida < 0
-                        ? `<div style="background: #dc3545; color: white; padding: 8px; border-radius: 4px; margin-top: 8px; text-align: center;"><strong><i class="fa-solid fa-triangle-exclamation"></i> RETIRAR JÁ! Atrasado ${Math.abs(p.dias_ate_saida)} dia${Math.abs(p.dias_ate_saida) !== 1 ? 's' : ''}</strong></div>`
+                        ? `<div style="background: #dc3545; color: white; padding: 8px; border-radius: 4px; margin-top: 8px; text-align: center;"><strong><i class="fa-solid fa-triangle-exclamation"></i> RETIRAR JÁ! Atrasado ${fmtDias(Math.abs(p.dias_ate_saida))}</strong></div>`
                         : p.dias_ate_saida <= 1
-                            ? `<div style="background: #fd7e14; color: white; padding: 8px; border-radius: 4px; margin-top: 8px; text-align: center;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Preparar saída! Faltam ${p.dias_ate_saida} dia${p.dias_ate_saida !== 1 ? 's' : ''}</strong></div>`
+                            ? `<div style="background: #fd7e14; color: white; padding: 8px; border-radius: 4px; margin-top: 8px; text-align: center;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Preparar saída! Faltam ${fmtDias(p.dias_ate_saida)}</strong></div>`
                             : ''
                 ) : ''}
                 ${buttonGroup}
