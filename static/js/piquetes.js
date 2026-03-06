@@ -1450,6 +1450,86 @@ if (typeof fazendaId !== 'undefined' && fazendaId) {
 }
 
 // Função para filtrar piquetes na lista
+function renderResumoPiquetes() {
+    const container = document.getElementById('resumo-piquetes');
+    if (!container) return;
+
+    const display = getPiquetesParaRenderizar();
+    if (!display || !display.length) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let total = 0;
+    let ocupados = 0;
+    let disponiveis = 0;
+    let recuperando = 0;
+    let semAltura = 0;
+    let offline = 0;
+    let areaTotal = 0;
+
+    display.forEach(p => {
+        total++;
+        areaTotal += (p.area || 0);
+        const isOffline = !!p.offlinePending;
+        if (isOffline) offline++;
+
+        const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+        const temAlgumaAltura = temReal || (p.altura_estimada !== null && p.altura_estimada !== undefined);
+        const semMedicao = !p.data_medicao && !temReal;
+
+        if (!temAlgumaAltura || semMedicao) {
+            semAltura++;
+            return;
+        }
+
+        if (p.estado === 'ocupado') {
+            ocupados++;
+            return;
+        }
+
+        if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) {
+            disponiveis++;
+        } else {
+            recuperando++;
+        }
+    });
+
+    const fmtArea = (v) => `${Number(v || 0).toFixed(2)} ha`;
+
+    container.innerHTML = `
+        <div style="background:#eef5ff;border:1px solid #cfe0ff;border-radius:10px;padding:10px;">
+            <div style="font-size:0.8rem;color:#5a6b85;">Total</div>
+            <div style="font-size:1.3rem;font-weight:700;">${total}</div>
+        </div>
+        <div style="background:#ffeef0;border:1px solid #ffc6d1;border-radius:10px;padding:10px;">
+            <div style="font-size:0.8rem;color:#8a4b5a;">Ocupados</div>
+            <div style="font-size:1.3rem;font-weight:700;">${ocupados}</div>
+        </div>
+        <div style="background:#e9f7ef;border:1px solid #bfe6cf;border-radius:10px;padding:10px;">
+            <div style="font-size:0.8rem;color:#2e6b4f;">Disponíveis</div>
+            <div style="font-size:1.3rem;font-weight:700;">${disponiveis}</div>
+        </div>
+        <div style="background:#fff7e6;border:1px solid #ffe0a6;border-radius:10px;padding:10px;">
+            <div style="font-size:0.8rem;color:#8a6b2e;">Recuperando</div>
+            <div style="font-size:1.3rem;font-weight:700;">${recuperando}</div>
+        </div>
+        <div style="background:#f8f9fa;border:1px solid #e1e3e6;border-radius:10px;padding:10px;">
+            <div style="font-size:0.8rem;color:#6c757d;">Sem altura</div>
+            <div style="font-size:1.3rem;font-weight:700;">${semAltura}</div>
+        </div>
+        <div style="background:#f0f4ff;border:1px solid #d6defc;border-radius:10px;padding:10px;">
+            <div style="font-size:0.8rem;color:#4b5d85;">Área total</div>
+            <div style="font-size:1.1rem;font-weight:700;">${fmtArea(areaTotal)}</div>
+        </div>
+        ${offline ? `
+        <div style="background:#f1f3f5;border:1px dashed #adb5bd;border-radius:10px;padding:10px;">
+            <div style="font-size:0.8rem;color:#6c757d;">Offline pendente</div>
+            <div style="font-size:1.3rem;font-weight:700;">${offline}</div>
+        </div>` : ''}
+    `;
+}
+
 function filtrarPiquetes() {
     const termo = document.getElementById('buscar-piquete').value.toLowerCase();
     const statusFiltro = document.getElementById('filtro-status-piquete').value;
