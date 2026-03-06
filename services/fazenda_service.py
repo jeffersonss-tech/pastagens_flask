@@ -137,7 +137,12 @@ def gerar_resumo_geral(fazenda_id: int) -> dict:
             p['altura_estimada'] = altura_calc
 
         status = calcular_status_piquete(p).get('status')
-        if status == 'EM_DESCANSO':
+
+        # Considerar como "desocupado":
+        # - EM_DESCANSO (descanso real)
+        # - BLOQUEADO por ausência de medição (sem altura real/estimada e sem data_medicao)
+        sem_medicao = (not p.get('altura_real_medida')) and (not p.get('altura_estimada')) and (not p.get('data_medicao'))
+        if status == 'EM_DESCANSO' or (status == 'BLOQUEADO' and sem_medicao):
             area_descanso += (p.get('area') or 0)
     
     # ========== MEDIA DE ALTURA ==========
