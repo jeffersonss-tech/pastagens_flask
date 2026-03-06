@@ -798,12 +798,6 @@ function renderPiquetesCards() {
     fetch('/api/movimentacoes?fazenda_id=' + fazendaId).then(r => r.json()).then(data => {
         // Garantir que movimentacoes seja sempre um array
         const movimentacoes = Array.isArray(data) ? data : [];
-        const histMov = document.getElementById('historico-mov');
-        if (histMov) {
-            histMov.innerHTML = movimentacoes.slice(0, 10).map(m => `
-                <tr><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.lote_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${m.motivo || '-'}</td></tr>
-            `).join('');
-        }
         const ultMov = document.getElementById('ultimas-mov');
         if (ultMov) {
             ultMov.innerHTML = movimentacoes.slice(0, 5).map(m => `
