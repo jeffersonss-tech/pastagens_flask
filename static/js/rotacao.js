@@ -22,6 +22,38 @@ function atualizar() {
     fetch('/api/rotacao')
         .then(r => r.json())
         .then(data => {
+            const prioridadeStatus = {
+                'SAIDA_IMEDIATA': 1,
+                'ABAIXO_MINIMO': 2,
+                'PROXIMO_SAIDA': 3,
+                'EM_OCUPACAO': 4,
+                'APTO_ENTRADA': 5,
+                'EM_DESCANSO': 6,
+                'SEM_ALTURA': 7,
+                'BLOQUEADO': 8
+            };
+
+            data.sort((a, b) => {
+                const sa = a.status_detalhes?.status || '';
+                const sb = b.status_detalhes?.status || '';
+                const pa = prioridadeStatus[sa] || 99;
+                const pb = prioridadeStatus[sb] || 99;
+                if (pa !== pb) return pa - pb;
+
+                const progA = a.status_detalhes?.progresso_descanso ?? null;
+                const progB = b.status_detalhes?.progresso_descanso ?? null;
+                if (progA !== null && progB !== null && progA !== progB) return progB - progA;
+
+                const altA = a.altura_estimada ?? a.altura_real_medida ?? null;
+                const altB = b.altura_estimada ?? b.altura_real_medida ?? null;
+                if (altA !== null && altB !== null) {
+                    if (sa === 'ABAIXO_MINIMO') return altA - altB;
+                    return altB - altA;
+                }
+
+                return (a.nome || '').localeCompare(b.nome || '');
+            });
+
             const counts = {
                 'APTO_ENTRADA': 0,
                 'EM_OCUPACAO': 0,
