@@ -115,15 +115,30 @@ def gerar_resumo_geral(fazenda_id: int) -> dict:
     
     # ========== AREAS OCUPADA E DESCANSO ==========
     cursor.execute('''
-        SELECT 
-            COALESCE(SUM(CASE WHEN estado = 'ocupado' THEN area ELSE 0 END), 0) as area_ocupada,
-            COALESCE(SUM(CASE WHEN estado != 'ocupado' AND bloqueado = 0 THEN area ELSE 0 END), 0) as area_descanso
-        FROM piquetes 
+        SELECT id, area, estado, bloqueado, altura_real_medida, altura_estimada, data_medicao,
+               altura_entrada, altura_saida, dias_ocupacao, dias_descanso, capim
+        FROM piquetes
         WHERE fazenda_id = ? AND ativo = 1
     ''', (fazenda_id,))
-    row = cursor.fetchone()
-    area_ocupada = float(row['area_ocupada'] or 0)
-    area_descanso = float(row['area_descanso'] or 0)
+    piquetes = [dict(r) for r in cursor.fetchall()]
+
+    # Área ocupada continua baseada no estado do piquete
+    area_ocupada = sum((p.get('area') or 0) for p in piquetes if p.get('estado') == 'ocupado')
+
+    # Área de descanso = SOMENTE status EM_DESCANSO (alinhado com a lógica da IA Rotação)
+    from services.rotacao_service import calcular_status_piquete
+    from database import calcular_altura_estimada
+
+    area_descanso = 0
+    for p in piquetes:
+        # Calcular altura_estimada consistente com a IA Rotação, quando houver medição
+        if p.get('altura_estimada') is None and p.get('data_medicao'):
+            altura_calc, _fonte = calcular_altura_estimada(p)
+            p['altura_estimada'] = altura_calc
+
+        status = calcular_status_piquete(p).get('status')
+        if status == 'EM_DESCANSO':
+            area_descanso += (p.get('area') or 0)
     
     # ========== MEDIA DE ALTURA ==========
     cursor.execute('''
