@@ -14,6 +14,25 @@
             <div id="sem-piquetes-aptos" style="display: none; text-align: center; padding: 20px; color: #dc3545;">
                 <i class="fas fa-triangle-exclamation"></i> Nenhum piquete disponível!
             </div>
+            <div style="margin: 12px 0 4px;">
+                <label for="mover-motivo-select" style="display:block;margin-bottom:6px;font-weight:600;">Motivo da movimentação</label>
+                <select id="mover-motivo-select" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                    <option value="">Selecione...</option>
+                    <option value="Rotação planejada">Rotação planejada</option>
+                    <option value="Altura mínima do pasto atingida">Altura mínima do pasto atingida</option>
+                    <option value="Tempo máximo de ocupação">Tempo máximo de ocupação</option>
+                    <option value="Pasto abaixo do esperado">Pasto abaixo do esperado</option>
+                    <option value="Problema no piquete">Problema no piquete</option>
+                    <option value="Manejo sanitário">Manejo sanitário</option>
+                    <option value="Ajuste de lotação">Ajuste de lotação</option>
+                    <option value="Reforma ou manutenção">Reforma ou manutenção</option>
+                    <option value="Outro">Outro</option>
+                </select>
+                <div id="mover-outro-wrapper" style="margin-top:8px;display:none;">
+                    <label for="mover-motivo-outro-texto" style="display:block;margin-bottom:6px;">Descreva o motivo:</label>
+                    <input id="mover-motivo-outro-texto" type="text" placeholder="Descreva o motivo" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+                </div>
+            </div>
             <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="confirmarMovimentacao()">
                 <i class="fas fa-check"></i> Confirmar
             </button>

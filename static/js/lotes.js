@@ -349,6 +349,21 @@ async function salvarLote() {
 function abrirModalMover(loteId, nome) {
     document.getElementById('mover-lote-id').value = loteId;
     document.getElementById('mover-lote-nome').textContent = nome;
+    const motivoSelect = document.getElementById('mover-motivo-select');
+    if (motivoSelect) motivoSelect.value = '';
+    const outroInput = document.getElementById('mover-motivo-outro-texto');
+    if (outroInput) outroInput.value = '';
+    const outroWrapper = document.getElementById('mover-outro-wrapper');
+    if (outroWrapper) outroWrapper.style.display = 'none';
+
+    if (motivoSelect) {
+        motivoSelect.addEventListener('change', () => {
+            if (outroWrapper) {
+                outroWrapper.style.display = motivoSelect.value === 'Outro' ? 'block' : 'none';
+            }
+        });
+    }
+
     document.getElementById('modal-mover').classList.add('active');
     fetch(`/api/piquetes?fazenda_id=${fazendaId}&_=${Date.now()}`)
         .then(r => r.json()).then(allPiquetes => {
@@ -399,10 +414,17 @@ function selecionarPiquete(id, el) {
 async function confirmarMovimentacao() {
     if (!piqueteSelecionado) return alert('Selecione um piquete!');
     try {
+        const motivoSelecionado = document.getElementById('mover-motivo-select')?.value || null;
+        let motivo = motivoSelecionado;
+        if (motivoSelecionado === 'Outro') {
+            const textoOutro = document.getElementById('mover-motivo-outro-texto')?.value?.trim();
+            motivo = textoOutro ? `Outro: ${textoOutro}` : 'Outro';
+        }
+
         const r = await fetch(`/api/lotes/${document.getElementById('mover-lote-id').value}/mover?fazenda_id=${fazendaId}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ piquete_destino_id: piqueteSelecionado })
+            body: JSON.stringify({ piquete_destino_id: piqueteSelecionado, motivo })
         });
         if (!r.ok) {
             const msg = await parseErrorResponse(r, 'Erro ao mover lote');
