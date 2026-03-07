@@ -437,6 +437,176 @@ async function confirmarMovimentacao() {
     }
 }
 
+let movModalCache = [];
+let movModalOrdenarDirecao = 'desc';
+let movModalBinded = false;
+
+function abrirModalMovimentacoes() {
+    document.getElementById('modal-movimentacoes').classList.add('active');
+    carregarMovimentacoesModal();
+}
+
+function normalizarTextoMov(valor) {
+    return String(valor || '').toLowerCase();
+}
+
+function atualizarSelectMov(id, valores, placeholder) {
+    const select = document.getElementById(id);
+    if (!select) return;
+    const unique = Array.from(new Set(valores.filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'));
+    select.innerHTML = `<option value="">${placeholder}</option>` + unique.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
+function getActiveChipValueMov(containerId) {
+    const container = document.getElementById(containerId);
+    const active = container?.querySelector('.mov-modal-chip.active');
+    return active ? active.getAttribute('data-value') : '';
+}
+
+function ordenarMovimentacoesModal(lista) {
+    const campo = document.getElementById('mov-modal-ordenar-por')?.value || 'data_movimentacao';
+    const fator = movModalOrdenarDirecao === 'asc' ? 1 : -1;
+
+    return [...lista].sort((a, b) => {
+        const va = a[campo] ?? '';
+        const vb = b[campo] ?? '';
+
+        if (campo === 'data_movimentacao') {
+            return (new Date(va) - new Date(vb)) * fator;
+        }
+
+        return String(va).localeCompare(String(vb), 'pt-BR', { sensitivity: 'base' }) * fator;
+    });
+}
+
+function filtrarMovimentacoesModal(lista) {
+    const fLote = normalizarTextoMov(document.getElementById('mov-modal-filtro-lote')?.value);
+    const fOrigem = normalizarTextoMov(document.getElementById('mov-modal-filtro-origem')?.value);
+    const fDestino = normalizarTextoMov(document.getElementById('mov-modal-filtro-destino')?.value);
+    const fUsuario = normalizarTextoMov(document.getElementById('mov-modal-filtro-usuario')?.value);
+    const fMotivo = normalizarTextoMov(document.getElementById('mov-modal-filtro-motivo')?.value);
+    const fTipo = normalizarTextoMov(getActiveChipValueMov('mov-modal-chips-tipo'));
+    const fPeriodo = getActiveChipValueMov('mov-modal-chips-periodo');
+
+    return lista.filter(m => {
+        if (fLote && normalizarTextoMov(m.lote_nome) !== fLote) return false;
+        if (fOrigem && normalizarTextoMov(m.origem_nome) !== fOrigem) return false;
+        if (fDestino && normalizarTextoMov(m.destino_nome) !== fDestino) return false;
+        if (fUsuario && normalizarTextoMov(m.usuario_nome) !== fUsuario) return false;
+        if (fMotivo && normalizarTextoMov(m.motivo) !== fMotivo) return false;
+        if (fTipo && normalizarTextoMov(m.tipo) !== fTipo) return false;
+
+        if (fPeriodo) {
+            const dias = parseInt(fPeriodo, 10);
+            if (!Number.isNaN(dias)) {
+                const dataMov = new Date(m.data_movimentacao);
+                const limite = new Date();
+                limite.setHours(0, 0, 0, 0);
+                limite.setDate(limite.getDate() - (dias - 1));
+                if (dataMov < limite) return false;
+            }
+        }
+
+        return true;
+    });
+}
+
+function renderMovimentacoesModal() {
+    const tbody = document.getElementById('mov-modal-tabela');
+    if (!tbody) return;
+
+    const filtradas = filtrarMovimentacoesModal(movModalCache);
+    const ordenadas = ordenarMovimentacoesModal(filtradas);
+
+    tbody.innerHTML = ordenadas.map(m => `
+        <tr><td>${m.lote_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.usuario_nome || '-'}</td><td>${m.motivo || '-'}</td></tr>
+    `).join('');
+}
+
+function bindMovimentacoesModal() {
+    if (movModalBinded) return;
+    movModalBinded = true;
+
+    const ids = [
+        'mov-modal-filtro-lote',
+        'mov-modal-filtro-origem',
+        'mov-modal-filtro-destino',
+        'mov-modal-filtro-usuario',
+        'mov-modal-filtro-motivo',
+        'mov-modal-ordenar-por'
+    ];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', renderMovimentacoesModal);
+        }
+    });
+
+    document.querySelectorAll('#mov-modal-chips-tipo .mov-modal-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('#mov-modal-chips-tipo .mov-modal-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            renderMovimentacoesModal();
+        });
+    });
+
+    document.querySelectorAll('#mov-modal-chips-periodo .mov-modal-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('#mov-modal-chips-periodo .mov-modal-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            renderMovimentacoesModal();
+        });
+    });
+
+    const ordenarBtn = document.getElementById('mov-modal-ordenar-btn');
+    if (ordenarBtn) {
+        ordenarBtn.addEventListener('click', () => {
+            movModalOrdenarDirecao = movModalOrdenarDirecao === 'asc' ? 'desc' : 'asc';
+            ordenarBtn.textContent = `Ordenar: ${movModalOrdenarDirecao === 'asc' ? 'Asc' : 'Desc'}`;
+            renderMovimentacoesModal();
+        });
+    }
+
+    const limparBtn = document.getElementById('mov-modal-limpar');
+    if (limparBtn) {
+        limparBtn.addEventListener('click', () => {
+            ['mov-modal-filtro-lote','mov-modal-filtro-origem','mov-modal-filtro-destino','mov-modal-filtro-usuario','mov-modal-filtro-motivo'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            document.getElementById('mov-modal-ordenar-por').value = 'data_movimentacao';
+            movModalOrdenarDirecao = 'desc';
+            const ordenarBtn = document.getElementById('mov-modal-ordenar-btn');
+            if (ordenarBtn) ordenarBtn.textContent = 'Ordenar: Desc';
+
+            document.querySelectorAll('#mov-modal-chips-tipo .mov-modal-chip').forEach((c, idx) => {
+                c.classList.toggle('active', idx === 0);
+            });
+            document.querySelectorAll('#mov-modal-chips-periodo .mov-modal-chip').forEach((c, idx) => {
+                c.classList.toggle('active', idx === 0);
+            });
+            renderMovimentacoesModal();
+        });
+    }
+}
+
+function carregarMovimentacoesModal() {
+    fetch(`/api/movimentacoes?fazenda_id=${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            movModalCache = Array.isArray(data) ? data : [];
+
+            atualizarSelectMov('mov-modal-filtro-lote', movModalCache.map(m => m.lote_nome), 'Lote (todos)');
+            atualizarSelectMov('mov-modal-filtro-origem', movModalCache.map(m => m.origem_nome), 'Origem (todas)');
+            atualizarSelectMov('mov-modal-filtro-destino', movModalCache.map(m => m.destino_nome), 'Destino (todos)');
+            atualizarSelectMov('mov-modal-filtro-usuario', movModalCache.map(m => m.usuario_nome), 'Usuário (todos)');
+            atualizarSelectMov('mov-modal-filtro-motivo', movModalCache.map(m => m.motivo), 'Motivo (todos)');
+
+            bindMovimentacoesModal();
+            renderMovimentacoesModal();
+        });
+}
+
 async function registrarSaida(loteId) {
     if (!confirm('Registrar saída do lote?')) return;
     try {

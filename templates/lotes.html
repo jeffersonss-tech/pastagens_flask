@@ -62,6 +62,7 @@
     <div class="filter-actions">
         <button class="btn-warning-lotes" onclick="atualizarStatus()"><i class="fas fa-rotate-right"></i> Atualizar Status</button>
         <button class="btn-primary-lotes" onclick="abrirModalNovoLote()"><i class="fas fa-plus"></i> Novo Lote</button>
+        <button class="btn-secondary-lotes" onclick="abrirModalMovimentacoes()"><i class="fas fa-clock-rotate-left"></i> Histórico</button>
     </div>
 </div>
 
@@ -100,6 +101,7 @@
 {% include 'modals/lote_mover.html' %}
 {% include 'modals/lote_todos_piquetes.html' %}
 {% include 'modals/lote_detalhes.html' %}
+{% include 'modals/movimentacoes_modal.html' %}
 {% endblock %}
 
 {% block scripts %}
