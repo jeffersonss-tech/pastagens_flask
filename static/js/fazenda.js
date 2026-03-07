@@ -865,7 +865,7 @@ function renderPiquetesCards() {
         const ordenadas = ordenarMovimentacoes(filtradas);
 
         ultMov.innerHTML = ordenadas.slice(0, 20).map(m => `
-            <tr><td>${m.lote_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.usuario_nome || '-'}</td></tr>
+            <tr><td>${m.lote_nome || '-'}</td><td>${m.origem_nome || '-'}</td><td>${m.destino_nome || '-'}</td><td>${new Date(m.data_movimentacao).toLocaleDateString()}</td><td>${m.usuario_nome || '-'}</td><td>${m.motivo || '-'}</td></tr>
         `).join('');
     }
 
