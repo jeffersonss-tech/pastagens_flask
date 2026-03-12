@@ -6,7 +6,13 @@ import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from simular_data import now as data_teste_now  # Suporte a data de teste
-from services.manejo_service import calcular_altura_ocupacao, get_consumo_base, calcular_dias_tecnicos, aplicar_suplementacao
+from services.manejo_service import (
+    calcular_altura_ocupacao,
+    get_consumo_base,
+    calcular_dias_tecnicos,
+    aplicar_suplementacao,
+    classificar_lotacao,
+)
 from services.clima_service import obter_clima_com_fallback
 from services.rotacao_service import (
     calcular_prioridade_rotacao,
@@ -678,12 +684,15 @@ def calcular_lotacao_fazenda(fazenda_id):
     
     # Busca animais da fazenda (usando lotes agora)
     cursor.execute('''
-        SELECT SUM(l.quantidade * l.peso_medio) as peso_total 
-        FROM lotes l 
+        SELECT
+            SUM(l.quantidade * l.peso_medio) as peso_total,
+            SUM(l.quantidade) as total_animais
+        FROM lotes l
         WHERE l.fazenda_id = ? AND l.ativo = 1
     ''', (fazenda_id,))
     resultado = cursor.fetchone()
     peso_total = resultado['peso_total'] or 0
+    total_animais = resultado['total_animais'] or 0
     
     # Calcula UA total (1 UA = 450 kg)
     ua_total = peso_total / 450
@@ -693,16 +702,22 @@ def calcular_lotacao_fazenda(fazenda_id):
     resultado = cursor.fetchone()
     area_total = resultado['area_total'] or 0
     
-    # Calcula lotação por hectare
+    # Calcula lotação por hectare (UA/ha)
     lotacao_ha = ua_total / area_total if area_total > 0 else 0
-    
+
+    # Classificação alinhada com manejo_service (animais/ha)
+    taxa_animais_ha = total_animais / area_total if area_total > 0 else 0
+    status_lotacao = classificar_lotacao(taxa_animais_ha)
+
     conn.close()
-    
+
     return {
         'peso_total': peso_total,
         'ua_total': round(ua_total, 2),
         'area_total': area_total,
-        'lotacao_ha': round(lotacao_ha, 2)
+        'lotacao_ha': round(lotacao_ha, 2),
+        'taxa_animais_ha': round(taxa_animais_ha, 2),
+        'status_lotacao': status_lotacao,
     }
 
 # ============ LOTES ============

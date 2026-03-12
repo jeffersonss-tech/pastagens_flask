@@ -1052,21 +1052,30 @@ function carregarLotacao() {
                 document.getElementById('lotacao-peso').textContent = (data.peso_total || 0).toLocaleString('pt-BR');
                 document.getElementById('lotacao-ua').textContent = data.ua_total;
                 document.getElementById('lotacao-lha').textContent = data.lotacao_ha;
-                const lha = data.lotacao_ha;
                 const statusEl = document.getElementById('lotacao-status');
                 const msgEl = document.getElementById('lotacao-msg');
-                if (lha < 2) {
-                    statusEl.textContent = 'SUBUTILIZADO';
+                const status = data.status_lotacao;
+
+                if (status === 'BAIXA') {
+                    statusEl.textContent = 'BAIXA';
                     statusEl.style.color = '#1976d2';
-                    msgEl.textContent = 'Pastagem com capacidade para mais';
-                } else if (lha > 4) {
-                    statusEl.textContent = 'SOBRECARGA';
-                    statusEl.style.color = '#d32f2f';
-                    msgEl.textContent = 'Atenção: lotação acima do limite!';
-                } else {
-                    statusEl.textContent = 'ÓTIMO';
+                    msgEl.textContent = 'Lotação abaixo do ideal';
+                } else if (status === 'MODERADA') {
+                    statusEl.textContent = 'MODERADA';
                     statusEl.style.color = '#388e3c';
                     msgEl.textContent = 'Lotação adequada';
+                } else if (status === 'ALTA') {
+                    statusEl.textContent = 'ALTA';
+                    statusEl.style.color = '#f57c00';
+                    msgEl.textContent = 'Atenção: lotação alta';
+                } else if (status === 'MUITO_ALTA') {
+                    statusEl.textContent = 'MUITO ALTA';
+                    statusEl.style.color = '#d32f2f';
+                    msgEl.textContent = 'Risco de sobrecarga';
+                } else {
+                    statusEl.textContent = '-';
+                    statusEl.style.color = '#c2185b';
+                    msgEl.textContent = 'Sem classificação';
                 }
             }
         }).catch(e => {
