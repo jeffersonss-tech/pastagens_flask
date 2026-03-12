@@ -779,6 +779,11 @@ function mostrarPiquete(id) {
         }
     }
     
+    const taxaAnimaisHa = (p.area && p.area > 0) ? (p.animais_no_piquete / p.area) : 0;
+    const avisoLotacaoBaixa = (p.estado === 'ocupado' && p.animais_no_piquete > 0 && taxaAnimaisHa < 2)
+        ? `<p style="color:#856404;background:#fff3cd;padding:8px;border-radius:6px;margin-top:8px;"><strong><i class="fa-solid fa-triangle-exclamation"></i> Lotação baixa:</strong> ${taxaAnimaisHa.toFixed(2)} animais/ha. Considere ajustar quantidade/área.</p>`
+        : '';
+
     let estimativaInfo = '';
     if (temReal && p.altura_estimada !== null) {
         const diff = p.altura_estimada - p.altura_real_medida;
@@ -799,6 +804,7 @@ function mostrarPiquete(id) {
             ${loteInfo}
             <p><strong>Estado:</strong> <span class="badge ${estadoBadge}" style="color: white;">${estadoTexto}</span></p>
             ${diasInfo}
+            ${avisoLotacaoBaixa}
         </div>
         <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
             <h4 style="margin-bottom: 10px; color: #856404;"><i class="fa-solid fa-gear"></i> Parâmetros Técnicos</h4>

@@ -637,6 +637,7 @@ function renderPiquetesCards() {
         const fonteAlt = p.fonte_altura || 'estimada';
         const alturaMostrada = temReal ? p.altura_real_medida : p.altura_estimada;
         const animaisNoPiquete = p.animais_no_piquete > 0;
+        const taxaAnimaisHa = (p.area && p.area > 0) ? (p.animais_no_piquete / p.area) : 0;
 
         const fmtArea = (v) => `${Number(v || 0).toFixed(2)} ha`;
         const fmtAltura = (v) => `${Number(v || 0).toFixed(1)} cm`;
@@ -750,10 +751,18 @@ function renderPiquetesCards() {
 
         const capimData = (p.capim || '').toLowerCase();
         const diasDescansoData = (p.dias_descanso || 0);
+        const avisoLotacaoBaixa = (p.estado === 'ocupado' && animaisNoPiquete && taxaAnimaisHa < 2)
+            ? `<span style="background:#fff3cd; border:1px solid #ffc107; color:#856404; border-radius:10px; padding:2px 8px; font-size:0.75rem; white-space:nowrap;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Lotação baixa
+               </span>`
+            : '';
 
         return `
             <div class="${cardClass}" ${clickAttr} data-id="${p.id}" data-capim="${capimData}" data-dias-descanso="${diasDescansoData}" style="cursor:${isOffline ? 'default' : 'pointer'}">
-                <h4>${p.nome}</h4>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                    <h4 style="margin:0;">${p.nome}</h4>
+                    ${avisoLotacaoBaixa}
+                </div>
                 <p><i class="fa-solid fa-ruler-combined"></i> ${fmtArea(p.area)}</p>
                 <p><i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
                 ${animaisNoPiquete ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animais</strong></p>` : ''}
