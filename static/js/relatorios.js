@@ -95,8 +95,64 @@ async function carregarResumoRelatorios() {
             if (elSaidas) elSaidas.textContent = saidas;
             if (elEntradas) elEntradas.textContent = entradas;
             if (elManuais) elManuais.textContent = manuais;
+
+            renderMovimentacoesRelatorio(filtradas);
         })
         .catch(() => {});
+}
+
+function renderMovimentacoesRelatorio(movs) {
+    const grafico = document.getElementById('relatorio-mov-grafico');
+    const tabela = document.getElementById('relatorio-mov-tabela');
+    if (!grafico || !tabela) return;
+
+    if (!movs.length) {
+        grafico.textContent = 'Sem movimentações no período.';
+        tabela.innerHTML = '<tr><td colspan="6" class="relatorios-empty">Sem dados</td></tr>';
+        return;
+    }
+
+    // Gráfico: uso dos piquetes (destino)
+    const contagem = {};
+    movs.forEach(m => {
+        const nome = m.destino_nome || 'Sem destino';
+        contagem[nome] = (contagem[nome] || 0) + 1;
+    });
+
+    const itens = Object.entries(contagem)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    const max = itens.length ? Math.max(...itens.map(i => i[1])) : 1;
+    grafico.innerHTML = itens.map(([nome, qtd]) => {
+        const pct = Math.round((qtd / max) * 100);
+        return `
+            <div style="display:flex; align-items:center; gap:8px; margin:6px 0;">
+                <div style="width:120px; font-size:0.85rem; color:#555; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${nome}</div>
+                <div style="flex:1; background:#f1f3f5; border-radius:6px; height:10px; position:relative;">
+                    <div style="width:${pct}%; background:#0d6efd; height:10px; border-radius:6px;"></div>
+                </div>
+                <div style="width:30px; text-align:right; font-size:0.8rem; color:#555;">${qtd}</div>
+            </div>
+        `;
+    }).join('');
+
+    // Tabela
+    const linhas = movs.slice(0, 30).map(m => {
+        const dataFmt = m.data_movimentacao ? new Date(m.data_movimentacao).toLocaleDateString('pt-BR') : '-';
+        const tipoFmt = (m.tipo || '-').replace('movimentacao', 'manual');
+        return `
+            <tr>
+                <td>${m.lote_nome || '-'}</td>
+                <td>${m.origem_nome || '-'}</td>
+                <td>${m.destino_nome || '-'}</td>
+                <td>${dataFmt}</td>
+                <td>${tipoFmt}</td>
+                <td>${m.motivo || '-'}</td>
+            </tr>
+        `;
+    }).join('');
+    tabela.innerHTML = linhas || '<tr><td colspan="6" class="relatorios-empty">Sem dados</td></tr>';
 }
 
 function bindRelatorios() {
