@@ -1,0 +1,66 @@
+#relatorios-section {
+    display: none;
+}
+
+.relatorios-filtros {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0 15px 0;
+}
+
+.relatorios-input,
+.relatorios-select {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+}
+
+.relatorios-resumo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.relatorios-section-card {
+    margin-bottom: 16px;
+}
+
+.relatorios-grid-sm {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.relatorios-grid-md {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.relatorios-placeholder {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+    color: #777;
+}
+
+.relatorios-table-wrap {
+    max-height: 240px;
+    overflow: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.relatorios-empty {
+    text-align: center;
+    color: #777;
+}
+
+.relatorios-insights {
+    margin: 8px 0;
+    color: #777;
+}

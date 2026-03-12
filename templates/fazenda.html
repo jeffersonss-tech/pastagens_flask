@@ -3,6 +3,10 @@
 {% block title %}{{ fazenda.nome }}{% endblock %}
 {% block header_title %}<i class="fa-solid fa-house"></i> {{ fazenda.nome }}{% endblock %}
 
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/relatorios.css') }}">
+{% endblock %}
+
 {% block content %}
     <!-- DASHBOARD -->
     <div id="dashboard-section">
