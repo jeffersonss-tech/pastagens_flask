@@ -64,7 +64,7 @@ function atualizar() {
             };
             
             data.forEach(item => {
-                const status = item.status_detalhes.status;
+                const { status } = item.status_detalhes;
                 if (counts.hasOwnProperty(status)) counts[status]++;
             });
             
