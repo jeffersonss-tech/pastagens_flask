@@ -36,6 +36,13 @@
     <div class="card">
         <h3><i class="fa-solid fa-map"></i> Mapa dos Piquetes</h3>
         <div id="map-piquetes" style="height: 400px; border-radius: 10px;"></div>
+
+        <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.85rem; color: #555;">
+            <span><i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível</span>
+            <span><i class="fa-solid fa-circle" style="color:#adb5bd;"></i> Precisa medir</span>
+            <span><i class="fa-solid fa-circle" style="color:#ffc107;"></i> Recuperando</span>
+            <span><i class="fa-solid fa-circle" style="color:#dc3545;"></i> Em ocupação</span>
+        </div>
         
         <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn btn-primary" onclick="geoLocalizacaoMapaPiquetes()"><i class="fa-solid fa-location-crosshairs"></i> Minha Localização</button>
