@@ -126,10 +126,14 @@ def gerar_resumo_geral(fazenda_id: int) -> dict:
     area_ocupada = sum((p.get('area') or 0) for p in piquetes if p.get('estado') == 'ocupado')
 
     # Área de descanso = SOMENTE status EM_DESCANSO (alinhado com a lógica da IA Rotação)
+    # Contagem de "prontos" e "críticos" também segue o status da IA Rotação.
     from services.rotacao_service import calcular_status_piquete
     from database import calcular_altura_estimada
 
     area_descanso = 0
+    piquetes_prontos = 0
+    piquetes_criticos = 0
+
     for p in piquetes:
         # Calcular altura_estimada consistente com a IA Rotação, quando houver medição
         if p.get('altura_estimada') is None and p.get('data_medicao'):
@@ -141,9 +145,18 @@ def gerar_resumo_geral(fazenda_id: int) -> dict:
         # Considerar como "desocupado":
         # - EM_DESCANSO (descanso real)
         # - BLOQUEADO por ausência de medição (sem altura real/estimada e sem data_medicao)
-        sem_medicao = (not p.get('altura_real_medida')) and (not p.get('altura_estimada')) and (not p.get('data_medicao'))
+        sem_medicao = (
+            (not p.get('altura_real_medida'))
+            and (not p.get('altura_estimada'))
+            and (not p.get('data_medicao'))
+        )
         if status == 'EM_DESCANSO' or (status == 'BLOQUEADO' and sem_medicao):
             area_descanso += (p.get('area') or 0)
+
+        if status == 'APTO_ENTRADA':
+            piquetes_prontos += 1
+        if status == 'ABAIXO_MINIMO':
+            piquetes_criticos += 1
     
     # ========== MEDIA DE ALTURA ==========
     cursor.execute('''
@@ -154,21 +167,6 @@ def gerar_resumo_geral(fazenda_id: int) -> dict:
     ''', (fazenda_id,))
     row = cursor.fetchone()
     media_altura = round(float(row['media'] or 0), 1)
-    
-    # ========== PIQUETES PRONTOS E CRITICOS ==========
-    cursor.execute('''
-        SELECT 
-            COUNT(CASE WHEN (altura_real_medida IS NOT NULL OR altura_estimada IS NOT NULL)
-                      AND COALESCE(altura_real_medida, altura_estimada) >= altura_entrada
-                      AND estado != 'ocupado' THEN 1 END) as prontos,
-            COUNT(CASE WHEN (altura_real_medida IS NOT NULL OR altura_estimada IS NOT NULL)
-                      AND COALESCE(altura_real_medida, altura_estimada) < altura_saida THEN 1 END) as criticos
-        FROM piquetes 
-        WHERE fazenda_id = ? AND ativo = 1
-    ''', (fazenda_id,))
-    row = cursor.fetchone()
-    piquetes_prontos = row['prontos'] or 0
-    piquetes_criticos = row['criticos'] or 0
     
     conn.close()
     

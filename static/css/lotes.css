@@ -83,7 +83,9 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+    align-items: center;
     flex-wrap: wrap;
+    align-self: end;
 }
 .filter-actions button {
     padding: 8px 16px;
@@ -91,6 +93,7 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 @media (max-width: 768px) {
@@ -102,6 +105,7 @@ body { font-family: system-ui, sans-serif; background: #f0f2f5; }
 .btn-success-lotes { background: #28a745; color: white; }
 .btn-warning-lotes { background: #ffc107; color: #333; }
 .btn-danger-lotes { background: #dc3545; color: white; }
+.btn-secondary-lotes { background: #6c757d; color: white; }
 
 /* Tabela */
 .table-container {
