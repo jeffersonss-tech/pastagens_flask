@@ -622,9 +622,13 @@ def fazenda(id):
     verificar_alertas_piquetes(id)
     
     # Stats básicas
+    # Alinhar com regras do sistema (animais via lotes, disponíveis via piquetes sem animais)
+    stats_base = database.relatorio_estatisticas(fazenda_id=id)
     stats = {
-        'piquetes': len(piquetes),
-        'area_total': sum(p.get('area', 0) or 0 for p in piquetes)
+        'piquetes': stats_base.get('piquetes', len(piquetes)),
+        'area_total': stats_base.get('area_total', 0),
+        'animais': stats_base.get('animais', 0),
+        'disponiveis': len(database.listar_piquetes_disponiveis(id))
     }
     
     return render_template('fazenda.html', fazenda=fazenda, piquetes=piquetes, stats=stats, usuario=session)
