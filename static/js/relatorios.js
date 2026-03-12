@@ -99,6 +99,82 @@ async function carregarResumoRelatorios() {
             renderMovimentacoesRelatorio(filtradas);
         })
         .catch(() => {});
+
+    carregarRotacaoRelatorios();
+}
+
+function carregarRotacaoRelatorios() {
+    if (typeof fazendaId === 'undefined') return;
+    fetch(`/api/piquetes?fazenda_id=${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            const piquetes = Array.isArray(data) ? data : [];
+            renderRotacaoRelatorios(piquetes);
+        })
+        .catch(() => {});
+}
+
+function renderRotacaoRelatorios(piquetes) {
+    const elOcup = document.getElementById('relatorio-rotacao-ocupacao');
+    const elDesc = document.getElementById('relatorio-rotacao-descanso');
+    const elProntos = document.getElementById('relatorio-rotacao-prontos');
+    const elAtrasados = document.getElementById('relatorio-rotacao-atrasados');
+    const tabela = document.getElementById('relatorio-rotacao-tabela');
+
+    if (!tabela) return;
+
+    let somaOcup = 0;
+    let countOcup = 0;
+    let somaDesc = 0;
+    let countDesc = 0;
+    let prontos = 0;
+    let atrasados = 0;
+
+    const linhas = piquetes.map(p => {
+        const estado = p.estado || '';
+        const diasOcupacao = p.dias_no_piquete || 0;
+        const diasDescanso = p.dias_descanso || 0;
+        const diasIdeais = p.dias_ideais || p.dias_descanso_min || 30;
+        const diasTecnicos = p.dias_tecnicos || 0;
+
+        let status = 'OK';
+        if (estado === 'ocupado') {
+            somaOcup += diasOcupacao;
+            countOcup += 1;
+            if (diasTecnicos && diasOcupacao > diasTecnicos) {
+                status = '⚠️ acima do ideal';
+                atrasados += 1;
+            }
+        } else {
+            somaDesc += diasDescanso;
+            countDesc += 1;
+            if (p.status === 'APTO') {
+                prontos += 1;
+            }
+            if (diasDescanso < diasIdeais) {
+                status = '⚠️ abaixo do ideal';
+            }
+        }
+
+        return `
+            <tr>
+                <td>${p.nome || '-'}</td>
+                <td>${estado === 'ocupado' ? diasOcupacao : '-'}</td>
+                <td>${estado === 'ocupado' ? '-' : diasDescanso}</td>
+                <td>${status}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const mediaOcup = countOcup ? (somaOcup / countOcup).toFixed(1) : '-';
+    const mediaDesc = countDesc ? (somaDesc / countDesc).toFixed(1) : '-';
+
+    if (elOcup) elOcup.textContent = mediaOcup;
+    if (elDesc) elDesc.textContent = mediaDesc;
+    if (elProntos) elProntos.textContent = prontos;
+    if (elAtrasados) elAtrasados.textContent = atrasados;
+
+    tabela.innerHTML = linhas || '<tr><td colspan="4" class="relatorios-empty">Sem dados</td></tr>';
 }
 
 function renderMovimentacoesRelatorio(movs) {
