@@ -688,8 +688,8 @@ def calcular_lotacao_fazenda(fazenda_id):
     # Calcula UA total (1 UA = 450 kg)
     ua_total = peso_total / 450
     
-    # Busca área total dos piquetes
-    cursor.execute('SELECT SUM(area) as area_total FROM piquetes WHERE fazenda_id = ?', (fazenda_id,))
+    # Busca área total dos piquetes (somente ativos)
+    cursor.execute('SELECT SUM(area) as area_total FROM piquetes WHERE fazenda_id = ? AND ativo = 1', (fazenda_id,))
     resultado = cursor.fetchone()
     area_total = resultado['area_total'] or 0
     

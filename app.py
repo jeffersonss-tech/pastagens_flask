@@ -626,7 +626,7 @@ def fazenda(id):
     stats_base = database.relatorio_estatisticas(fazenda_id=id)
     stats = {
         'piquetes': stats_base.get('piquetes', len(piquetes)),
-        'area_total': stats_base.get('area_total', 0),
+        'area_total': round(float(stats_base.get('area_total', 0) or 0), 2),
         'animais': stats_base.get('animais', 0),
         'disponiveis': len(database.listar_piquetes_disponiveis(id))
     }
