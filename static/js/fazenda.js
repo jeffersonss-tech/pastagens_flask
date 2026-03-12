@@ -1104,17 +1104,62 @@ function injetarLotacaoUI() {
             <strong id="lotacao-lha" style="font-size: 1.6rem; color: #f57c00;">0</strong>
             <p style="color: #666; font-size: 0.8rem;">UA/hectare</p>
         </div>
-        <div style="text-align: center; padding: 15px; background: #fce4ec; border-radius: 10px;">
+        <div data-lotacao-status-card style="text-align: center; padding: 15px; background: #fce4ec; border-radius: 10px; cursor: pointer;">
             <h5 style="color: #c2185b; margin-bottom: 8px;">Status</h5>
             <strong id="lotacao-status" style="font-size: 1.1rem; color: #c2185b;">-</strong>
             <p style="color: #666; font-size: 0.75rem;" id="lotacao-msg">carregando...</p>
+            <p style="color: #999; font-size: 0.7rem; margin-top: 6px;">Clique para detalhes</p>
         </div>
     `;
     statsGrid.parentNode.insertBefore(lotacaoHTML, statsGrid.nextSibling);
+
+    const detalhes = document.createElement('div');
+    detalhes.id = 'lotacao-detalhes';
+    detalhes.style.cssText = 'display:none; margin-top: 12px; padding: 12px; border: 1px solid #eee; border-radius: 10px; background: #fafafa;';
+    detalhes.innerHTML = '<strong>Detalhes da lotação baixa</strong><div id="lotacao-detalhes-lista" style="margin-top:8px; color:#666;">Carregando...</div>';
+    lotacaoHTML.parentNode.insertBefore(detalhes, lotacaoHTML.nextSibling);
+
     const ref = document.createElement('p');
     ref.style.cssText = 'color: #666; font-size: 0.8rem; margin-top: 12px; margin-bottom: 20px;';
     ref.innerHTML = '<i class="fa-solid fa-lightbulb"></i> <strong>Referência:</strong> 2-4 UA/ha = ideal | Abaixo de 2 = subutilizado | Acima de 4 = sobrecarga';
-    lotacaoHTML.parentNode.insertBefore(ref, lotacaoHTML.nextSibling);
+    detalhes.parentNode.insertBefore(ref, detalhes.nextSibling);
+
+    const statusCard = lotacaoHTML.querySelector('[data-lotacao-status-card]');
+    if (statusCard) {
+        statusCard.addEventListener('click', () => {
+            toggleDetalhesLotacao();
+        });
+    }
+}
+
+function toggleDetalhesLotacao() {
+    const detalhes = document.getElementById('lotacao-detalhes');
+    const lista = document.getElementById('lotacao-detalhes-lista');
+    if (!detalhes || !lista || typeof fazendaId === 'undefined') return;
+
+    const isOpen = detalhes.style.display === 'block';
+    detalhes.style.display = isOpen ? 'none' : 'block';
+    if (isOpen) return;
+
+    lista.textContent = 'Carregando...';
+    fetch(`/api/lotacao/baixa/${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!Array.isArray(data) || data.length === 0) {
+                lista.innerHTML = '<em>Nenhum piquete com lotação baixa.</em>';
+                return;
+            }
+            const html = data.map(p => `
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
+                    <div><strong>${p.nome}</strong> • ${Number(p.area).toFixed(1)} ha</div>
+                    <div>${p.total_animais} animais • ${p.taxa_animais_ha} animais/ha</div>
+                </div>
+            `).join('');
+            lista.innerHTML = html;
+        })
+        .catch(() => {
+            lista.innerHTML = '<em>Erro ao carregar detalhes.</em>';
+        });
 }
 
 function atualizarClimaSidebar() {

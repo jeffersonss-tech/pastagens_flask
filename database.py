@@ -720,6 +720,39 @@ def calcular_lotacao_fazenda(fazenda_id):
         'status_lotacao': status_lotacao,
     }
 
+
+def listar_piquetes_baixa_lotacao(fazenda_id):
+    """Lista piquetes com lotação classificada como BAIXA (animais/ha)."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT p.id, p.nome, p.area,
+               COALESCE(SUM(l.quantidade), 0) as total_animais
+        FROM piquetes p
+        LEFT JOIN lotes l ON l.piquete_atual_id = p.id AND l.ativo = 1
+        WHERE p.fazenda_id = ? AND p.ativo = 1
+        GROUP BY p.id
+        ORDER BY p.nome
+    ''', (fazenda_id,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    resultado = []
+    for r in rows:
+        area = r['area'] or 0
+        total_animais = r['total_animais'] or 0
+        taxa_animais_ha = (total_animais / area) if area > 0 else 0
+        if total_animais > 0 and classificar_lotacao(taxa_animais_ha) == 'BAIXA':
+            resultado.append({
+                'id': r['id'],
+                'nome': r['nome'],
+                'area': area,
+                'total_animais': total_animais,
+                'taxa_animais_ha': round(taxa_animais_ha, 2)
+            })
+
+    return resultado
+
 # ============ LOTES ============
 def criar_lote(fazenda_id, nome, categoria=None, quantidade=0, peso_medio=0, observacao=None, piquete_id=None, consumo_base=None):
     """

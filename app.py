@@ -1159,6 +1159,16 @@ def api_lotacao_piquete(piquete_id):
         return jsonify({'error': 'Piquete não encontrado'}), 404
     return jsonify(lotacao)
 
+
+@app.route('/api/lotacao/baixa/<int:fazenda_id>')
+def api_lotacao_baixa(fazenda_id):
+    """Lista piquetes com lotação baixa (animais/ha)."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+
+    piquetes = database.listar_piquetes_baixa_lotacao(fazenda_id)
+    return jsonify(piquetes)
+
 # ============ ALERTAS ============
 @app.route('/api/alertas')
 def api_alertas():
