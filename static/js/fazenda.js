@@ -688,7 +688,7 @@ function renderPiquetesCards() {
                 } else {
                     badgeClass = 'badge-blue';
                     badgeText = '<i class="fa-solid fa-circle" style="color:#007bff;"></i> Em Ocupação';
-                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_estimada || 0)} (est.)</small><br><small style="color: #007bff;"><i class="fa-solid fa-calendar-day"></i> ${fmtDias(diasOcupados)} desde ocupaçao</small>`;
+                    statusInfo = `<small style="color: #007bff;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_estimada || 0)} (est.)</small> <small style="color: #007bff;">• <i class="fa-solid fa-calendar-day"></i> ${fmtDias(diasOcupados)} desde ocupaçao</small>`;
                 }
             } else if (p.altura_estimada >= p.altura_entrada) {
                 badgeClass = 'badge-green';
@@ -761,14 +761,14 @@ function renderPiquetesCards() {
             <div class="${cardClass}" ${clickAttr} data-id="${p.id}" data-capim="${capimData}" data-dias-descanso="${diasDescansoData}" style="cursor:${isOffline ? 'default' : 'pointer'}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
                     <h4 style="margin:0;">${p.nome}</h4>
-                    ${avisoLotacaoBaixa}
+                    <span class="badge ${badgeClass}" style="white-space:nowrap;">${badgeText}</span>
                 </div>
+                ${avisoLotacaoBaixa ? `<div style="text-align:right; margin-top:4px;">${avisoLotacaoBaixa}</div>` : ''}
                 <p><i class="fa-solid fa-ruler-combined"></i> ${fmtArea(p.area)}</p>
                 <p><i class="fa-solid fa-leaf"></i> ${p.capim || 'N/I'}</p>
                 ${animaisNoPiquete ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-cow"></i> ${p.animais_no_piquete} animais</strong></p>` : ''}
                 ${p.dias_tecnicos ? `<p style="color: #007bff;"><strong><i class="fa-solid fa-chart-simple"></i> ${fmtDias(p.dias_tecnicos)} técnicos</strong></p>` : ''}
-                <span class="badge ${badgeClass}">${badgeText}</span>
-                ${statusInfo ? `<br>${statusInfo}` : ''}
+                ${statusInfo ? `${statusInfo}` : ''}
                 ${p.altura_real_medida ? `<small style="color: #28a745;"><i class="fa-solid fa-ruler-vertical"></i> ${fmtAltura(p.altura_real_medida)} (medida)</small>` : ''}
                 ${p.data_medicao ? `<small style="color: #999; font-size: 0.7rem;"><br><i class="fa-regular fa-calendar"></i> ${new Date(p.data_medicao).toLocaleDateString('pt-BR')}</small>` : ''}
                 ${diasRestantes}
