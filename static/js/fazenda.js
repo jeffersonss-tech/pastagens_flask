@@ -1081,7 +1081,7 @@ function injetarLotacaoUI() {
     lotacaoHTML.style.cssText = 'grid-column: span 4; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 15px;';
     lotacaoHTML.innerHTML = `
         <div style="text-align: center; padding: 15px; background: #e3f2fd; border-radius: 10px;">
-            <h5 style="color: #1976d2; margin-bottom: 8px;">Peso Total</h5>
+            <h5 style="color: #1976d2; margin-bottom: 8px;">Peso total estimado</h5>
             <strong id="lotacao-peso" style="font-size: 1.6rem; color: #1976d2;">0</strong>
             <p style="color: #666; font-size: 0.8rem;">kg</p>
         </div>
