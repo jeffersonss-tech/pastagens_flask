@@ -753,6 +753,41 @@ def listar_piquetes_baixa_lotacao(fazenda_id):
 
     return resultado
 
+
+def listar_lotes_baixa_lotacao(fazenda_id):
+    """Lista lotes em piquetes com lotação baixa (animais/ha)."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT l.id, l.nome as lote_nome, l.quantidade, l.peso_medio,
+               p.id as piquete_id, p.nome as piquete_nome, p.area
+        FROM lotes l
+        JOIN piquetes p ON p.id = l.piquete_atual_id
+        WHERE l.ativo = 1 AND p.ativo = 1 AND p.fazenda_id = ?
+        ORDER BY p.nome, l.nome
+    ''', (fazenda_id,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    resultado = []
+    for r in rows:
+        area = r['area'] or 0
+        total_animais = r['quantidade'] or 0
+        taxa_animais_ha = (total_animais / area) if area > 0 else 0
+        if total_animais > 0 and classificar_lotacao(taxa_animais_ha) == 'BAIXA':
+            resultado.append({
+                'id': r['id'],
+                'nome': r['lote_nome'],
+                'quantidade': total_animais,
+                'peso_medio': r['peso_medio'] or 0,
+                'piquete_id': r['piquete_id'],
+                'piquete_nome': r['piquete_nome'],
+                'area': area,
+                'taxa_animais_ha': round(taxa_animais_ha, 2),
+            })
+
+    return resultado
+
 # ============ LOTES ============
 def criar_lote(fazenda_id, nome, categoria=None, quantidade=0, peso_medio=0, observacao=None, piquete_id=None, consumo_base=None):
     """

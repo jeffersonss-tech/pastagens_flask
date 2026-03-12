@@ -21,12 +21,17 @@
     
     <!-- Stats por Status -->
     <div class="stats-row">
+        <div class="stat-box" id="lotacao-status-card" style="cursor:pointer;"><strong id="lotacao-status-rotacao">-</strong><span><i class="fa-solid fa-chart-line" style="color:#c2185b;"></i> Status da lotação</span></div>
         <div class="stat-box ativo"><strong id="count-apto">0</strong><span><i class="fa-solid fa-circle" style="color: #28a745;"></i> Apto (altura ≥ entrada)</span></div>
         <div class="stat-box ocupacao"><strong id="count-ocupacao">0</strong><span><i class="fa-solid fa-circle" style="color: #007bff;"></i> Em ocupação (em pastejo)</span></div>
         <div class="stat-box descanso"><strong id="count-descanso">0</strong><span><i class="fa-solid fa-circle" style="color: #ffc107;"></i> Em descanso (recuperando)</span></div>
         <div class="stat-box proximo"><strong id="count-proximo">0</strong><span><i class="fa-solid fa-circle" style="color: #fd7e14;"></i> Próximo da saída (≥80% tempo técnico)</span></div>
         <div class="stat-box saida"><strong id="count-saida">0</strong><span><i class="fa-solid fa-circle" style="color: #dc3545;"></i> Saída imediata (tempo técnico)</span></div>
         <div class="stat-box bloqueado"><strong id="count-bloqueado">0</strong><span><i class="fa-solid fa-circle" style="color: #6f42c1;"></i> Bloqueado (sem medição)</span></div>
+    </div>
+    <div id="lotacao-detalhes-rotacao" style="display:none; margin-top: 8px; padding: 10px; border: 1px solid #eee; border-radius: 10px; background: #fafafa;">
+        <strong>Detalhes da lotação baixa (lotes)</strong>
+        <div id="lotacao-detalhes-rotacao-lista" style="margin-top:8px; color:#666;">Carregando...</div>
     </div>
     
     <!-- Seções de Listagem de Piquetes -->

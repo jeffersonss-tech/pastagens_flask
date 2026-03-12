@@ -19,6 +19,7 @@ function carregarResumoGeral() {
 
 function atualizar() {
     carregarResumoGeral();
+    carregarStatusLotacaoRotacao();
     fetch('/api/rotacao')
         .then(r => r.json())
         .then(data => {
@@ -198,7 +199,54 @@ function carregarDataTeste() {
         });
 }
 
+function carregarStatusLotacaoRotacao() {
+    if (typeof fazendaId === 'undefined') return;
+    fetch(`/api/lotacao/${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById('lotacao-status-rotacao');
+            if (!el) return;
+            el.textContent = data?.status_lotacao || '-';
+        })
+        .catch(() => {
+            const el = document.getElementById('lotacao-status-rotacao');
+            if (el) el.textContent = '-';
+        });
+}
+
+function toggleDetalhesLotacaoRotacao() {
+    const box = document.getElementById('lotacao-detalhes-rotacao');
+    const lista = document.getElementById('lotacao-detalhes-rotacao-lista');
+    if (!box || !lista || typeof fazendaId === 'undefined') return;
+
+    const aberto = box.style.display === 'block';
+    box.style.display = aberto ? 'none' : 'block';
+    if (aberto) return;
+
+    lista.textContent = 'Carregando...';
+    fetch(`/api/lotacao/baixa-lotes/${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!Array.isArray(data) || data.length === 0) {
+                lista.innerHTML = '<em>Nenhum lote com lotação baixa.</em>';
+                return;
+            }
+            const html = data.map(l => `
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
+                    <div><strong>${l.nome}</strong> • ${l.piquete_nome || '-'} • ${Number(l.area || 0).toFixed(1)} ha</div>
+                    <div>${l.quantidade} animais • ${l.taxa_animais_ha} animais/ha</div>
+                </div>
+            `).join('');
+            lista.innerHTML = html;
+        })
+        .catch(() => {
+            lista.innerHTML = '<em>Erro ao carregar detalhes.</em>';
+        });
+}
+
 window.addEventListener('load', () => {
     atualizar();
     carregarDataTeste();
+    const card = document.getElementById('lotacao-status-card');
+    if (card) card.addEventListener('click', toggleDetalhesLotacaoRotacao);
 });

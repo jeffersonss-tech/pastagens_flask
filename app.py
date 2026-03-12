@@ -1169,6 +1169,16 @@ def api_lotacao_baixa(fazenda_id):
     piquetes = database.listar_piquetes_baixa_lotacao(fazenda_id)
     return jsonify(piquetes)
 
+
+@app.route('/api/lotacao/baixa-lotes/<int:fazenda_id>')
+def api_lotacao_baixa_lotes(fazenda_id):
+    """Lista lotes em piquetes com lotação baixa (animais/ha)."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+
+    lotes = database.listar_lotes_baixa_lotacao(fazenda_id)
+    return jsonify(lotes)
+
 # ============ ALERTAS ============
 @app.route('/api/alertas')
 def api_alertas():
