@@ -1,0 +1,93 @@
+<!-- Relatorios Section - Include in fazenda.html -->
+
+<div id="relatorios-section" style="display:none;">
+    <div class="card">
+        <h3><i class="fa-solid fa-chart-line"></i> Relatórios</h3>
+
+        <!-- Filtros de período -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 15px 0;">
+            <select id="relatorios-periodo" style="padding:8px 12px; border:2px solid #ddd; border-radius:8px;">
+                <option value="7">Últimos 7 dias</option>
+                <option value="30" selected>Últimos 30 dias</option>
+                <option value="90">Últimos 90 dias</option>
+                <option value="custom">Personalizado</option>
+            </select>
+            <input type="date" id="relatorios-data-inicio" style="padding:8px 12px; border:2px solid #ddd; border-radius:8px;">
+            <input type="date" id="relatorios-data-fim" style="padding:8px 12px; border:2px solid #ddd; border-radius:8px;">
+            <button class="btn btn-primary" id="relatorios-aplicar">Aplicar</button>
+        </div>
+
+        <!-- Cards resumo -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom: 20px;">
+            <div class="stat-card"><h4>Lotação média</h4><strong>-</strong><p>animais/ha</p></div>
+            <div class="stat-card"><h4>Movimentações</h4><strong>-</strong><p>no período</p></div>
+            <div class="stat-card"><h4>Piquetes disponíveis</h4><strong>-</strong><p>status atual</p></div>
+            <div class="stat-card"><h4>Alertas</h4><strong>-</strong><p>críticos</p></div>
+        </div>
+
+        <!-- Movimentações -->
+        <div class="card" style="margin-bottom: 16px;">
+            <h4><i class="fa-solid fa-shuffle"></i> Movimentações</h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin:10px 0;">
+                <div class="stat-card"><h5>Movimentações</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Saídas</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Entradas</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Manuais</h5><strong>-</strong></div>
+            </div>
+            <div style="border:1px solid #eee; border-radius:8px; padding:10px; color:#777;">
+                Gráfico de uso dos piquetes (em breve)
+            </div>
+        </div>
+
+        <!-- Rotação -->
+        <div class="card" style="margin-bottom: 16px;">
+            <h4><i class="fa-solid fa-brain"></i> Rotação</h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin:10px 0;">
+                <div class="stat-card"><h5>Tempo médio ocupação</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Tempo médio descanso</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Piquetes prontos</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Piquetes atrasados</h5><strong>-</strong></div>
+            </div>
+            <div style="max-height:240px; overflow:auto; border:1px solid #eee; border-radius:8px;">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Piquete</th><th>Dias ocupação</th><th>Dias descanso</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="relatorio-rotacao-tabela">
+                        <tr><td colspan="4" style="text-align:center; color:#777;">Sem dados</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Lotação -->
+        <div class="card" style="margin-bottom: 16px;">
+            <h4><i class="fa-solid fa-chart-line"></i> Lotação</h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin:10px 0;">
+                <div class="stat-card"><h5>UA total</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>UA/ha média</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Área ocupada</h5><strong>-</strong></div>
+                <div class="stat-card"><h5>Área em descanso</h5><strong>-</strong></div>
+            </div>
+            <div style="border:1px solid #eee; border-radius:8px; padding:10px; color:#777;">
+                Gráfico UA/ha ao longo do tempo (em breve)
+            </div>
+        </div>
+
+        <!-- Status dos piquetes -->
+        <div class="card" style="margin-bottom: 16px;">
+            <h4><i class="fa-solid fa-seedling"></i> Status dos piquetes</h4>
+            <div style="border:1px solid #eee; border-radius:8px; padding:10px; color:#777;">
+                Gráfico de pizza (em breve)
+            </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="card" style="margin-bottom: 16px;">
+            <h4><i class="fa-solid fa-triangle-exclamation"></i> Insights do sistema</h4>
+            <ul style="margin:8px 0; color:#777;">
+                <li>Nenhum insight gerado ainda.</li>
+            </ul>
+        </div>
+    </div>
+</div>
