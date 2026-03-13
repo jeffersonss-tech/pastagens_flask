@@ -102,6 +102,90 @@ async function carregarResumoRelatorios() {
 
     carregarRotacaoRelatorios();
     carregarLotacaoRelatorios();
+    carregarStatusPiquetesRelatorios();
+}
+
+function carregarStatusPiquetesRelatorios() {
+    if (typeof fazendaId === 'undefined') return;
+
+    fetch(`/api/piquetes?fazenda_id=${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            const piquetes = Array.isArray(data) ? data : [];
+            renderStatusPiquetesRelatorios(piquetes);
+        })
+        .catch(() => {});
+}
+
+function renderStatusPiquetesRelatorios(piquetes) {
+    const container = document.getElementById('relatorio-status-piquetes');
+    if (!container) return;
+
+    if (!piquetes.length) {
+        container.textContent = 'Sem dados.';
+        return;
+    }
+
+    let disponiveis = 0;
+    let ocupados = 0;
+    let recuperando = 0;
+    let semAltura = 0;
+
+    piquetes.forEach(p => {
+        const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+        const temAlgumaAltura = temReal || (p.altura_estimada !== null && p.altura_estimada !== undefined);
+        const semMedicao = !p.data_medicao && !temReal;
+
+        if (!temAlgumaAltura || semMedicao) {
+            semAltura += 1;
+            return;
+        }
+        if (p.estado === 'ocupado') {
+            ocupados += 1;
+            return;
+        }
+        if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) {
+            disponiveis += 1;
+        } else {
+            recuperando += 1;
+        }
+    });
+
+    const total = disponiveis + ocupados + recuperando + semAltura;
+    const pct = (v) => total ? Math.round((v / total) * 100) : 0;
+
+    container.innerHTML = `
+        <div style="display:grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap:10px;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="font-size:0.85rem; color:#555;"><i class="fa-solid fa-circle" style="color:#28a745;"></i> Disponível</div>
+                <div style="font-weight:700;">${disponiveis}</div>
+                <div style="height:8px; background:#e9ecef; border-radius:6px;">
+                    <div style="width:${pct(disponiveis)}%; background:#28a745; height:8px; border-radius:6px;"></div>
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="font-size:0.85rem; color:#555;"><i class="fa-solid fa-circle" style="color:#dc3545;"></i> Ocupado</div>
+                <div style="font-weight:700;">${ocupados}</div>
+                <div style="height:8px; background:#e9ecef; border-radius:6px;">
+                    <div style="width:${pct(ocupados)}%; background:#dc3545; height:8px; border-radius:6px;"></div>
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="font-size:0.85rem; color:#555;"><i class="fa-solid fa-circle" style="color:#ffc107;"></i> Recuperando</div>
+                <div style="font-weight:700;">${recuperando}</div>
+                <div style="height:8px; background:#e9ecef; border-radius:6px;">
+                    <div style="width:${pct(recuperando)}%; background:#ffc107; height:8px; border-radius:6px;"></div>
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="font-size:0.85rem; color:#555;"><i class="fa-solid fa-circle" style="color:#adb5bd;"></i> Sem medição</div>
+                <div style="font-weight:700;">${semAltura}</div>
+                <div style="height:8px; background:#e9ecef; border-radius:6px;">
+                    <div style="width:${pct(semAltura)}%; background:#adb5bd; height:8px; border-radius:6px;"></div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function carregarRotacaoRelatorios() {
