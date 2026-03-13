@@ -533,6 +533,26 @@ async function exportarRelatoriosPdf() {
     const fazendaLon = meta?.dataset.fazendaLon || '';
     const dataExport = new Date().toLocaleString('pt-BR');
 
+    let climaInfo = 'Indisponível';
+    try {
+        if (typeof fazendaId !== 'undefined') {
+            const climaResp = await fetch(`/api/clima/condicao-atual?fazenda_id=${fazendaId}`);
+            const climaData = await climaResp.json();
+            const cond = (climaData?.condicao || 'normal').toUpperCase();
+            const fator = climaData?.fator ?? '-';
+            climaInfo = `${cond} (fator ${fator})`;
+        }
+    } catch (e) {
+        climaInfo = 'Indisponível';
+    }
+
+    let localFmt = fazendaLocal;
+    if (!localFmt || localFmt === '-' || localFmt.trim() === '') {
+        if (fazendaLat && fazendaLon) {
+            localFmt = `Lat ${Number(fazendaLat).toFixed(5)}, Lon ${Number(fazendaLon).toFixed(5)}`;
+        }
+    }
+
     const tudo = document.getElementById('export-tudo')?.checked;
     const selecionados = new Set(
         Array.from(document.querySelectorAll('.export-sec:checked')).map(el => el.value)
@@ -555,16 +575,23 @@ async function exportarRelatoriosPdf() {
             body { font-family: Arial, sans-serif; color:#222; padding:20px; max-width:190mm; margin:0 auto; box-sizing:border-box; }
             h1 { margin:0 0 8px 0; }
             h2 { margin:16px 0 8px; }
-            .capa { border-bottom:2px solid #eee; padding-bottom:12px; margin-bottom:16px; }
-            .capa-grid { display:grid; grid-template-columns: repeat(2, minmax(200px, 1fr)); gap:8px; }
+            .capa { border:1px solid #eee; border-radius:12px; padding:18px; margin-bottom:16px; background:#fff; }
+            .capa-inner { border:1px solid #f2f2f2; border-radius:10px; padding:18px; gap:10px; }
+            .capa-grid { display:grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); gap:8px; margin-top:12px; }
             .info { font-size:0.9rem; color:#555; }
+            .capa-subtitle { font-size:0.95rem; color:#f07c3e; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+            .capa-title { font-size:1.6rem; font-weight:700; text-align:center; margin:12px 0 6px; }
+            .capa-meta { text-align:center; color:#666; font-size:0.85rem; }
+            .capa-footer { margin-top:16px; display:flex; justify-content:space-between; font-size:0.85rem; color:#666; }
             .page-break { page-break-after: always; }
+            .capa { min-height: 250mm; display:flex; align-items:stretch; }
+            .capa-inner { width:100%; display:flex; flex-direction:column; justify-content:space-between; }
             .card { border:1px solid #eee; border-radius:8px; padding:10px; margin-bottom:12px; box-sizing:border-box; }
             table { width:100%; border-collapse: collapse; font-size:0.9rem; }
             th, td { border:1px solid #eee; padding:6px; text-align:left; }
             .badge { display:inline-block; padding:2px 6px; border-radius:6px; background:#f1f3f5; }
             .relatorios-placeholder canvas { max-width:100%; }
-            #capa-mapa { width:100%; box-sizing:border-box; }
+            #capa-mapa { width:100%; box-sizing:border-box; flex:1; min-height:380px; }
             @page { size: A4; margin: 10mm; }
             @media print {
                 body { padding: 0; margin: 0 auto; max-width:190mm; }
@@ -589,15 +616,27 @@ async function exportarRelatoriosPdf() {
 
     const cover = `
         <div class="capa">
-            <h1>Relatórios da Fazenda</h1>
-            <div class="info">Exportado por: ${usuario} • ${dataExport}</div>
-            <div class="capa-grid" style="margin-top:10px;">
-                <div><strong>Fazenda:</strong> ${fazendaNome}</div>
-                <div><strong>Área:</strong> ${fazendaArea} ha</div>
-                <div><strong>Localização:</strong> ${fazendaLocal}</div>
-                <div><strong>Descrição:</strong> ${fazendaDesc}</div>
+            <div class="capa-inner">
+                <div class="capa-subtitle">Relatório da Fazenda</div>
+                <div class="capa-title">${fazendaNome}</div>
+                <div class="capa-meta">Exportado por: ${usuario} • ${dataExport}</div>
+
+                <div class="capa-grid">
+                    <div><strong>Fazenda:</strong> ${fazendaNome}</div>
+                    <div><strong>Área:</strong> ${fazendaArea} ha</div>
+                    <div><strong>Localização:</strong> ${localFmt}</div>
+                    <div><strong>Clima:</strong> ${climaInfo}</div>
+                    <div><strong>Descrição:</strong> ${fazendaDesc}</div>
+                    <div><strong>Data:</strong> ${dataExport}</div>
+                </div>
+
+                ${hasCoords ? '<div id="capa-mapa" style="margin-top:8px; height:380px; border:1px solid #eee; border-radius:8px; width:100%;"></div>' : '<div class="info" style="margin-top:12px;">Sede sem coordenadas cadastradas.</div>'}
+
+                <div class="capa-footer">
+                    <div>${fazendaLocal}</div>
+                    <div>RELATÓRIO</div>
+                </div>
             </div>
-            ${hasCoords ? '<div id="capa-mapa" style="margin-top:12px; height:300px; border:1px solid #eee; border-radius:8px; width:100%; margin:0;"></div>' : '<div class="info" style="margin-top:12px;">Sede sem coordenadas cadastradas.</div>'}
         </div>
         <div class="page-break"></div>
     `;
