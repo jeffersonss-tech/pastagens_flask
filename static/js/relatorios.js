@@ -522,7 +522,7 @@ function bindRelatorios() {
     }
 }
 
-function exportarRelatoriosPdf() {
+async function exportarRelatoriosPdf() {
     const meta = document.getElementById('relatorios-meta');
     const usuario = meta?.dataset.usuario || 'Usuário';
     const fazendaNome = meta?.dataset.fazendaNome || '-';
@@ -552,25 +552,40 @@ function exportarRelatoriosPdf() {
 
     const css = `
         <style>
-            body { font-family: Arial, sans-serif; color:#222; padding:20px; }
+            body { font-family: Arial, sans-serif; color:#222; padding:20px; max-width:190mm; margin:0 auto; box-sizing:border-box; }
             h1 { margin:0 0 8px 0; }
             h2 { margin:16px 0 8px; }
             .capa { border-bottom:2px solid #eee; padding-bottom:12px; margin-bottom:16px; }
             .capa-grid { display:grid; grid-template-columns: repeat(2, minmax(200px, 1fr)); gap:8px; }
             .info { font-size:0.9rem; color:#555; }
             .page-break { page-break-after: always; }
-            .card { border:1px solid #eee; border-radius:8px; padding:10px; margin-bottom:12px; }
+            .card { border:1px solid #eee; border-radius:8px; padding:10px; margin-bottom:12px; box-sizing:border-box; }
             table { width:100%; border-collapse: collapse; font-size:0.9rem; }
             th, td { border:1px solid #eee; padding:6px; text-align:left; }
             .badge { display:inline-block; padding:2px 6px; border-radius:6px; background:#f1f3f5; }
             .relatorios-placeholder canvas { max-width:100%; }
-            @media print { body { padding: 0; } }
+            #capa-mapa { width:100%; box-sizing:border-box; }
+            @page { size: A4; margin: 10mm; }
+            @media print {
+                body { padding: 0; margin: 0 auto; max-width:190mm; }
+                .capa { padding: 0; }
+                #capa-mapa { width: 100% !important; margin: 0 !important; }
+            }
         </style>
     `;
 
-    const mapaUrl = (fazendaLat && fazendaLon)
-        ? `https://staticmap.openstreetmap.de/staticmap.php?center=${fazendaLat},${fazendaLon}&zoom=15&size=600x300&markers=${fazendaLat},${fazendaLon},red-pushpin`
-        : '';
+    const hasCoords = fazendaLat && fazendaLon;
+
+    let piquetesData = [];
+    if (hasCoords && typeof fazendaId !== 'undefined') {
+        try {
+            const resp = await fetch(`/api/piquetes?fazenda_id=${fazendaId}`);
+            const data = await resp.json();
+            piquetesData = Array.isArray(data) ? data : [];
+        } catch (e) {
+            piquetesData = [];
+        }
+    }
 
     const cover = `
         <div class="capa">
@@ -582,12 +597,67 @@ function exportarRelatoriosPdf() {
                 <div><strong>Localização:</strong> ${fazendaLocal}</div>
                 <div><strong>Descrição:</strong> ${fazendaDesc}</div>
             </div>
-            ${mapaUrl ? `<div style="margin-top:12px;"><img src="${mapaUrl}" alt="Mapa da sede" style="width:100%; border:1px solid #eee; border-radius:8px;" /></div>` : '<div class="info" style="margin-top:12px;">Sede sem coordenadas cadastradas.</div>'}
+            ${hasCoords ? '<div id="capa-mapa" style="margin-top:12px; height:300px; border:1px solid #eee; border-radius:8px; width:100%; margin:0;"></div>' : '<div class="info" style="margin-top:12px;">Sede sem coordenadas cadastradas.</div>'}
         </div>
         <div class="page-break"></div>
     `;
 
-    doc.document.write(`<!doctype html><html><head><title>Relatórios</title>${css}</head><body>${cover}</body></html>`);
+    const leaflet = hasCoords
+        ? `
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var map = L.map('capa-mapa', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false });
+                var centerLat = ${fazendaLat};
+                var centerLon = ${fazendaLon} + 0.002; // desloca levemente para a direita
+                map.setView([centerLat, centerLon], 13);
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
+                L.marker([${fazendaLat}, ${fazendaLon}]).addTo(map);
+
+                var piquetes = ${JSON.stringify(piquetesData)};
+                piquetes.forEach(function(p) {
+                    if (!p.geometria) return;
+                    try {
+                        var geo = JSON.parse(p.geometria);
+                        if (geo.type !== 'Polygon' || !geo.coordinates || !geo.coordinates.length) return;
+                        var coords = geo.coordinates[0].map(function(c) { return [c[1], c[0]]; });
+
+                        var temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+                        var corPoligono = '#28a745';
+                        var fillOpacity = 0.4;
+                        if (!temReal) {
+                            corPoligono = '#fff3cd';
+                            fillOpacity = 0.5;
+                        } else if (p.estado === 'ocupado') {
+                            corPoligono = '#dc3545';
+                        } else if (p.altura_estimada >= p.altura_entrada || (temReal && p.altura_real_medida >= p.altura_entrada)) {
+                            corPoligono = '#28a745';
+                        } else {
+                            corPoligono = '#ffc107';
+                        }
+
+                        var polygon = L.polygon(coords, { color: corPoligono, weight: 2, fill: true, fillOpacity: fillOpacity }).addTo(map);
+
+                        var latSum = 0, lngSum = 0;
+                        coords.forEach(function(c) { latSum += c[0]; lngSum += c[1]; });
+                        var centerLat = latSum / coords.length;
+                        var centerLng = lngSum / coords.length;
+                        var label = L.divIcon({
+                            className: 'piquete-label',
+                            html: '<div style="background:rgba(255,255,255,0.9);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:bold;color:#1a1a2e;text-shadow:1px 1px 0 #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);">' + (p.nome || '') + '</div>',
+                            iconSize: [80, 20],
+                            iconAnchor: [40, 10]
+                        });
+                        L.marker([centerLat, centerLng], {icon: label}).addTo(map);
+                    } catch (e) {}
+                });
+            });
+        </script>
+        `
+        : '';
+
+    doc.document.write(`<!doctype html><html><head><title>Relatórios</title>${css}${leaflet}</head><body>${cover}</body></html>`);
 
     const body = doc.document.body;
     Object.entries(blocos).forEach(([key, el]) => {
@@ -600,7 +670,9 @@ function exportarRelatoriosPdf() {
 
     doc.document.close();
     doc.focus();
-    doc.onload = () => doc.print();
+    doc.onload = () => {
+        setTimeout(() => doc.print(), 2000);
+    };
 }
 
 window.addEventListener('load', () => {
