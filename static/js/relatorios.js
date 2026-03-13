@@ -103,6 +103,66 @@ async function carregarResumoRelatorios() {
     carregarRotacaoRelatorios();
     carregarLotacaoRelatorios();
     carregarStatusPiquetesRelatorios();
+    carregarInsightsRelatorios();
+}
+
+function carregarInsightsRelatorios() {
+    if (typeof fazendaId === 'undefined') return;
+
+    Promise.all([
+        fetch(`/api/piquetes?fazenda_id=${fazendaId}`).then(r => r.json()).catch(() => []),
+        fetch(`/api/lotacao/${fazendaId}`).then(r => r.json()).catch(() => ({})),
+        fetch(`/api/rotacao/resumo_geral?fazenda_id=${fazendaId}`).then(r => r.json()).catch(() => ({})),
+        fetch('/api/alertas/contar').then(r => r.json()).catch(() => ({}))
+    ]).then(([piquetes, lotacao, resumo, alertas]) => {
+        const lista = document.getElementById('relatorio-insights');
+        if (!lista) return;
+
+        const items = [];
+        const data = Array.isArray(piquetes) ? piquetes : [];
+
+        const semMedicao = data.filter(p => {
+            const temReal = p.altura_real_medida !== null && p.altura_real_medida !== undefined;
+            return !p.data_medicao && !temReal;
+        }).length;
+        if (semMedicao > 0) {
+            items.push(`⚠️ ${semMedicao} piquete${semMedicao > 1 ? 's' : ''} sem medição recente`);
+        }
+
+        const lotacaoStatus = lotacao?.status_lotacao;
+        if (lotacaoStatus === 'BAIXA') {
+            items.push('⚠️ Lotação da fazenda abaixo do ideal');
+        } else if (lotacaoStatus === 'MUITO_ALTA' || lotacaoStatus === 'ALTA') {
+            items.push('⚠️ Lotação da fazenda acima do ideal');
+        }
+
+        const prontos = resumo?.piquetes_prontos ?? 0;
+        if (prontos === 0 && data.length > 0) {
+            items.push('⚠️ Nenhum piquete pronto para entrada');
+        }
+
+        const alertasTotal = alertas?.total ?? 0;
+        if (alertasTotal > 0) {
+            items.push(`⚠️ ${alertasTotal} alerta${alertasTotal > 1 ? 's' : ''} crítico${alertasTotal > 1 ? 's' : ''} pendente${alertasTotal > 1 ? 's' : ''}`);
+        }
+
+        const atrasados = data.filter(p => {
+            if (p.estado !== 'ocupado') return false;
+            const diasOcupados = p.dias_no_piquete || 0;
+            const diasTecnicos = p.dias_tecnicos || 0;
+            return diasTecnicos > 0 && diasOcupados > diasTecnicos;
+        }).length;
+        if (atrasados > 0) {
+            items.push(`⚠️ ${atrasados} piquete${atrasados > 1 ? 's' : ''} acima do tempo técnico`);
+        }
+
+        if (!items.length) {
+            lista.innerHTML = '<li>Nenhum insight gerado ainda.</li>';
+            return;
+        }
+
+        lista.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+    });
 }
 
 function carregarStatusPiquetesRelatorios() {
