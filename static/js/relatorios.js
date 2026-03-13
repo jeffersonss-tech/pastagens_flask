@@ -101,6 +101,7 @@ async function carregarResumoRelatorios() {
         .catch(() => {});
 
     carregarRotacaoRelatorios();
+    carregarLotacaoRelatorios();
 }
 
 function carregarRotacaoRelatorios() {
@@ -175,6 +176,36 @@ function renderRotacaoRelatorios(piquetes) {
     if (elAtrasados) elAtrasados.textContent = atrasados;
 
     tabela.innerHTML = linhas || '<tr><td colspan="4" class="relatorios-empty">Sem dados</td></tr>';
+}
+
+function carregarLotacaoRelatorios() {
+    if (typeof fazendaId === 'undefined') return;
+
+    fetch(`/api/lotacao/${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            const elUa = document.getElementById('relatorio-lotacao-ua');
+            const elUaHa = document.getElementById('relatorio-lotacao-uaha');
+            if (elUa) elUa.textContent = data?.ua_total ?? '-';
+            if (elUaHa) elUaHa.textContent = data?.lotacao_ha ?? '-';
+        })
+        .catch(() => {});
+
+    fetch(`/api/rotacao/resumo_geral?fazenda_id=${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            const elOcupada = document.getElementById('relatorio-lotacao-ocupada');
+            const elDescanso = document.getElementById('relatorio-lotacao-descanso');
+            const areaOcupada = data?.area_ocupada;
+            const areaDescanso = data?.area_descanso;
+            if (elOcupada) {
+                elOcupada.textContent = Number.isFinite(areaOcupada) ? `${areaOcupada.toFixed(2)} ha` : '-';
+            }
+            if (elDescanso) {
+                elDescanso.textContent = Number.isFinite(areaDescanso) ? `${areaDescanso.toFixed(2)} ha` : '-';
+            }
+        })
+        .catch(() => {});
 }
 
 function renderMovimentacoesRelatorio(movs) {
