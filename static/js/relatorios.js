@@ -480,6 +480,12 @@ function renderMovimentacoesRelatorio(movs) {
 function bindRelatorios() {
     const periodo = document.getElementById('relatorios-periodo');
     const aplicar = document.getElementById('relatorios-aplicar');
+    const exportar = document.getElementById('relatorios-exportar');
+    const modal = document.getElementById('relatorios-export-modal');
+    const cancelar = document.getElementById('export-cancelar');
+    const confirmar = document.getElementById('export-confirmar');
+    const checkTudo = document.getElementById('export-tudo');
+
     if (periodo) {
         periodo.addEventListener('change', () => {
             definirPeriodoRelatorios();
@@ -491,6 +497,110 @@ function bindRelatorios() {
             carregarResumoRelatorios();
         });
     }
+    if (exportar && modal) {
+        exportar.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+    }
+    if (cancelar && modal) {
+        cancelar.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+    if (checkTudo) {
+        checkTudo.addEventListener('change', () => {
+            document.querySelectorAll('.export-sec').forEach(el => {
+                el.checked = checkTudo.checked;
+            });
+        });
+    }
+    if (confirmar && modal) {
+        confirmar.addEventListener('click', () => {
+            modal.style.display = 'none';
+            exportarRelatoriosPdf();
+        });
+    }
+}
+
+function exportarRelatoriosPdf() {
+    const meta = document.getElementById('relatorios-meta');
+    const usuario = meta?.dataset.usuario || 'Usuário';
+    const fazendaNome = meta?.dataset.fazendaNome || '-';
+    const fazendaArea = meta?.dataset.fazendaArea || '-';
+    const fazendaLocal = meta?.dataset.fazendaLocalizacao || '-';
+    const fazendaDesc = meta?.dataset.fazendaDescricao || '-';
+    const fazendaLat = meta?.dataset.fazendaLat || '';
+    const fazendaLon = meta?.dataset.fazendaLon || '';
+    const dataExport = new Date().toLocaleString('pt-BR');
+
+    const tudo = document.getElementById('export-tudo')?.checked;
+    const selecionados = new Set(
+        Array.from(document.querySelectorAll('.export-sec:checked')).map(el => el.value)
+    );
+
+    const blocos = {
+        resumo: document.getElementById('relatorio-bloco-resumo'),
+        mov: document.getElementById('relatorio-bloco-mov'),
+        rotacao: document.getElementById('relatorio-bloco-rotacao'),
+        lotacao: document.getElementById('relatorio-bloco-lotacao'),
+        status: document.getElementById('relatorio-bloco-status'),
+        insights: document.getElementById('relatorio-bloco-insights')
+    };
+
+    const doc = window.open('', '_blank');
+    if (!doc) return;
+
+    const css = `
+        <style>
+            body { font-family: Arial, sans-serif; color:#222; padding:20px; }
+            h1 { margin:0 0 8px 0; }
+            h2 { margin:16px 0 8px; }
+            .capa { border-bottom:2px solid #eee; padding-bottom:12px; margin-bottom:16px; }
+            .capa-grid { display:grid; grid-template-columns: repeat(2, minmax(200px, 1fr)); gap:8px; }
+            .info { font-size:0.9rem; color:#555; }
+            .page-break { page-break-after: always; }
+            .card { border:1px solid #eee; border-radius:8px; padding:10px; margin-bottom:12px; }
+            table { width:100%; border-collapse: collapse; font-size:0.9rem; }
+            th, td { border:1px solid #eee; padding:6px; text-align:left; }
+            .badge { display:inline-block; padding:2px 6px; border-radius:6px; background:#f1f3f5; }
+            .relatorios-placeholder canvas { max-width:100%; }
+            @media print { body { padding: 0; } }
+        </style>
+    `;
+
+    const mapaUrl = (fazendaLat && fazendaLon)
+        ? `https://staticmap.openstreetmap.de/staticmap.php?center=${fazendaLat},${fazendaLon}&zoom=15&size=600x300&markers=${fazendaLat},${fazendaLon},red-pushpin`
+        : '';
+
+    const cover = `
+        <div class="capa">
+            <h1>Relatórios da Fazenda</h1>
+            <div class="info">Exportado por: ${usuario} • ${dataExport}</div>
+            <div class="capa-grid" style="margin-top:10px;">
+                <div><strong>Fazenda:</strong> ${fazendaNome}</div>
+                <div><strong>Área:</strong> ${fazendaArea} ha</div>
+                <div><strong>Localização:</strong> ${fazendaLocal}</div>
+                <div><strong>Descrição:</strong> ${fazendaDesc}</div>
+            </div>
+            ${mapaUrl ? `<div style="margin-top:12px;"><img src="${mapaUrl}" alt="Mapa da sede" style="width:100%; border:1px solid #eee; border-radius:8px;" /></div>` : '<div class="info" style="margin-top:12px;">Sede sem coordenadas cadastradas.</div>'}
+        </div>
+        <div class="page-break"></div>
+    `;
+
+    doc.document.write(`<!doctype html><html><head><title>Relatórios</title>${css}</head><body>${cover}</body></html>`);
+
+    const body = doc.document.body;
+    Object.entries(blocos).forEach(([key, el]) => {
+        if (!el) return;
+        if (!tudo && !selecionados.has(key)) return;
+        const clone = el.cloneNode(true);
+        clone.classList.add('card');
+        body.appendChild(clone);
+    });
+
+    doc.document.close();
+    doc.focus();
+    doc.onload = () => doc.print();
 }
 
 window.addEventListener('load', () => {

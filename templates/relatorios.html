@@ -15,10 +15,13 @@
             <input type="date" id="relatorios-data-inicio" class="relatorios-input">
             <input type="date" id="relatorios-data-fim" class="relatorios-input">
             <button class="btn btn-primary" id="relatorios-aplicar">Aplicar</button>
+            <button class="btn btn-secondary" id="relatorios-exportar">Exportar PDF</button>
         </div>
 
+        <div id="relatorios-meta" data-fazenda-nome="{{ fazenda.nome }}" data-fazenda-area="{{ fazenda.area or 0 }}" data-fazenda-localizacao="{{ fazenda.localizacao or '-' }}" data-fazenda-descricao="{{ fazenda.descricao or '-' }}" data-fazenda-lat="{{ fazenda.latitude_sede or '' }}" data-fazenda-lon="{{ fazenda.longitude_sede or '' }}" data-usuario="{{ usuario.get('nome') or usuario.get('username') or 'Usuário' }}"></div>
+
         <!-- Cards resumo -->
-        <div class="relatorios-resumo">
+        <div class="relatorios-resumo" id="relatorio-bloco-resumo">
             <div class="stat-card"><h4>Lotação média</h4><strong id="relatorio-lotacao-media">-</strong><p>animais/ha</p></div>
             <div class="stat-card"><h4>Movimentações</h4><strong id="relatorio-mov-periodo">-</strong><p>no período</p></div>
             <div class="stat-card"><h4>Piquetes disponíveis</h4><strong id="relatorio-piquetes-disponiveis">-</strong><p>status atual</p></div>
@@ -26,7 +29,7 @@
         </div>
 
         <!-- Movimentações -->
-        <div class="card relatorios-section-card">
+        <div class="card relatorios-section-card" id="relatorio-bloco-mov">
             <h4><i class="fa-solid fa-shuffle"></i> Movimentações</h4>
             <div class="relatorios-grid-sm">
                 <div class="stat-card"><h5>Movimentações</h5><strong id="relatorio-mov-total">-</strong></div>
@@ -50,7 +53,7 @@
         </div>
 
         <!-- Rotação -->
-        <div class="card relatorios-section-card">
+        <div class="card relatorios-section-card" id="relatorio-bloco-rotacao">
             <h4><i class="fa-solid fa-brain"></i> Rotação</h4>
             <div class="relatorios-grid-md">
                 <div class="stat-card"><h5>Tempo médio ocupação</h5><strong id="relatorio-rotacao-ocupacao">-</strong></div>
@@ -71,7 +74,7 @@
         </div>
 
         <!-- Lotação -->
-        <div class="card relatorios-section-card">
+        <div class="card relatorios-section-card" id="relatorio-bloco-lotacao">
             <h4><i class="fa-solid fa-chart-line"></i> Lotação</h4>
             <div class="relatorios-grid-md">
                 <div class="stat-card"><h5>UA total</h5><strong id="relatorio-lotacao-ua">-</strong></div>
@@ -86,7 +89,7 @@
         </div>
 
         <!-- Status dos piquetes -->
-        <div class="card relatorios-section-card">
+        <div class="card relatorios-section-card" id="relatorio-bloco-status">
             <h4><i class="fa-solid fa-seedling"></i> Status dos piquetes</h4>
             <div class="relatorios-placeholder" id="relatorio-status-piquetes">
                 Carregando...
@@ -94,11 +97,33 @@
         </div>
 
         <!-- Insights -->
-        <div class="card relatorios-section-card">
+        <div class="card relatorios-section-card" id="relatorio-bloco-insights">
             <h4><i class="fa-solid fa-triangle-exclamation"></i> Insights do sistema</h4>
             <ul class="relatorios-insights" id="relatorio-insights">
                 <li>Carregando insights...</li>
             </ul>
+        </div>
+    </div>
+</div>
+
+<div id="relatorios-export-modal" class="relatorios-export-modal" style="display:none;">
+    <div class="relatorios-export-content">
+        <h4><i class="fa-solid fa-file-pdf"></i> Exportar Relatórios (PDF)</h4>
+        <label class="relatorios-export-option">
+            <input type="checkbox" id="export-tudo" checked>
+            Página inteira
+        </label>
+        <div class="relatorios-export-sections">
+            <label><input type="checkbox" class="export-sec" value="resumo" checked> Resumo</label>
+            <label><input type="checkbox" class="export-sec" value="mov"> Movimentações</label>
+            <label><input type="checkbox" class="export-sec" value="rotacao"> Rotação</label>
+            <label><input type="checkbox" class="export-sec" value="lotacao"> Lotação</label>
+            <label><input type="checkbox" class="export-sec" value="status"> Status dos piquetes</label>
+            <label><input type="checkbox" class="export-sec" value="insights"> Insights</label>
+        </div>
+        <div class="relatorios-export-actions">
+            <button class="btn btn-secondary" id="export-cancelar">Cancelar</button>
+            <button class="btn btn-primary" id="export-confirmar">Gerar PDF</button>
         </div>
     </div>
 </div>

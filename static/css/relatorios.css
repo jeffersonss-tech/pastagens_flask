@@ -64,3 +64,43 @@
     margin: 8px 0;
     color: #777;
 }
+
+.relatorios-export-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.relatorios-export-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    width: min(520px, 90vw);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.relatorios-export-option {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 10px 0 8px 0;
+    font-weight: 600;
+}
+
+.relatorios-export-sections {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 6px 12px;
+    margin: 8px 0 14px 0;
+    font-size: 0.9rem;
+}
+
+.relatorios-export-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
