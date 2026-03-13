@@ -275,6 +275,24 @@ function carregarLotacaoRelatorios() {
         })
         .catch(() => {});
 
+    fetch(`/api/lotacao/historico/${fazendaId}`)
+        .then(r => r.json())
+        .then(data => {
+            const series = Array.isArray(data) ? data : [];
+            const range = obterRangeRelatorios();
+            const filtrada = series.filter(p => {
+                if (!p.data_ref) return false;
+                const dt = new Date(p.data_ref + 'T00:00:00');
+                if (range.inicioDate && dt < range.inicioDate) return false;
+                if (range.fimDate && dt > range.fimDate) return false;
+                return true;
+            });
+            renderChartLotacaoUaha(filtrada);
+        })
+        .catch(() => {
+            renderChartLotacaoUaha([]);
+        });
+
     fetch(`/api/rotacao/resumo_geral?fazenda_id=${fazendaId}`)
         .then(r => r.json())
         .then(data => {
@@ -290,6 +308,59 @@ function carregarLotacaoRelatorios() {
             }
         })
         .catch(() => {});
+}
+
+function renderChartLotacaoUaha(series) {
+    const canvas = document.getElementById('relatorio-chart-uaha');
+    const note = document.getElementById('relatorio-chart-uaha-note');
+    if (!canvas || typeof Chart === 'undefined') {
+        if (note) note.textContent = 'Gráfico indisponível.';
+        return;
+    }
+
+    if (!Array.isArray(series) || series.length === 0) {
+        if (note) note.textContent = 'Sem histórico registrado ainda.';
+        return;
+    }
+
+    const labels = series.map(p => {
+        const dt = new Date(p.data_ref + 'T00:00:00');
+        return dt.toLocaleDateString('pt-BR');
+    });
+    const data = series.map(p => p.lotacao_ha ?? 0);
+
+    if (canvas._chart) {
+        canvas._chart.destroy();
+    }
+
+    canvas._chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'UA/ha',
+                data,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,0.15)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { display: false },
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    if (note) note.textContent = 'Histórico real de lotação (UA/ha).';
 }
 
 function renderMovimentacoesRelatorio(movs) {

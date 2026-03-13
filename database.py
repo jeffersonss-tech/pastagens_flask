@@ -415,6 +415,20 @@ def init_db():
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         )
     ''')
+
+    # Histórico de lotação
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS lotacao_historico (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fazenda_id INTEGER NOT NULL,
+            data_ref TEXT NOT NULL,
+            ua_total REAL DEFAULT 0,
+            lotacao_ha REAL DEFAULT 0,
+            created_at TEXT,
+            UNIQUE (fazenda_id, data_ref),
+            FOREIGN KEY (fazenda_id) REFERENCES fazendas(id)
+        )
+    ''')
     
     # Capins
     cursor.execute('''
@@ -709,6 +723,14 @@ def calcular_lotacao_fazenda(fazenda_id):
     taxa_animais_ha = total_animais / area_total if area_total > 0 else 0
     status_lotacao = classificar_lotacao(taxa_animais_ha)
 
+    registrar_lotacao_historico(
+        fazenda_id,
+        round(ua_total, 2),
+        round(lotacao_ha, 2),
+        conn,
+    )
+    conn.commit()
+
     conn.close()
 
     return {
@@ -719,6 +741,45 @@ def calcular_lotacao_fazenda(fazenda_id):
         'taxa_animais_ha': round(taxa_animais_ha, 2),
         'status_lotacao': status_lotacao,
     }
+
+
+def registrar_lotacao_historico(fazenda_id, ua_total, lotacao_ha, conn=None):
+    """Registra a lotação diária da fazenda (idempotente)."""
+    data_ref = data_teste_now().date().isoformat()
+    close_conn = False
+    if conn is None:
+        conn = get_db()
+        close_conn = True
+    cursor = conn.cursor()
+    cursor.execute(
+        '''
+        INSERT OR IGNORE INTO lotacao_historico
+            (fazenda_id, data_ref, ua_total, lotacao_ha, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        ''',
+        (fazenda_id, data_ref, ua_total, lotacao_ha, datetime.now().isoformat())
+    )
+    if close_conn:
+        conn.commit()
+        conn.close()
+
+
+def listar_lotacao_historico(fazenda_id):
+    """Lista histórico de lotação da fazenda."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        '''
+        SELECT data_ref, ua_total, lotacao_ha
+        FROM lotacao_historico
+        WHERE fazenda_id = ?
+        ORDER BY data_ref ASC
+        ''',
+        (fazenda_id,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
 def listar_piquetes_baixa_lotacao(fazenda_id):

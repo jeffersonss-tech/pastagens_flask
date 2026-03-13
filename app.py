@@ -1179,6 +1179,16 @@ def api_lotacao_baixa_lotes(fazenda_id):
     lotes = database.listar_lotes_baixa_lotacao(fazenda_id)
     return jsonify(lotes)
 
+
+@app.route('/api/lotacao/historico/<int:fazenda_id>')
+def api_lotacao_historico(fazenda_id):
+    """Retorna histórico de lotação (UA/ha) da fazenda."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Não autorizado'}), 401
+
+    historico = database.listar_lotacao_historico(fazenda_id)
+    return jsonify(historico)
+
 # ============ ALERTAS ============
 @app.route('/api/alertas')
 def api_alertas():
